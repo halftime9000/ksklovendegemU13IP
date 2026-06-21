@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KSK Lovendegem · U13 IP Spelersplatform</title>
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{--sidebar:#0d1b2a;--accent:#22c55e;--accent-dk:#15803d;--bg:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#64748b}
+body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:var(--bg);height:100vh;overflow:hidden;color:var(--text)}
+#loading{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);z-index:999}
+#loading.off{display:none}
+#toast{position:fixed;bottom:20px;right:20px;background:var(--accent-dk);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .3s;pointer-events:none;z-index:998}
+#toast.on{opacity:1;transform:translateY(0)}
+#toast.err{background:#dc2626}
+.screen{display:none}
+.screen.on{display:flex}
+
+/* LOGIN */
+#s-login{align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#0d1b2a 0%,#0a2a1a 100%)}
+.login-card{background:#fff;border-radius:14px;padding:36px 32px;width:100%;max-width:340px}
+.login-logo{text-align:center;font-size:38px;margin-bottom:8px}
+.login-h1{text-align:center;font-size:17px;font-weight:700;margin-bottom:2px}
+.login-sub{text-align:center;font-size:11px;color:var(--muted);margin-bottom:20px}
+.demo-banner{background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:10px 12px;font-size:11px;color:#92400e;margin-bottom:14px;line-height:1.5}
+.lf{margin-bottom:12px}
+.lf label{display:block;font-size:11px;font-weight:600;color:#475569;margin-bottom:3px}
+.lf input{width:100%;border:1px solid var(--border);border-radius:7px;padding:9px 12px;font-size:13px;outline:none;transition:border-color .15s}
+.lf input:focus{border-color:var(--accent)}
+.login-btn{width:100%;background:var(--accent-dk);color:#fff;border:none;border-radius:7px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;margin-top:4px}
+.login-btn:hover{background:#166534}
+.login-btn:disabled{background:#86efac;cursor:not-allowed}
+.demo-btn{width:100%;background:#f1f5f9;color:#475569;border:1px solid var(--border);border-radius:7px;padding:10px;font-size:13px;font-weight:500;cursor:pointer;margin-top:8px}
+.demo-btn:hover{background:#e2e8f0}
+.login-err{margin-top:10px;text-align:center;font-size:12px;color:#dc2626;min-height:16px}
+
+/* APP */
+#s-app{height:100vh;width:100%}
+.layout{display:flex;height:100vh;overflow:hidden}
+.sb{width:230px;min-width:230px;background:var(--sidebar);display:flex;flex-direction:column;height:100vh}
+.sb-head{padding:14px 14px 10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.sb-label{font-size:9px;font-weight:700;letter-spacing:.12em;color:#4ade80;text-transform:uppercase;margin-bottom:3px}
+.sb-team{font-size:15px;font-weight:700;color:#fff}
+.sb-stats{display:flex;gap:6px;margin-top:10px}
+.sbox{flex:1;border-radius:6px;padding:6px 8px;text-align:center;background:rgba(255,255,255,.05)}
+.sbox.g{background:rgba(74,222,128,.1)}
+.sbox-n{font-size:15px;font-weight:700;color:#fff}
+.sbox.g .sbox-n{color:#4ade80}
+.sbox-l{font-size:8px;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.3)}
+.sbox.g .sbox-l{color:rgba(74,222,128,.5)}
+.sb-search{padding:8px 10px}
+.sb-wrap{position:relative}
+.sb-icon{position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:13px;color:rgba(255,255,255,.3);pointer-events:none}
+.sb-search input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:7px 8px 7px 28px;color:#fff;font-size:12px;outline:none;box-sizing:border-box}
+.sb-search input::placeholder{color:rgba(255,255,255,.3)}
+#player-list{flex:1;overflow-y:auto}
+.pi{display:flex;align-items:center;gap:9px;padding:8px 12px;cursor:pointer;border-left:2px solid transparent;transition:background .1s}
+.pi:hover{background:rgba(255,255,255,.04)}
+.pi.sel{background:rgba(74,222,128,.08);border-left-color:#4ade80}
+.pav{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;background:#1e293b;color:rgba(255,255,255,.3)}
+.pav.s{background:#713f12;color:#fbbf24}
+.pav.c{background:#14532d;color:#4ade80}
+.pinfo{flex:1;min-width:0}
+.pname{font-size:12px;font-weight:500;color:#e2e8f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pprog{display:flex;align-items:center;gap:4px;margin-top:3px}
+.pbar{flex:1;height:2px;background:rgba(255,255,255,.08);border-radius:99px}
+.pfill{height:2px;border-radius:99px;background:#fbbf24}
+.pfill.c{background:#4ade80}
+.ppct{font-size:9px;color:rgba(255,255,255,.25)}
+.sb-foot{padding:7px 12px;border-top:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between}
+#foot-txt{font-size:10px;color:rgba(255,255,255,.2)}
+.logout-btn{font-size:10px;color:rgba(255,255,255,.3);background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:4px}
+.logout-btn:hover{background:rgba(255,255,255,.05);color:rgba(255,255,255,.6)}
+.demo-badge{background:rgba(251,191,36,.15);color:#fbbf24;font-size:9px;font-weight:600;padding:2px 7px;border-radius:99px;margin-left:6px}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:#94a3b8}
+#empty-state .ball{font-size:44px}
+#empty-state h3{font-size:15px;font-weight:600;color:#475569}
+#empty-state p{font-size:12px}
+#detail{display:none;flex:1;flex-direction:column;overflow:hidden}
+#detail.on{display:flex}
+.p-head{background:#fff;border-bottom:1px solid var(--border);padding:12px 22px;display:flex;align-items:center;justify-content:space-between}
+.p-head-l{display:flex;align-items:center;gap:11px}
+#hdr-av{width:38px;height:38px;border-radius:50%;background:#dcfce7;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#166534;flex-shrink:0}
+#hdr-name{font-size:17px;font-weight:700}
+#hdr-sub{font-size:11px;color:var(--muted);margin-top:1px}
+#save-btn{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:7px;font-size:12px;font-weight:600;border:none;cursor:not-allowed;background:#e2e8f0;color:#94a3b8;transition:all .15s;white-space:nowrap}
+#save-btn.dirty{background:var(--accent-dk);color:#fff;cursor:pointer}
+#save-btn.saved{background:#16a34a;color:#fff}
+.tab-nav{background:#fff;border-bottom:1px solid var(--border);padding:0 22px;display:flex;overflow-x:auto}
+.tab-btn{display:flex;align-items:center;gap:5px;padding:9px 12px;font-size:12px;font-weight:500;border:none;border-bottom:2px solid transparent;background:transparent;cursor:pointer;white-space:nowrap;color:var(--muted)}
+.tab-btn.on{border-bottom-color:var(--accent-dk);color:var(--accent-dk)}
+.tab-body{flex:1;overflow-y:auto;padding:20px 22px}
+.tab-pane{display:none;flex-direction:column;gap:14px;max-width:600px;margin:0 auto}
+.tab-pane.on{display:flex}
+
+/* CARDS & FIELDS */
+.card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 18px}
+.card-t{font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+.fields{display:flex;flex-direction:column;gap:11px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:11px;font-weight:500;color:#475569}
+.field input,.field textarea{border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;color:var(--text);outline:none;font-family:inherit;width:100%;transition:border-color .15s;background:#fff}
+.field input:focus,.field textarea:focus{border-color:var(--accent-dk)}
+.field input[readonly]{background:#f8fafc;color:#94a3b8}
+.field textarea{resize:vertical}
+.tg{display:flex;gap:6px;flex-wrap:wrap}
+.tgb{padding:6px 13px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);transition:all .15s}
+.tgb.on{background:var(--accent-dk);color:#fff;border-color:var(--accent-dk)}
+
+/* MULTI-SELECT PILLS */
+.ms-block{display:flex;flex-direction:column;gap:10px}
+.ms-section{background:#f8fafc;border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.ms-cat{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.ms-pills{display:flex;flex-wrap:wrap;gap:5px}
+.pill{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);transition:all .12s}
+.pill.on{background:var(--accent-dk);color:#fff;border-color:var(--accent-dk)}
+.pill:hover:not(.on){border-color:var(--accent-dk);color:var(--accent-dk)}
+
+/* CALENDAR */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-title{font-size:13px;font-weight:600}
+.cal-nav{background:none;border:1px solid var(--border);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.cal-nav:hover{background:var(--bg)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-day-hdr{text-align:center;font-size:10px;font-weight:600;color:#94a3b8;padding:4px 0}
+.cal-day{text-align:center;padding:6px 2px;border-radius:6px;font-size:12px;cursor:pointer;border:1px solid transparent;transition:all .1s;color:#374151;user-select:none}
+.cal-day:hover:not(.empty){background:#f1f5f9}
+.cal-day.unavail{background:#fee2e2;color:#dc2626;font-weight:600;border-color:#fca5a5}
+.cal-day.range-start{border:2px dashed #d97706!important}
+.cal-day.today{outline:2px solid #86efac;outline-offset:-2px}
+.cal-day.empty{cursor:default;pointer-events:none}
+.cal-legend{display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--muted);flex-wrap:wrap}
+.cal-leg{display:flex;align-items:center;gap:5px}
+.cal-leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
+.cal-periods{margin-top:10px;padding:9px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:7px;font-size:12px;color:#15803d;font-weight:500;line-height:1.6;min-height:0}
+
+/* WEDSTRIJDEN */
+.coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;gap:10px;color:#94a3b8;text-align:center}
+.coming-soon .icon{font-size:40px}
+.coming-soon h3{font-size:14px;font-weight:600;color:#475569}
+.coming-soon p{font-size:12px;line-height:1.6;max-width:300px}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:99px}
+</style>
+</head>
+<body>
+
+<div id="loading">Laden…</div>
+<div id="toast"></div>
+
+<!-- LOGIN -->
+<div id="s-login" class="screen">
+  <div class="login-card">
+    <div class="login-logo">⚽</div>
+    <div class="login-h1">KSK Lovendegem</div>
+    <div class="login-sub">U13 IP · Spelersplatform 2026–27</div>
+    <div id="demo-banner" class="demo-banner" style="display:none">⚠️ <strong>Supabase niet geconfigureerd.</strong><br>Klik op "Bekijk layout" om lokaal te testen.</div>
+    <div id="login-fields">
+      <div class="lf"><label>E-mail</label><input id="inp-email" type="email" placeholder="coach@email.com"></div>
+      <div class="lf"><label>Wachtwoord</label><input id="inp-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+      <button class="login-btn" id="login-btn" onclick="doLogin()">Inloggen</button>
+    </div>
+    <button id="demo-btn" class="demo-btn" style="display:none" onclick="startDemo()">👁️ Bekijk layout (zonder Supabase)</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="s-app" class="screen">
+<div class="layout">
+  <div class="sb">
+    <div class="sb-head">
+      <div class="sb-label">KSK Lovendegem</div>
+      <div class="sb-team">U13 IP · 2026–27 <span id="demo-badge" class="demo-badge" style="display:none">DEMO</span></div>
+      <div class="sb-stats">
+        <div class="sbox"><div class="sbox-n">25</div><div class="sbox-l">Spelers</div></div>
+        <div class="sbox g"><div class="sbox-n" id="stat-n">0</div><div class="sbox-l">Volledig</div></div>
+      </div>
+    </div>
+    <div class="sb-search"><div class="sb-wrap"><span class="sb-icon">🔍</span><input type="text" placeholder="Zoeken…" oninput="renderList()"></div></div>
+    <div id="player-list"></div>
+    <div class="sb-foot" style="flex-direction:column;gap:6px;align-items:stretch">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span id="foot-txt" style="font-size:10px;color:rgba(255,255,255,.2)">0/25 ingevuld</span>
+        <button class="logout-btn" onclick="doLogout()">Uitloggen</button>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button onclick="exportData()" style="flex:1;font-size:10px;padding:5px 4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:rgba(255,255,255,.5);cursor:pointer">⬇ Export</button>
+        <label style="flex:1;font-size:10px;padding:5px 4px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:5px;color:rgba(255,255,255,.5);cursor:pointer;text-align:center">
+          ⬆ Import<input id="imp-input" type="file" accept=".json" style="display:none" onchange="importData(event)">
+        </label>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div id="empty-state">
+      <div class="ball">⚽</div>
+      <h3>Selecteer een speler</h3>
+      <p>Klik een naam in de lijst links</p>
+    </div>
+
+    <div id="detail">
+      <div class="p-head">
+        <div class="p-head-l">
+          <div id="hdr-av"></div>
+          <div><div id="hdr-name"></div><div id="hdr-sub"></div></div>
+        </div>
+        <button id="save-btn" onclick="savePlayer()" disabled>💾 Opslaan</button>
+      </div>
+
+      <!-- TABS: Persoonlijk · Voetbal · Wedstrijden · Planning · Medisch -->
+      <div class="tab-nav">
+        <button class="tab-btn on" onclick="switchTab('persoonlijk',this)">👤 Persoonlijk</button>
+        <button class="tab-btn"    onclick="switchTab('voetbal',this)">⚽ Voetbal</button>
+        <button class="tab-btn"    onclick="switchTab('wedstrijden',this)">🏟️ Wedstrijden</button>
+        <button class="tab-btn"    onclick="switchTab('planning',this)">📅 Planning</button>
+        <button class="tab-btn"    onclick="switchTab('medisch',this)">🏥 Medisch</button>
+      </div>
+
+      <div class="tab-body">
+
+        <!-- ── PERSOONLIJK ── -->
+        <div id="tp-persoonlijk" class="tab-pane on">
+          <div class="card">
+            <div class="card-t">Persoonlijke gegevens</div>
+            <div class="fields">
+              <div class="frow">
+                <div class="field"><label>Voornaam</label><input id="f-voornaam" readonly></div>
+                <div class="field"><label>Naam</label><input id="f-naam" readonly></div>
+              </div>
+              <div class="frow">
+                <div class="field"><label>Geboortedatum</label><input id="f-geboortedatum" type="date" oninput="markDirty()"></div>
+                <div class="field"><label>GSM nr</label><input id="f-gsm_speler" type="tel" placeholder="+32 4xx xx xx xx" oninput="markDirty()"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── VOETBAL ── -->
+        <div id="tp-voetbal" class="tab-pane">
+
+          <div class="card">
+            <div class="card-t">Sportieve info</div>
+            <div class="fields">
+              <div class="field">
+                <label>Positie</label>
+                <div class="tg" id="tg-positie">
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">1</button>
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">2</button>
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">3</button>
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">5</button>
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">7</button>
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">8</button>
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">9</button>
+                  <button class="tgb" onclick="toggleGrp(this,'positie')">11</button>
+                </div>
+              </div>
+              <div class="field">
+                <label>Sterke voet</label>
+                <div class="tg" id="tg-sterkevoet">
+                  <button class="tgb" onclick="toggleGrp(this,'sterkevoet')">Links</button>
+                  <button class="tgb" onclick="toggleGrp(this,'sterkevoet')">Rechts</button>
+                  <button class="tgb" onclick="toggleGrp(this,'sterkevoet')">Beide</button>
+                </div>
+              </div>
+              <div class="field"><label>Vorige club</label><input id="f-vorige_club" placeholder="Naam club" oninput="markDirty()"></div>
+            </div>
+          </div>
+
+          <!-- BASISFICHE -->
+          <div class="card">
+            <div class="card-t">Basisfiche Startseizoen 2026–27 · Ken jezelf</div>
+            <div class="fields">
+
+              <div class="frow">
+                <div class="field">
+                  <label>Welke positie speel je het meest?</label>
+                  <div class="tg" id="tg-bf_meest">
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">1</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">2</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">3</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">5</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">7</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">8</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">9</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">11</button>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Favoriete positie</label>
+                  <div class="tg" id="tg-bf_favoriet">
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">1</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">2</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">3</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">5</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">7</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">8</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">9</button>
+                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">11</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Sterke punten</label>
+                <div class="ms-block" id="ms-container-sterke"></div>
+              </div>
+
+              <div class="field">
+                <label>Werkpunten</label>
+                <div class="ms-block" id="ms-container-werk"></div>
+              </div>
+
+              <div class="field"><label>Hoe beoordeel je jouw huidig niveau?</label><textarea id="f-bf_niveau" rows="3" placeholder="Beschrijf eerlijk waar je nu staat als voetballer…" oninput="markDirty()"></textarea></div>
+              <div class="field"><label>Waar wil je staan op het einde van het seizoen?</label><textarea id="f-bf_doel" rows="3" placeholder="Welke concrete doelen stel je jezelf voor dit seizoen?" oninput="markDirty()"></textarea></div>
+              <div class="field"><label>Wat zijn je verwachtingen van de trainer?</label><textarea id="f-bf_verwachting" rows="3" placeholder="Wat verwacht je van mij als coach dit seizoen?" oninput="markDirty()"></textarea></div>
+            </div>
+          </div>
+
+          <!-- SCHOOL -->
+          <div class="card">
+            <div class="card-t">Schoolinformatie</div>
+            <div class="fields">
+              <div class="field"><label>Naam school</label><input id="f-school_naam" placeholder="Naam van de school" oninput="markDirty()"></div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ── WEDSTRIJDEN ── -->
+        <div id="tp-wedstrijden" class="tab-pane">
+          <div class="card">
+            <div class="coming-soon">
+              <div class="icon">🏟️</div>
+              <h3>Wedstrijden — binnenkort beschikbaar</h3>
+              <p>Hier komen wedstrijdverslagen, spelersevaluaties per match en andere wedstrijdgerelateerde functies.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── PLANNING ── -->
+        <div id="tp-planning" class="tab-pane">
+          <div class="card">
+            <div class="card-t">Niet beschikbaar — kalender</div>
+            <div class="cal-header">
+              <button class="cal-nav" onclick="prevMonth()">&#8249;</button>
+              <span class="cal-title" id="cal-title"></span>
+              <button class="cal-nav" onclick="nextMonth()">&#8250;</button>
+            </div>
+            <div class="cal-grid" id="cal-grid"></div>
+            <div class="cal-legend">
+              <div class="cal-leg"><div class="cal-leg-dot" style="background:#fee2e2;border:1px solid #fca5a5"></div>Niet beschikbaar</div>
+              <div class="cal-leg"><div class="cal-leg-dot" style="background:#fee2e2;border:2px dashed #d97706"></div>Startdag bereik</div>
+              <div class="cal-leg"><div class="cal-leg-dot" style="outline:2px solid #86efac;outline-offset:-2px"></div>Vandaag</div>
+            </div>
+            <div class="cal-periods" id="cal-periods" style="display:none"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-t">Andere opmerkingen</div>
+            <div class="fields">
+              <div class="field"><textarea id="f-beschikbaarheid" rows="4" placeholder="Bijv. vrijdag nooit beschikbaar wegens…" oninput="markDirty()"></textarea></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── MEDISCH ── -->
+        <div id="tp-medisch" class="tab-pane">
+          <div class="card">
+            <div class="card-t">Medische informatie</div>
+            <div class="fields">
+              <div class="field"><label>Allergie</label><textarea id="f-allergie" rows="3" placeholder="Bijv. pinda's, bijen, latex, penicilline…" oninput="markDirty()"></textarea></div>
+              <div class="field"><label>Medicatie</label><textarea id="f-medicatie" rows="3" placeholder="Naam medicijn, dosering, tijdstip…" oninput="markDirty()"></textarea></div>
+              <div class="field"><label>Andere medische info</label><textarea id="f-medisch_info" rows="3" placeholder="Astma, epilepsie, diabetes, andere aandoeningen…" oninput="markDirty()"></textarea></div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-body -->
+    </div><!-- /detail -->
+  </div><!-- /main -->
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ==========================================
+// CONFIG - vul jouw waarden in!
+// ==========================================
+const SUPABASE_URL      = 'https://gfjqujhtligypbvrdnug.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmanF1amh0bGlneXBidnJkbnVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNjgwNzQsImV4cCI6MjA5NzY0NDA3NH0.J_wkKkKMMsWRC2HFh6rYdOyv-WUERJ2hBypNSog9-RE';
+// ==========================================
+
+const DEMO = SUPABASE_URL.includes('JOUW');
+let sb = null;
+if (!DEMO) { try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) {} }
+
+// ── MULTI-SELECT DATA ────────────────────
+const CATEGORIES = {
+  technisch: ['Dribbelen','Passing / aanspelen','Eerste aanname','Balcontrole','Schieten','Koppen','Één-op-één','Overzicht','Vrij komen / aanlopen'],
+  taktisch:  ['Positiespel','Omschakeling','Pressing','Ruimte creëren','Ruimte dichtlopen','Anticiperen','Communicatie op het veld'],
+  fysiek:    ['Snelheid','Uithoudingsvermogen','Kracht','Wendbaarheid / agility','Explosiviteit','Coördinatie','Balans'],
+  mental:    ['Doorzettingsvermogen','Focus / concentratie','Leiderschap','Teamspeler','Zelfvertrouwen','Vechtlust / inzet','Weerbaarheid'],
+};
+const CAT_LABELS = {technisch:'Technisch', taktisch:'Taktisch', fysiek:'Fysiek', mental:'Mental'};
+const MULTI_KEYS = ['sterke_technisch','sterke_taktisch','sterke_fysiek','sterke_mental','werk_technisch','werk_taktisch','werk_fysiek','werk_mental'];
+
+const PLAYERS = [
+  {id:1,  naam:'Altintas',        voornaam:'Iltay'},
+  {id:2,  naam:'Annaert',         voornaam:'Rémi'},
+  {id:3,  naam:'Arickx',          voornaam:'Maxim'},
+  {id:4,  naam:'Arickx',          voornaam:'Senne'},
+  {id:5,  naam:'Asllani',         voornaam:'Jugerd'},
+  {id:6,  naam:'Capa',            voornaam:'Umut'},
+  {id:7,  naam:'Criel',           voornaam:'Juul'},
+  {id:8,  naam:'De Vos',          voornaam:'Saviour Aisosa'},
+  {id:9,  naam:'Dejonghe',        voornaam:'Mauro'},
+  {id:10, naam:'Demoor',          voornaam:'Lowie'},
+  {id:11, naam:'Denecker',        voornaam:'Max Joseph'},
+  {id:12, naam:'Dormaels',        voornaam:'Sverre'},
+  {id:13, naam:'Goeminne',        voornaam:'Alec'},
+  {id:14, naam:'Goethals',        voornaam:'Sem'},
+  {id:15, naam:'Khzami',          voornaam:"Mu'min"},
+  {id:16, naam:'Malfait',         voornaam:'Noah'},
+  {id:17, naam:'Mortier',         voornaam:'Louis'},
+  {id:18, naam:'Tajouri',         voornaam:'Iyed'},
+  {id:19, naam:'Tekgul',          voornaam:'Yekta'},
+  {id:20, naam:'Tunceli',         voornaam:'Semih'},
+  {id:21, naam:'Van Acker',       voornaam:'Jorre'},
+  {id:22, naam:'Van Kerckvoorde', voornaam:'Léon'},
+  {id:23, naam:'Vanderkelen',     voornaam:'Jacques'},
+  {id:24, naam:'Vankeerberghen',  voornaam:'Len'},
+  {id:25, naam:'Vereecke',        voornaam:'Liam'},
+];
+
+const KEY_FIELDS  = ['geboortedatum','gsm_speler','positie','bf_niveau','bf_doel'];
+const TEXT_FIELDS = ['geboortedatum','gsm_speler','allergie','medicatie','medisch_info','vorige_club','bf_niveau','bf_doel','bf_verwachting','beschikbaarheid','school_naam'];
+
+let DB      = {};
+let selId   = null;
+let isDirty = false;
+let tgState = {positie:'', sterkevoet:'', bf_meest:'', bf_favoriet:''};
+let multiState = {};
+MULTI_KEYS.forEach(k => multiState[k] = []);
+
+// Calendar
+let calYear    = new Date().getFullYear();
+let calMonth   = new Date().getMonth();
+let unavailDates = [];
+let rangeStart   = null;
+const TODAY = new Date().toISOString().slice(0,10);
+const MONTHS = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+const MON_SHORT = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+
+// ── BUILD MULTI-SELECT HTML ───────────────
+function buildMultiSections() {
+  ['sterke','werk'].forEach(type => {
+    const c = $(`ms-container-${type}`);
+    if (!c) return;
+    c.innerHTML = Object.entries(CATEGORIES).map(([cat, opts]) => `
+      <div class="ms-section">
+        <div class="ms-cat">${CAT_LABELS[cat]}</div>
+        <div class="ms-pills" id="ms-${type}_${cat}">
+          ${opts.map(o=>`<button class="pill" onclick="togglePill(this,'${type}_${cat}')">${o}</button>`).join('')}
+        </div>
+      </div>`).join('');
+  });
+}
+
+// ── INIT ─────────────────────────────────
+async function init() {
+  buildMultiSections();
+  renderCalendar();
+  if (DEMO) { $('demo-banner').style.display='block'; $('demo-btn').style.display='block'; hide('loading'); showFlex('s-login'); return; }
+  try {
+    const {data:{session}} = await sb.auth.getSession();
+    if (!session) { hide('loading'); showFlex('s-login'); return; }
+    await loadAll(); hide('loading'); showFlex('s-app');
+  } catch(e) { hide('loading'); showFlex('s-login'); $('login-err').textContent='Verbindingsfout.'; }
+}
+
+const LS_KEY = 'ksk_lovendegem_u13_demo';
+
+function startDemo() {
+  DB={};
+  PLAYERS.forEach(p=>DB[p.id]={id:p.id,naam:p.naam,voornaam:p.voornaam,data:{}});
+  try {
+    const saved=localStorage.getItem(LS_KEY);
+    if(saved){const parsed=JSON.parse(saved);Object.keys(parsed).forEach(id=>{if(DB[id])DB[id].data=parsed[id].data||{};});}
+  } catch(e){}
+  hide('s-login'); showFlex('s-app');
+  $('demo-badge').style.display='inline';
+  renderList(); updateStats();
+}
+
+function saveDemoToLS(){
+  try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}catch(e){}
+}
+
+function exportData(){
+  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);
+  a.download='ksk_backup_'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();toast('Backup gedownload ✓');
+}
+
+function importData(evt){
+  const file=evt.target.files[0];if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    try{
+      const parsed=JSON.parse(e.target.result);
+      Object.keys(parsed).forEach(id=>{if(DB[id])DB[id].data=parsed[id].data||{};});
+      saveDemoToLS();renderList();updateStats();
+      toast('Import gelukt — '+Object.keys(parsed).length+' spelers ✓');
+      if(selId)selectPlayer(selId);
+    }catch(err){toast('Fout bij import',true);}
+  };
+  r.readAsText(file);evt.target.value='';
+}
+
+async function loadAll() {
+  const {data,error}=await sb.from('spelers').select('*');
+  if(error){toast('DB-fout: '+error.message,true);return;}
+  if(!data||data.length===0){
+    await sb.from('spelers').insert(PLAYERS.map(p=>({id:p.id,naam:p.naam,voornaam:p.voornaam,seizoen:'2026-27',data:{}})));
+    await loadAll();return;
+  }
+  DB={};data.forEach(r=>DB[r.id]=r);renderList();updateStats();
+}
+
+// ── AUTH ─────────────────────────────────
+async function doLogin() {
+  if(!sb){$('login-err').textContent='Supabase niet geconfigureerd.';return;}
+  const email=$('inp-email').value.trim(),pwd=$('inp-pwd').value,btn=$('login-btn');
+  if(!email||!pwd){$('login-err').textContent='Vul beide velden in.';return;}
+  btn.disabled=true;btn.textContent='Bezig…';$('login-err').textContent='';
+  const{error}=await sb.auth.signInWithPassword({email,password:pwd});
+  if(error){$('login-err').textContent='Onjuist e-mail of wachtwoord.';btn.disabled=false;btn.textContent='Inloggen';return;}
+  // Check for local demo data to migrate
+  try {
+    const lsRaw = localStorage.getItem(LS_KEY);
+    if (lsRaw) {
+      const lsParsed = JSON.parse(lsRaw);
+      const hasAny = Object.values(lsParsed).some(p => p.data && Object.keys(p.data).length > 0);
+      if (hasAny && confirm('📦 Er is lokaal opgeslagen demo data gevonden.\n\nWil je die nu uploaden naar Supabase?\n(Aanbevolen: klik op OK)')) {
+        show('loading');
+        for (const id of Object.keys(lsParsed)) {
+          const p = PLAYERS.find(x => x.id === parseInt(id));
+          if (!p) continue;
+          const d = lsParsed[id].data;
+          if (!d || Object.keys(d).length === 0) continue;
+          await sb.from('spelers').upsert({
+            id: parseInt(id), naam: p.naam, voornaam: p.voornaam,
+            seizoen: '2026-27', data: d, updated_at: new Date().toISOString()
+          }, {onConflict:'id'});
+        }
+        localStorage.removeItem(LS_KEY);
+        toast('Demo data geüpload naar Supabase ✓');
+      }
+    }
+  } catch(e) {}
+  hide('s-login');show('loading');await loadAll();hide('loading');showFlex('s-app');
+}
+async function doLogout(){if(sb)await sb.auth.signOut();hide('s-app');showFlex('s-login');$('demo-badge').style.display='none';selId=null;DB={};}
+
+// ── RENDER LIST ───────────────────────────
+function renderList(){
+  const q=document.querySelector('.sb-search input')?.value.toLowerCase()||'';
+  const ul=$('player-list');ul.innerHTML='';
+  PLAYERS.filter(p=>`${p.voornaam} ${p.naam}`.toLowerCase().includes(q)).forEach(p=>{
+    const d=DB[p.id]?.data||{},pc=calcPct(d),has=hasData(d),ini=(p.voornaam[0]+p.naam[0]).toUpperCase(),avc=pc===100?'c':has?'s':'';
+    const el=document.createElement('div');
+    el.className='pi'+(selId===p.id?' sel':'');
+    el.innerHTML=`<div class="pav ${avc}">${ini}</div><div class="pinfo"><div class="pname">${p.voornaam} ${p.naam}</div>${has?`<div class="pprog"><div class="pbar"><div class="pfill ${pc===100?'c':''}" style="width:${pc}%"></div></div><span class="ppct">${pc}%</span></div>`:''}</div>`;
+    el.onclick=()=>selectPlayer(p.id);ul.appendChild(el);
+  });
+}
+
+// ── SELECT PLAYER ─────────────────────────
+function selectPlayer(id){
+  if(isDirty&&!confirm('Wijzigingen niet opgeslagen. Toch verder?'))return;
+  selId=id;isDirty=false;rangeStart=null;
+  const p=PLAYERS.find(x=>x.id===id),d=DB[id]?.data||{};
+  $('hdr-av').textContent=(p.voornaam[0]+p.naam[0]).toUpperCase();
+  $('hdr-name').textContent=`${p.voornaam} ${p.naam}`;
+  updSub(d);
+  $('f-voornaam').value=p.voornaam;$('f-naam').value=p.naam;
+  TEXT_FIELDS.forEach(f=>{const el=$(`f-${f}`);if(el)el.value=d[f]||'';});
+  tgState={positie:d.positie||'',sterkevoet:d.sterkevoet||'',bf_meest:d.bf_meest||'',bf_favoriet:d.bf_favoriet||''};
+  ['positie','sterkevoet','bf_meest','bf_favoriet'].forEach(g=>renderTg(g));
+  MULTI_KEYS.forEach(k=>multiState[k]=Array.isArray(d[k])?[...d[k]]:[]);
+  renderPills();
+  unavailDates=Array.isArray(d.unavail_dates)?[...d.unavail_dates]:[];
+  renderCalendar();
+  setSaveBtn('idle');
+  $('empty-state').style.display='none';$('detail').style.display='flex';
+  switchTabById('persoonlijk');renderList();
+}
+
+function updSub(d){
+  let p=['U13 IP','2026–27'];
+  if(d.rugnummer)p.push('#'+d.rugnummer);if(d.positie)p.push(d.positie);
+  $('hdr-sub').textContent=p.join(' · ');
+}
+
+// ── FORM ─────────────────────────────────
+function markDirty(){isDirty=true;setSaveBtn('dirty');}
+function setSaveBtn(s){const b=$('save-btn');b.className=s==='idle'?'save-btn':`save-btn ${s}`;b.disabled=s==='idle';b.textContent=s==='saved'?'✓ Opgeslagen':'💾 Opslaan';}
+function toggleGrp(el,g){const v=el.textContent.trim();tgState[g]=tgState[g]===v?'':v;renderTg(g);markDirty();}
+function renderTg(g){document.querySelectorAll(`#tg-${g} .tgb`).forEach(b=>b.classList.toggle('on',b.textContent.trim()===tgState[g]));}
+
+function togglePill(el,key){
+  const v=el.textContent.trim(),arr=multiState[key],i=arr.indexOf(v);
+  if(i>-1)arr.splice(i,1);else arr.push(v);
+  el.classList.toggle('on',multiState[key].includes(v));markDirty();
+}
+function renderPills(){
+  MULTI_KEYS.forEach(k=>{
+    const c=document.getElementById(`ms-${k}`);if(!c)return;
+    c.querySelectorAll('.pill').forEach(b=>b.classList.toggle('on',multiState[k].includes(b.textContent.trim())));
+  });
+}
+
+// ── CALENDAR ─────────────────────────────
+function renderCalendar(){
+  $('cal-title').textContent=`${MONTHS[calMonth]} ${calYear}`;
+  const firstDay=new Date(calYear,calMonth,1).getDay();
+  const startOff=(firstDay+6)%7;
+  const days=new Date(calYear,calMonth+1,0).getDate();
+  let h='';
+  ['Ma','Di','Wo','Do','Vr','Za','Zo'].forEach(d=>h+=`<div class="cal-day-hdr">${d}</div>`);
+  for(let i=0;i<startOff;i++)h+='<div class="cal-day empty"></div>';
+  for(let day=1;day<=days;day++){
+    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const isU=unavailDates.includes(ds),isR=rangeStart===ds,isT=ds===TODAY;
+    h+=`<div class="cal-day ${isU?'unavail':''} ${isR?'range-start':''} ${isT?'today':''}" onclick="toggleDate('${ds}')">${day}</div>`;
+  }
+  $('cal-grid').innerHTML=h;
+  updatePeriodSummary();
+}
+
+function toggleDate(ds){
+  const isRed=unavailDates.includes(ds);
+  if(isRed){
+    // Click red day → remove it
+    unavailDates.splice(unavailDates.indexOf(ds),1);
+    if(rangeStart===ds)rangeStart=null;
+    renderCalendar();markDirty();
+  } else if(!rangeStart){
+    // First click on free day → immediately red + set as range start
+    unavailDates.push(ds);rangeStart=ds;
+    renderCalendar();markDirty();
+  } else {
+    // Second click → fill range from rangeStart to ds
+    const a=rangeStart<ds?rangeStart:ds, b=rangeStart<ds?ds:rangeStart;
+    let cur=new Date(a);const end=new Date(b);
+    while(cur<=end){
+      const s=cur.toISOString().slice(0,10);
+      if(!unavailDates.includes(s))unavailDates.push(s);
+      cur.setDate(cur.getDate()+1);
+    }
+    rangeStart=null;renderCalendar();markDirty();
+  }
+}
+
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+
+function updatePeriodSummary(){
+  const el=$('cal-periods');if(!el)return;
+  if(!unavailDates.length){el.style.display='none';return;}
+  const sorted=[...unavailDates].sort();
+  const periods=[];let s=sorted[0],p=sorted[0];
+  for(let i=1;i<sorted.length;i++){
+    const diff=(new Date(sorted[i])-new Date(p))/(86400000);
+    if(diff<=1)p=sorted[i];
+    else{periods.push({s,e:p});s=sorted[i];p=sorted[i];}
+  }
+  periods.push({s,e:p});
+  const fmt=ds=>{const d=new Date(ds);return`${d.getDate()} ${MON_SHORT[d.getMonth()]} ${d.getFullYear()}`;};
+  const txt=periods.map(r=>r.s===r.e?fmt(r.s):`${fmt(r.s)} – ${fmt(r.e)}`).join('\n');
+  el.style.display='block';el.textContent='📅 Periodes:\n'+txt;
+  el.style.whiteSpace='pre-line';
+}
+
+// ── SAVE ─────────────────────────────────
+async function savePlayer(){
+  if(!selId||!isDirty)return;
+  if(DEMO){
+    const d=collectForm();DB[selId]={...(DB[selId]||{}),data:d};
+    saveDemoToLS();
+    isDirty=false;setSaveBtn('saved');setTimeout(()=>setSaveBtn('idle'),2000);
+    updSub(d);updateStats();renderList();toast('Opgeslagen ✓ (lokaal)');return;
+  }
+  $('save-btn').textContent='Bezig…';$('save-btn').disabled=true;
+  const p=PLAYERS.find(x=>x.id===selId),d=collectForm();
+  const{error}=await sb.from('spelers').upsert({id:selId,naam:p.naam,voornaam:p.voornaam,seizoen:'2026-27',data:d,updated_at:new Date().toISOString()},{onConflict:'id'});
+  if(error){toast('Fout bij opslaan',true);setSaveBtn('dirty');return;}
+  DB[selId]={...(DB[selId]||{}),id:selId,naam:p.naam,voornaam:p.voornaam,data:d};
+  isDirty=false;setSaveBtn('saved');setTimeout(()=>setSaveBtn('idle'),2200);
+  updSub(d);updateStats();renderList();toast('Opgeslagen ✓');
+}
+
+function collectForm(){
+  const d={};
+  TEXT_FIELDS.forEach(f=>{const el=$(`f-${f}`);if(el)d[f]=el.value.trim();});
+  Object.assign(d,{positie:tgState.positie,sterkevoet:tgState.sterkevoet,bf_meest:tgState.bf_meest,bf_favoriet:tgState.bf_favoriet});
+  MULTI_KEYS.forEach(k=>d[k]=[...multiState[k]]);
+  d.unavail_dates=[...unavailDates];
+  return d;
+}
+
+// ── TABS ─────────────────────────────────
+function switchTab(id,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  $(`tp-${id}`)?.classList.add('on');btn?.classList.add('on');
+}
+function switchTabById(id){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
+  $(`tp-${id}`)?.classList.add('on');
+  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes(`'${id}'`))b.classList.add('on');});
+}
+
+// ── STATS ─────────────────────────────────
+function updateStats(){
+  const c=Object.values(DB).filter(r=>calcPct(r.data||{})===100).length;
+  const s=Object.values(DB).filter(r=>hasData(r.data||{})).length;
+  $('stat-n').textContent=c;$('foot-txt').textContent=`${s}/25 ingevuld`;
+}
+function calcPct(d){if(!d)return 0;return Math.round(KEY_FIELDS.filter(f=>{const v=d[f];return v!==''&&v!==false&&v!=null;}).length/KEY_FIELDS.length*100);}
+function hasData(d){return d&&Object.keys(d).some(k=>{const v=d[k];return v!==''&&v!==false&&v!=null&&!(Array.isArray(v)&&v.length===0);});}
+
+// ── UTILS ─────────────────────────────────
+const $=id=>document.getElementById(id);
+function show(id){const el=$(id);if(el)el.style.display='block';}
+function showFlex(id){const el=$(id);if(el)el.style.display='flex';}
+function hide(id){const el=$(id);if(el)el.style.display='none';}
+function toast(msg,isErr=false){const t=$('toast');t.textContent=msg;t.className='on'+(isErr?' err':'');setTimeout(()=>t.className='',2500);}
+
+init();
+</script>
+</body>
+</html>
