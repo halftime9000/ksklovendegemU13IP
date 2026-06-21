@@ -6,7 +6,7 @@
 <title>KSK Lovendegem · U13 IP Spelersplatform</title>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--sidebar:#0d1b2a;--accent:#22c55e;--accent-dk:#15803d;--bg:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--muted:#64748b}
+:root{--sidebar:#0d1b2a;--accent:#22c55e;--accent-dk:#15803d;--bg:#eef3f0;--border:#e2e8f0;--text:#0f172a;--muted:#64748b}
 body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:var(--bg);height:100vh;overflow:hidden;color:var(--text)}
 #loading{position:fixed;inset:0;background:rgba(255,255,255,.9);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted);z-index:999}
 #loading.off{display:none}
@@ -97,7 +97,7 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 .tab-pane.on{display:flex}
 
 /* CARDS & FIELDS */
-.card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 18px}
+.card{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 18px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
 .card-t{font-size:9px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
 .fields{display:flex;flex-direction:column;gap:11px}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -146,6 +146,34 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.15);border-radius:99px}
+
+/* ── MOBILE ── */
+@media (max-width:768px){
+  .layout{position:relative}
+  .sb{position:absolute;top:0;left:0;width:100%!important;min-width:unset!important;height:100vh;z-index:10;transition:transform .25s}
+  .sb.slide-out{transform:translateX(-100%);pointer-events:none}
+  .main{width:100%}
+  .frow{grid-template-columns:1fr!important}
+  .tab-nav{padding:0 10px}
+  .tab-btn{padding:8px 9px;font-size:11px;gap:3px}
+  .tab-body{padding:12px 10px}
+  .card{padding:12px 14px}
+  .p-head{padding:10px 12px}
+  #hdr-name{font-size:14px}
+  #hdr-sub{font-size:10px}
+  #save-btn{padding:6px 12px;font-size:11px}
+  #back-btn{display:block!important}
+  .ms-section{padding:8px 10px}
+  .cal-grid{gap:2px}
+  .cal-day{padding:5px 1px;font-size:11px}
+  .sb-head{padding:20px 14px 12px}
+  .pi{padding:10px 12px}
+  .pname{font-size:13px}
+  .tab-btn .tab-icon{display:none}
+}
+@media (min-width:769px){
+  #back-btn{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -208,6 +236,7 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
     <div id="detail">
       <div class="p-head">
         <div class="p-head-l">
+          <button id="back-btn" onclick="backToList()" style="display:none;background:none;border:none;cursor:pointer;padding:4px 8px 4px 0;font-size:18px;color:var(--muted);margin-right:4px">&#8592;</button>
           <div id="hdr-av"></div>
           <div><div id="hdr-name"></div><div id="hdr-sub"></div></div>
         </div>
@@ -603,8 +632,18 @@ function selectPlayer(id){
   renderCalendar();
   setSaveBtn('idle');
   $('empty-state').style.display='none';$('detail').style.display='flex';
+  if(isMobile()) document.querySelector('.sb').classList.add('slide-out');
   switchTabById('persoonlijk');renderList();
 }
+
+function backToList(){
+  document.querySelector('.sb').classList.remove('slide-out');
+  $('detail').style.display='none';
+  $('empty-state').style.display='flex';
+  selId=null;renderList();
+}
+
+function isMobile(){ return window.innerWidth <= 768; }
 
 function updSub(d){
   let p=['U13 IP','2026–27'];
