@@ -175,6 +175,11 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:99px}
 
+/* SECTION HEADINGS */
+.section-heading{font-size:14px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:2px;letter-spacing:.01em}
+.section-heading.green{background:#f0fdf4;color:#15803d;border-left:3px solid #22c55e}
+.section-heading.orange{background:#fff7ed;color:#c2410c;border-left:3px solid #f97316}
+
 /* MOBILE */
 @media (max-width:768px){
   .layout{position:relative}
@@ -192,6 +197,10 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
   #save-btn{padding:7px 12px;font-size:11px}
   #back-btn{display:block!important}
   #tp-planning.on{flex-direction:column!important}
+  .layout{height:100dvh}
+  .main{height:100dvh}
+  #detail.on{height:100%;min-height:0}
+  .tab-body{-webkit-overflow-scrolling:touch;padding-bottom:40px}
 }
 </style>
 </head>
@@ -341,12 +350,12 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
               </div>
 
               <div class="field">
-                <label>Sterke punten</label>
+                <div class="section-heading green">💪 Sterke punten</div>
                 <div class="ms-block" id="ms-container-sterke"></div>
               </div>
 
               <div class="field">
-                <label>Werkpunten</label>
+                <div class="section-heading orange">🎯 Werkpunten</div>
                 <div class="ms-block" id="ms-container-werk"></div>
               </div>
 
