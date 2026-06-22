@@ -718,7 +718,7 @@ async function init() {
     const {data:{session}} = await sb.auth.getSession();
     if (!session) { hide('loading'); showFlex('s-login'); return; }
     await handleLogin();
-  } catch(e) { hide('loading'); showFlex('s-login'); $('login-err').textContent='Verbindingsfout.'; }
+  } catch(e) { console.error('Init error:',e); hide('loading'); showFlex('s-login'); }
 }
 
 async function doLogin() {
