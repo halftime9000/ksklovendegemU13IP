@@ -204,25 +204,45 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 
 /* MOBILE */
 @media (max-width:768px){
-  .layout{position:relative}
-  .sb{position:absolute;top:0;left:0;width:100%!important;min-width:unset!important;height:100vh;z-index:10;transition:transform .25s}
-  .sb.slide-out{transform:translateX(-100%);pointer-events:none}
-  .main{width:100%}
+  /* Sidebar: hidden by default, slides in as overlay */
+  .sb{position:fixed;top:0;left:0;height:100%;width:80%!important;max-width:300px;min-width:unset!important;z-index:30;transform:translateX(-100%);transition:transform .28s ease;box-shadow:4px 0 24px rgba(0,0,0,.35)}
+  .sb.open{transform:translateX(0)}
+  .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:29}
+  .sb-overlay.show{display:block}
+  /* Main fills full screen */
+  .main{width:100%;height:100dvh;display:flex;flex-direction:column}
+  /* Empty state scrollable on mobile */
+  #empty-state{padding:16px;overflow-y:auto;align-items:flex-start}
+  .empty-card{margin:0 auto}
+  /* Detail */
+  #detail.on{flex:1;min-height:0;display:flex;flex-direction:column}
+  .tab-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:80px}
+  /* Form */
   .frow{grid-template-columns:1fr!important}
-  .tab-nav{padding:0 8px}
-  .tab-btn{padding:9px 10px;font-size:11px;gap:3px}
-  .tab-body{padding:14px 12px}
-  .card{padding:14px 16px}
+  /* Header */
   .p-head{padding:12px 14px}
   #hdr-name{font-size:15px}
   #hdr-av{width:38px;height:38px;font-size:12px}
   #save-btn{padding:7px 12px;font-size:11px}
   #back-btn{display:block!important}
+  /* Tabs */
+  .tab-nav{padding:0 8px}
+  .tab-btn{padding:9px 10px;font-size:11px;gap:3px}
+  .tab-body{padding:14px 12px}
+  .card{padding:14px 16px}
   #tp-planning.on{flex-direction:column!important}
-  .layout{height:100dvh}
-  .main{height:100dvh;display:flex;flex-direction:column}
-  #detail.on{flex:1;min-height:0;display:flex;flex-direction:column}
-  .tab-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:80px}
+  /* Close button in sidebar */
+  .sb-close{display:flex!important}
+  /* Show list button in empty state */
+  .show-list-btn{display:block!important}
+  /* Team grid stacked on mobile */
+  .team-grid{grid-template-columns:1fr}
+}
+@media (min-width:769px){
+  .sb-overlay{display:none!important}
+  .sb-close{display:none!important}
+  .show-list-btn{display:none!important}
+  #back-btn{display:none!important}
 }
 </style>
 </head>
@@ -250,9 +270,11 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 
 <!-- APP -->
 <div id="s-app" class="screen">
+<div class="sb-overlay" id="sb-overlay" onclick="closeMobileList()"></div>
 <div class="layout">
   <div class="sb">
     <div class="sb-head">
+      <button class="sb-close" onclick="closeMobileList()" style="display:none;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;float:right;padding:0;line-height:1">✕</button>
       <div class="sb-label">KSK Lovendegem</div>
       <div class="sb-team">U13 IP · 2026–27 <span id="demo-badge" class="demo-badge" style="display:none">DEMO</span></div>
       <div class="sb-stats">
@@ -312,7 +334,8 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
             </div>
           </div>
         </div>
-        <div class="empty-hint">← Selecteer een speler in de lijst</div>
+        <button class="show-list-btn" onclick="openMobileList()" style="display:none;width:100%;background:#15803d;color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:10px">👥 Spelers bekijken →</button>
+        <div class="empty-hint" style="display:block">← Selecteer een speler in de lijst</div>
       </div>
     </div>
 
@@ -708,17 +731,30 @@ function selectPlayer(id){
   renderCalendar();
   setSaveBtn('idle');
   $('empty-state').style.display='none';$('detail').style.display='flex';
-  if(isMobile()) document.querySelector('.sb').classList.add('slide-out');
+  if(isMobile()){ closeMobileList(); }
   switchTabById('persoonlijk');renderList();
 }
 
-function backToList(){
-  document.querySelector('.sb').classList.remove('slide-out');
-  $('detail').style.display='none';
-  $('empty-state').style.display='flex';
-  selId=null;renderList();
+function openMobileList(){
+  document.querySelector('.sb').classList.add('open');
+  $('sb-overlay')?.classList.add('show');
 }
-
+function closeMobileList(){
+  document.querySelector('.sb').classList.remove('open');
+  $('sb-overlay')?.classList.remove('show');
+}
+function backToList(){
+  if(isMobile()){
+    $('detail').style.display='none';
+    $('empty-state').style.display='flex';
+    selId=null; renderList();
+    openMobileList();
+  } else {
+    $('detail').style.display='none';
+    $('empty-state').style.display='flex';
+    selId=null; renderList();
+  }
+}
 function isMobile(){ return window.innerWidth <= 768; }
 
 function updSub(d){
