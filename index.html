@@ -80,10 +80,16 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 
 /* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#94a3b8}
-#empty-state .ball{font-size:52px}
-#empty-state h3{font-size:16px;font-weight:600;color:#475569}
-#empty-state p{font-size:13px}
+#empty-state{flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
+.empty-card{text-align:center;background:#fff;border-radius:16px;padding:40px 48px;border:1px solid #e8eeea;box-shadow:0 2px 12px rgba(0,0,0,.06);max-width:420px;width:100%}
+.empty-logo{font-size:52px;margin-bottom:14px}
+.empty-club{font-size:20px;font-weight:700;color:#0f172a;margin-bottom:3px}
+.empty-season-lbl{font-size:12px;color:#64748b;margin-bottom:24px}
+.empty-stats{display:flex;gap:12px;justify-content:center;margin-bottom:24px}
+.es-box{background:#f4faf6;border-radius:10px;padding:12px 18px;flex:1}
+.es-n{font-size:22px;font-weight:700;color:#15803d}
+.es-l{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;margin-top:2px}
+.empty-hint{font-size:12px;color:#94a3b8;background:#f8fafc;padding:8px 18px;border-radius:99px;display:inline-block;border:1px solid #e2e8f0}
 #detail{display:none;flex:1;flex-direction:column;overflow:hidden}
 #detail.on{display:flex}
 
@@ -134,14 +140,14 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 .ms-block{display:flex;flex-direction:column;gap:10px}
 .ms-section{background:#f8fafc;border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
 .ms-cat{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
-.ms-section.cat-technisch{background:#eff6ff;border-color:#bfdbfe}
-.ms-section.cat-technisch .ms-cat{color:#1d4ed8}
-.ms-section.cat-taktisch{background:#f5f3ff;border-color:#c4b5fd}
-.ms-section.cat-taktisch .ms-cat{color:#6d28d9}
-.ms-section.cat-fysiek{background:#fff7ed;border-color:#fed7aa}
-.ms-section.cat-fysiek .ms-cat{color:#c2410c}
-.ms-section.cat-mentaal{background:#fdf2f8;border-color:#f9a8d4}
-.ms-section.cat-mentaal .ms-cat{color:#be185d}
+.ms-section.cat-technisch{background:#f0fdf4;border-color:#bbf7d0;border-left:3px solid #4ade80}
+.ms-section.cat-technisch .ms-cat{color:#15803d}
+.ms-section.cat-taktisch{background:#dcfce7;border-color:#86efac;border-left:3px solid #22c55e}
+.ms-section.cat-taktisch .ms-cat{color:#14532d}
+.ms-section.cat-fysiek{background:#d1fae5;border-color:#6ee7b7;border-left:3px solid #10b981}
+.ms-section.cat-fysiek .ms-cat{color:#065f46}
+.ms-section.cat-mentaal{background:#ccfbf1;border-color:#5eead4;border-left:3px solid #0d9488}
+.ms-section.cat-mentaal .ms-cat{color:#134e4a}
 .ms-pills{display:flex;flex-wrap:wrap;gap:5px}
 .pill{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);transition:all .12s}
 .pill.on{background:var(--accent-dk);color:#fff;border-color:var(--accent-dk)}
@@ -174,6 +180,11 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 /* SCROLLBAR */
 ::-webkit-scrollbar{width:4px}
 ::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:99px}
+
+/* BASISFICHE HEADER */
+.basisfiche-header{display:flex;align-items:center;gap:12px;padding:14px 0;margin-bottom:14px;border-bottom:2px solid #e8eeea}
+.bf-title{font-size:15px;font-weight:700;color:#0f172a;line-height:1.3}
+.bf-sub{font-size:11px;color:#64748b;margin-top:3px}
 
 /* SECTION HEADINGS */
 .section-heading{font-size:14px;font-weight:700;padding:8px 12px;border-radius:8px;margin-bottom:2px;letter-spacing:.01em}
@@ -254,9 +265,26 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 
   <div class="main">
     <div id="empty-state">
-      <div class="ball">⚽</div>
-      <h3>Selecteer een speler</h3>
-      <p>Klik een naam in de lijst links</p>
+      <div class="empty-card">
+        <div class="empty-logo">⚽</div>
+        <div class="empty-club">KSK Lovendegem</div>
+        <div class="empty-season-lbl">U13 IP · Seizoen 2026–27</div>
+        <div class="empty-stats">
+          <div class="es-box">
+            <div class="es-n">25</div>
+            <div class="es-l">Spelers</div>
+          </div>
+          <div class="es-box">
+            <div class="es-n" id="es-started">0</div>
+            <div class="es-l">Ingevuld</div>
+          </div>
+          <div class="es-box">
+            <div class="es-n" id="es-complete">0</div>
+            <div class="es-l">Volledig</div>
+          </div>
+        </div>
+        <div class="empty-hint">← Selecteer een speler in de lijst</div>
+      </div>
     </div>
 
     <div id="detail">
@@ -317,7 +345,13 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 
           <!-- BASISFICHE -->
           <div class="card">
-            <div class="card-t">Basisfiche Startseizoen 2026–27 · Ken jezelf</div>
+            <div class="basisfiche-header">
+              <span style="font-size:28px">📋</span>
+              <div>
+                <div class="bf-title">Basisfiche Startseizoen 2026–27</div>
+                <div class="bf-sub">Ken jezelf — vul eerlijk in</div>
+              </div>
+            </div>
             <div class="fields">
 
               <div class="frow">
@@ -786,9 +820,12 @@ function switchTabById(id){
 
 // ── STATS ─────────────────────────────────
 function updateStats(){
-  const c=Object.values(DB).filter(r=>calcPct(r.data||{})===100).length;
-  const s=Object.values(DB).filter(r=>hasData(r.data||{})).length;
-  $('stat-n').textContent=c;$('foot-txt').textContent=`${s}/25 ingevuld`;
+  const complete=Object.values(DB).filter(r=>calcPct(r.data||{})===100).length;
+  const started=Object.values(DB).filter(r=>hasData(r.data||{})).length;
+  $('stat-n').textContent=complete;
+  $('foot-txt').textContent=`${started}/25 ingevuld`;
+  const es=$('es-started'); if(es) es.textContent=started;
+  const ec=$('es-complete'); if(ec) ec.textContent=complete;
 }
 function calcPct(d){if(!d)return 0;return Math.round(KEY_FIELDS.filter(f=>{const v=d[f];return v!==''&&v!==false&&v!=null;}).length/KEY_FIELDS.length*100);}
 function hasData(d){return d&&Object.keys(d).some(k=>{const v=d[k];return v!==''&&v!==false&&v!=null&&!(Array.isArray(v)&&v.length===0);});}
