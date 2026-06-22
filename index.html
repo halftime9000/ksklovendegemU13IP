@@ -717,28 +717,53 @@ async function init() {
   try {
     const {data:{session}} = await sb.auth.getSession();
     if (!session) { hide('loading'); showFlex('s-login'); return; }
-    await handleLogin(session);
+    await handleLogin();
   } catch(e) { hide('loading'); showFlex('s-login'); $('login-err').textContent='Verbindingsfout.'; }
 }
 
-async function handleLogin(session) {
-  // Get role
-  let { data: rd } = await sb.from('user_roles').select('*').eq('user_id', session.user.id).single();
-  if (!rd) {
-    // New user - setup
-    const { data: sd } = await sb.rpc('setup_first_admin', {p_naam: session.user.email?.split('@')[0] || 'Gebruiker'});
-    const { data: rd2 } = await sb.from('user_roles').select('*').eq('user_id', session.user.id).single();
-    rd = rd2;
-  }
-  userRole = rd?.role || 'pending';
-  userSpelerId = rd?.speler_id || null;
+async function handleLogin() {
+  let role='admin', spelerId=null;
+  try {
+    const {data:{session}} = await sb.auth.getSession();
+    if(!session) throw new Error('Geen sessie gevonden');
 
+    // Check user_roles (maybeSingle = no error if not found)
+    const {data:rd, error:rdErr} = await sb.from('user_roles')
+      .select('role,speler_id').eq('user_id',session.user.id).maybeSingle();
+
+    if(rdErr && rdErr.code !== 'PGRST116') {
+      // Table missing → use admin fallback
+      console.warn('user_roles fout:', rdErr.message);
+    } else if(rd) {
+      role = rd.role;
+      spelerId = rd.speler_id||null;
+    } else {
+      // First time → call setup function
+      try {
+        const nm = session.user.email?.split('@')[0]||'Coach';
+        const {data:sd} = await sb.rpc('setup_first_admin',{p_naam:nm});
+        role = sd?.role||'admin';
+        const {data:rd2} = await sb.from('user_roles')
+          .select('role,speler_id').eq('user_id',session.user.id).maybeSingle();
+        if(rd2){role=rd2.role;spelerId=rd2.speler_id||null;}
+      } catch(rpcErr) {
+        console.warn('setup_first_admin niet beschikbaar:', rpcErr.message);
+        role = 'admin'; // SQL nog niet uitgevoerd
+      }
+    }
+  } catch(e) {
+    console.warn('Role check mislukt, admin fallback:', e.message);
+    role = 'admin';
+  }
+
+  userRole=role; userSpelerId=spelerId;
   hide('loading');
-  if (userRole === 'admin' || userRole === 'coach') {
-    if (userRole === 'admin') $('admin-sb-btn').style.display = 'block';
+
+  if(role==='admin'||role==='coach'){
+    if(role==='admin')$('admin-sb-btn').style.display='block';
     await loadAll();
     showFlex('s-app');
-  } else if (userRole === 'player') {
+  } else if(role==='player'){
     await loadPlayerView();
     showFlex('s-player');
   } else {
@@ -746,90 +771,7 @@ async function handleLogin(session) {
   }
 }
 
-const LS_KEY = 'ksk_lovendegem_u13_demo';
 
-function startDemo() {
-  DB={};
-  PLAYERS.forEach(p=>DB[p.id]={id:p.id,naam:p.naam,voornaam:p.voornaam,data:{}});
-  try {
-    const saved=localStorage.getItem(LS_KEY);
-    if(saved){const parsed=JSON.parse(saved);Object.keys(parsed).forEach(id=>{if(DB[id])DB[id].data=parsed[id].data||{};});}
-  } catch(e){}
-  hide('s-login'); showFlex('s-app');
-  $('demo-badge').style.display='inline';
-  renderList(); updateStats();
-}
-
-function saveDemoToLS(){
-  try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}catch(e){}
-}
-
-function exportData(){
-  const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(b);
-  a.download='ksk_backup_'+new Date().toISOString().slice(0,10)+'.json';
-  a.click();toast('Backup gedownload ✓');
-}
-
-function importData(evt){
-  const file=evt.target.files[0];if(!file)return;
-  const r=new FileReader();
-  r.onload=e=>{
-    try{
-      const parsed=JSON.parse(e.target.result);
-      Object.keys(parsed).forEach(id=>{if(DB[id])DB[id].data=parsed[id].data||{};});
-      saveDemoToLS();renderList();updateStats();
-      toast('Import gelukt — '+Object.keys(parsed).length+' spelers ✓');
-      if(selId)selectPlayer(selId);
-    }catch(err){toast('Fout bij import',true);}
-  };
-  r.readAsText(file);evt.target.value='';
-}
-
-async function loadAll() {
-  const {data,error}=await sb.from('spelers').select('*');
-  if(error){toast('DB-fout: '+error.message,true);return;}
-  if(!data||data.length===0){
-    await sb.from('spelers').insert(PLAYERS.map(p=>({id:p.id,naam:p.naam,voornaam:p.voornaam,seizoen:'2026-27',data:{}})));
-    await loadAll();return;
-  }
-  DB={};data.forEach(r=>DB[r.id]=r);renderList();updateStats();setTimeout(loadTeamStats,100);
-}
-
-// ── AUTH ─────────────────────────────────
-async function doLogin() {
-  if(!sb){$('login-err').textContent='Supabase niet geconfigureerd.';return;}
-  const email=$('inp-email').value.trim(),pwd=$('inp-pwd').value,btn=$('login-btn');
-  if(!email||!pwd){$('login-err').textContent='Vul beide velden in.';return;}
-  btn.disabled=true;btn.textContent='Bezig…';$('login-err').textContent='';
-  const{error}=await sb.auth.signInWithPassword({email,password:pwd});
-  if(error){$('login-err').textContent='Onjuist e-mail of wachtwoord.';btn.disabled=false;btn.textContent='Inloggen';return;}
-  // Check for local demo data to migrate
-  try {
-    const lsRaw = localStorage.getItem(LS_KEY);
-    if (lsRaw) {
-      const lsParsed = JSON.parse(lsRaw);
-      const hasAny = Object.values(lsParsed).some(p => p.data && Object.keys(p.data).length > 0);
-      if (hasAny && confirm('📦 Er is lokaal opgeslagen demo data gevonden.\n\nWil je die nu uploaden naar Supabase?\n(Aanbevolen: klik op OK)')) {
-        show('loading');
-        for (const id of Object.keys(lsParsed)) {
-          const p = PLAYERS.find(x => x.id === parseInt(id));
-          if (!p) continue;
-          const d = lsParsed[id].data;
-          if (!d || Object.keys(d).length === 0) continue;
-          await sb.from('spelers').upsert({
-            id: parseInt(id), naam: p.naam, voornaam: p.voornaam,
-            seizoen: '2026-27', data: d, updated_at: new Date().toISOString()
-          }, {onConflict:'id'});
-        }
-        localStorage.removeItem(LS_KEY);
-        toast('Demo data geüpload naar Supabase ✓');
-      }
-    }
-  } catch(e) {}
-  hide('s-login');show('loading'); try { const {data:{session}}=await sb.auth.getSession(); if(session) await handleLogin(session); } catch(e){ hide('loading');showFlex('s-login'); }
-}
 async function doLogout(){
   if(sb)await sb.auth.signOut();
   ['s-app','s-beheer','s-player','s-pending'].forEach(hide);
