@@ -80,7 +80,7 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 
 /* MAIN */
 .main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-#empty-state{flex:1;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
+#empty-state{flex:1;display:grid;place-items:center;background:var(--bg);padding:20px}
 .empty-card{text-align:center;background:#fff;border-radius:16px;padding:40px 48px;border:1px solid #e8eeea;box-shadow:0 2px 12px rgba(0,0,0,.06);max-width:420px;width:100%}
 .empty-logo{font-size:52px;margin-bottom:14px}
 .empty-club{font-size:20px;font-weight:700;color:#0f172a;margin-bottom:3px}
@@ -140,14 +140,14 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 .ms-block{display:flex;flex-direction:column;gap:10px}
 .ms-section{background:#f8fafc;border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
 .ms-cat{font-size:10px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
-.ms-section.cat-technisch{background:#f0fdf4;border-color:#bbf7d0;border-left:3px solid #4ade80}
-.ms-section.cat-technisch .ms-cat{color:#15803d}
-.ms-section.cat-taktisch{background:#dcfce7;border-color:#86efac;border-left:3px solid #22c55e}
-.ms-section.cat-taktisch .ms-cat{color:#14532d}
-.ms-section.cat-fysiek{background:#d1fae5;border-color:#6ee7b7;border-left:3px solid #10b981}
-.ms-section.cat-fysiek .ms-cat{color:#065f46}
-.ms-section.cat-mentaal{background:#ccfbf1;border-color:#5eead4;border-left:3px solid #0d9488}
-.ms-section.cat-mentaal .ms-cat{color:#134e4a}
+.ms-section.cat-technisch{background:#ffffff;border:1px solid #e5e7eb;border-left:3px solid #d1d5db}
+.ms-section.cat-technisch .ms-cat{color:#374151}
+.ms-section.cat-taktisch{background:#f9fafb;border:1px solid #e5e7eb;border-left:3px solid #9ca3af}
+.ms-section.cat-taktisch .ms-cat{color:#374151}
+.ms-section.cat-fysiek{background:#f3f4f6;border:1px solid #e5e7eb;border-left:3px solid #6b7280}
+.ms-section.cat-fysiek .ms-cat{color:#1f2937}
+.ms-section.cat-mentaal{background:#e9eaeb;border:1px solid #d1d5db;border-left:3px solid #4b5563}
+.ms-section.cat-mentaal .ms-cat{color:#111827}
 .ms-pills{display:flex;flex-wrap:wrap;gap:5px}
 .pill{padding:4px 10px;border-radius:99px;font-size:11px;font-weight:500;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--muted);transition:all .12s}
 .pill.on{background:var(--accent-dk);color:#fff;border-color:var(--accent-dk)}
