@@ -721,53 +721,75 @@ async function init() {
   } catch(e) { hide('loading'); showFlex('s-login'); $('login-err').textContent='Verbindingsfout.'; }
 }
 
+async function doLogin() {
+  if(!sb){$('login-err').textContent='Supabase niet geconfigureerd.';return;}
+  const email=$('inp-email').value.trim();
+  const pwd=$('inp-pwd').value;
+  const btn=$('login-btn');
+  if(!email||!pwd){$('login-err').textContent='Vul beide velden in.';return;}
+  btn.disabled=true;
+  btn.textContent='Bezig…';
+  $('login-err').textContent='';
+  try {
+    const {error} = await sb.auth.signInWithPassword({email, password:pwd});
+    if(error){
+      $('login-err').textContent='Onjuist e-mail of wachtwoord.';
+      btn.disabled=false;
+      btn.textContent='Inloggen';
+      return;
+    }
+    hide('s-login');
+    show('loading');
+    await handleLogin();
+  } catch(e) {
+    console.error('doLogin error:',e);
+    hide('loading');
+    showFlex('s-login');
+    $('login-err').textContent='Fout: '+e.message;
+    btn.disabled=false;
+    btn.textContent='Inloggen';
+  }
+}
+
 async function handleLogin() {
-  let role='admin', spelerId=null;
+  hide('loading');
+  // Always show the app first — role check is secondary
+  userRole = 'admin';
+  userSpelerId = null;
+
+  // Try role check in background (non-blocking)
   try {
     const {data:{session}} = await sb.auth.getSession();
-    if(!session) throw new Error('Geen sessie gevonden');
-
-    // Check user_roles (maybeSingle = no error if not found)
-    const {data:rd, error:rdErr} = await sb.from('user_roles')
-      .select('role,speler_id').eq('user_id',session.user.id).maybeSingle();
-
-    if(rdErr && rdErr.code !== 'PGRST116') {
-      // Table missing → use admin fallback
-      console.warn('user_roles fout:', rdErr.message);
-    } else if(rd) {
-      role = rd.role;
-      spelerId = rd.speler_id||null;
-    } else {
-      // First time → call setup function
+    if (session) {
       try {
-        const nm = session.user.email?.split('@')[0]||'Coach';
-        const {data:sd} = await sb.rpc('setup_first_admin',{p_naam:nm});
-        role = sd?.role||'admin';
-        const {data:rd2} = await sb.from('user_roles')
+        const {data:rd} = await sb.from('user_roles')
           .select('role,speler_id').eq('user_id',session.user.id).maybeSingle();
-        if(rd2){role=rd2.role;spelerId=rd2.speler_id||null;}
-      } catch(rpcErr) {
-        console.warn('setup_first_admin niet beschikbaar:', rpcErr.message);
-        role = 'admin'; // SQL nog niet uitgevoerd
-      }
+        if (rd) {
+          userRole = rd.role;
+          userSpelerId = rd.speler_id||null;
+        } else {
+          // Try to create admin entry
+          try {
+            await sb.rpc('setup_first_admin',{p_naam: session.user.email?.split('@')[0]||'Coach'});
+            const {data:rd2} = await sb.from('user_roles')
+              .select('role,speler_id').eq('user_id',session.user.id).maybeSingle();
+            if(rd2){userRole=rd2.role;userSpelerId=rd2.speler_id||null;}
+          } catch(e2){ /* SQL not run yet, stay admin */ }
+        }
+      } catch(e1){ /* user_roles missing, stay admin */ }
     }
-  } catch(e) {
-    console.warn('Role check mislukt, admin fallback:', e.message);
-    role = 'admin';
-  }
+  } catch(e){ /* session error, stay admin */ }
 
-  userRole=role; userSpelerId=spelerId;
-  hide('loading');
-
-  if(role==='admin'||role==='coach'){
-    if(role==='admin')$('admin-sb-btn').style.display='block';
-    await loadAll();
-    showFlex('s-app');
-  } else if(role==='player'){
+  // Route based on role
+  if(userRole==='player'){
     await loadPlayerView();
     showFlex('s-player');
-  } else {
+  } else if(userRole==='pending'){
     showFlex('s-pending');
+  } else {
+    if(userRole==='admin') $('admin-sb-btn').style.display='block';
+    await loadAll();
+    showFlex('s-app');
   }
 }
 
