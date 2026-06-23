@@ -374,7 +374,7 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
       <button class="sb-close" onclick="closeMobileList()" style="display:none;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;float:right;padding:0;line-height:1">✕</button>
       <div style="display:flex;align-items:flex-start;justify-content:space-between">
         <div class="sb-label">KSK Lovendegem</div>
-        <button id="admin-sb-btn" onclick="openBeheer()" style="display:none;background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#fbbf24;cursor:pointer">⚙️ Admin</button>
+        <button id="admin-sb-btn" onclick="openBeheer()" style="background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#fbbf24;cursor:pointer">⚙️ Admin</button>
       </div>
       <div class="sb-team">U13 IP · 2026–27 <span id="demo-badge" class="demo-badge" style="display:none">DEMO</span></div>
       <div class="sb-stats">
@@ -1017,7 +1017,7 @@ function loadTeamStats(){try{const s=JSON.parse(localStorage.getItem(TS_KEY)||'{
 function saveTeamStats(){try{const s={};['blauw-w','blauw-d','blauw-l','geel-w','geel-d','geel-l'].forEach(id=>{const el=$(id);if(el)s[id]=el.value;});localStorage.setItem(TS_KEY,JSON.stringify(s));}catch(e){}}
 
 // ADMIN BEHEER
-function openBeheer(){hide('s-app');showFlex('s-beheer');loadBeheerSpelers();loadBeheerUsers();}
+function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toegang',true);return;}hide('s-app');showFlex('s-beheer');loadBeheerSpelers();loadBeheerUsers();}
 function switchBeheerTab(id,btn){document.querySelectorAll('.beheer-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.beheer-tab').forEach(b=>b.classList.remove('on'));document.getElementById('bp-'+id)?.classList.add('on');btn?.classList.add('on');}
 async function loadBeheerSpelers(){
   const {data}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
