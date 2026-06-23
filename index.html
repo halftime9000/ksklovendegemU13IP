@@ -361,6 +361,42 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 .rating-input:focus{border-color:var(--accent-dk)}
 @media(max-width:768px){.lineup-grid,.motm-grid,.rating-grid{grid-template-columns:1fr}}
 
+
+/* ── EVAL FORM BLOCKS ── */
+.eval-block{background:#fff;border-radius:10px;border:1px solid var(--border);padding:14px 16px;margin-bottom:10px}
+.eval-block-title{font-size:12px;font-weight:700;color:#0f172a;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;gap:7px}
+.eval-block-title span{font-size:16px}
+.eigen-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.eigen-item{background:#f8fafc;border-radius:8px;padding:10px 12px;border:1px solid var(--border)}
+.eigen-label{font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:.04em}
+.score-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.score-row label{font-size:11px;color:#64748b;white-space:nowrap}
+.score-input{width:60px;border:1px solid var(--border);border-radius:6px;padding:5px 8px;font-size:15px;font-weight:700;text-align:center;outline:none}
+.score-input:focus{border-color:var(--accent-dk)}
+.eval-ta{width:100%;border:1px solid var(--border);border-radius:6px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;resize:none;background:#fff}
+.eval-ta:focus{border-color:var(--accent-dk)}
+.radio-group{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.radio-opt{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:12px;font-weight:500;color:#475569;background:#f8fafc;transition:all .12s}
+.radio-opt.selected{background:#0f2318;color:#fff;border-color:#0f2318}
+.rating-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f1f5f9}
+.rating-row:last-child{border-bottom:none}
+.rating-name{flex:1;font-size:12px;color:#374151}
+.locked-banner{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:10px 14px;font-size:12px;color:#15803d;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+/* ── SVM CARD ON LANDING ── */
+.svm-card{background:linear-gradient(135deg,#0f2318 0%,#1a3a2a 100%);border-radius:12px;padding:16px;margin-bottom:14px;text-align:center;border:1px solid rgba(74,222,128,.2)}
+.svm-label{font-size:9px;font-weight:700;letter-spacing:.12em;color:#4ade80;text-transform:uppercase;margin-bottom:6px}
+.svm-photo{width:70px;height:70px;border-radius:50%;object-fit:cover;border:2px solid #4ade80;margin:0 auto 8px;display:block}
+.svm-photo-placeholder{width:70px;height:70px;border-radius:50%;background:#1e3a2a;border:2px solid rgba(74,222,128,.3);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:24px}
+.svm-name{font-size:16px;font-weight:700;color:#fff;margin-bottom:2px}
+.svm-avg{font-size:11px;color:rgba(255,255,255,.5)}
+/* ── MAANDPRIJS ADMIN ── */
+.rank-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9}
+.rank-nr{width:24px;height:24px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#475569;flex-shrink:0}
+.rank-nr.gold{background:#fef3c7;color:#92400e}
+.rank-name{flex:1;font-size:13px;font-weight:500}
+.rank-score{font-size:13px;font-weight:700;color:#15803d}
+@media(max-width:768px){.eigen-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -439,6 +475,12 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
             <div class="es-n" id="es-complete">0</div>
             <div class="es-l">Volledig</div>
           </div>
+        </div>
+        <div id="svm-landing" style="display:none" class="svm-card">
+          <div class="svm-label">🏆 Speler van de Maand</div>
+          <div id="svm-photo-wrap" class="svm-photo-placeholder">⭐</div>
+          <div class="svm-name" id="svm-landing-name">—</div>
+          <div class="svm-avg" id="svm-landing-periode"></div>
         </div>
         <div class="team-grid">
           <div class="team-group">
@@ -654,6 +696,24 @@ function sbH(extra) {
   if (extra) Object.assign(h, extra);
   return h;
 }
+
+async function ensureToken() {
+  try {
+    const raw = localStorage.getItem('ksk_sb_session') || sessionStorage.getItem('ksk_sb_session');
+    const s = JSON.parse(raw||'null');
+    if (!s || !s.refresh) return;
+    if (s.exp > Date.now()/1000 + 120) return; // still valid (2min buffer)
+    // Refresh
+    const r = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token', {
+      method:'POST',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:s.refresh})
+    });
+    if (!r.ok) { sbClearSession(); showFlex('s-login'); return; }
+    const d = await r.json();
+    sbSaveSession(d, !!localStorage.getItem('ksk_sb_session'));
+  } catch(e) { console.warn('Token refresh:', e); }
+}
 function sbLoadSession() {
   try {
     const raw = localStorage.getItem('ksk_sb_session') || sessionStorage.getItem('ksk_sb_session');
@@ -704,6 +764,7 @@ async function sbSignOut() {
   sbClearSession();
 }
 async function sbGet(table, qs) {
+  await ensureToken();
   const url = SUPABASE_URL+'/rest/v1/'+table+(qs?'?'+qs:'');
   const r = await fetch(url, {headers:sbH()});
   if (!r.ok) { const e=await r.json().catch(()=>({})); return {data:null,error:e}; }
@@ -715,6 +776,7 @@ async function sbGetOne(table, qs) {
   return {data:Array.isArray(data)?(data[0]||null):data, error:null};
 }
 async function sbUpsert(table, body) {
+  await ensureToken();
   const r = await fetch(SUPABASE_URL+'/rest/v1/'+table, {
     method:'POST', headers:sbH({'Prefer':'resolution=merge-duplicates'}),
     body:JSON.stringify(Array.isArray(body)?body:[body])
@@ -723,6 +785,7 @@ async function sbUpsert(table, body) {
   return {data:null,error:null};
 }
 async function sbInsert(table, body) {
+  await ensureToken();
   const r = await fetch(SUPABASE_URL+'/rest/v1/'+table, {
     method:'POST', headers:sbH({'Prefer':'return=representation'}),
     body:JSON.stringify(Array.isArray(body)?body:[body])
@@ -731,6 +794,7 @@ async function sbInsert(table, body) {
   return {data:await r.json().catch(()=>null),error:null};
 }
 async function sbPatch(table, filter, body) {
+  await ensureToken();
   const r = await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+filter, {
     method:'PATCH', headers:sbH(), body:JSON.stringify(body)
   });
@@ -738,9 +802,11 @@ async function sbPatch(table, filter, body) {
   return {data:null,error:null};
 }
 async function sbDelete(table, filter) {
+  await ensureToken();
   await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+filter,{method:'DELETE',headers:sbH()});
 }
 async function sbRpc(fn, params) {
+  await ensureToken();
   const r = await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn, {
     method:'POST', headers:sbH(), body:JSON.stringify(params||{})
   });
@@ -874,7 +940,7 @@ function startDemo() {
   try { const s=localStorage.getItem(LS_KEY); if(s){const p=JSON.parse(s);Object.keys(p).forEach(id=>{if(DB[id])DB[id].data=p[id].data||{};});} } catch(e){}
   hide('s-login'); showFlex('s-app');
   setDisp('demo-badge','inline');
-  renderList(); updateStats(); setTimeout(loadTeamStats,100);
+  renderList(); updateStats(); setTimeout(loadTeamStats,100); setTimeout(loadSvdMLanding,300);
 }
 
 // DATA
@@ -886,7 +952,7 @@ async function loadAll() {
     await loadAll(); return;
   }
   DB={}; data.forEach(r=>DB[r.id]=r);
-  renderList(); updateStats(); setTimeout(loadTeamStats,100);
+  renderList(); updateStats(); setTimeout(loadTeamStats,100); setTimeout(loadSvdMLanding,300);
 }
 
 // MULTI-SELECT
@@ -1025,7 +1091,7 @@ function saveTeamStats(){try{const s={};['blauw-w','blauw-d','blauw-l','geel-w',
 
 // ADMIN BEHEER
 function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toegang',true);return;}hide('s-app');showFlex('s-beheer');loadBeheerSpelers();loadBeheerUsers();}
-function switchBeheerTab(id,btn){document.querySelectorAll('.beheer-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.beheer-tab').forEach(b=>b.classList.remove('on'));document.getElementById('bp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')loadBeheerWedstrijden();}
+function switchBeheerTab(id,btn){document.querySelectorAll('.beheer-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.beheer-tab').forEach(b=>b.classList.remove('on'));document.getElementById('bp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')loadBeheerWedstrijden();else if(id==='maandprijs')loadSvdMAdmin();}
 async function loadBeheerSpelers(){
   const {data}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
   const {data:urs}=await sbGet('user_roles','select=speler_id&role=eq.player');
@@ -1309,64 +1375,330 @@ async function deleteBWedstrijd(id) {
 }
 
 // ── PLAYER EVALUATION ──────────────────────────────────────
+
+
+
+
+
+
+// ══════════════════════════════════════════════════
+// EVALUATIE FORMULIER (complete rewrite)
+// ══════════════════════════════════════════════════
+
+function mkScoreBlock(label, idPrefix, val, opmerking, locked) {
+  const ro = locked ? ' disabled' : '';
+  return '<div class="eigen-item">'+
+    '<div class="eigen-label">'+label+'</div>'+
+    '<div class="score-row">'+
+      '<label>Score</label>'+
+      '<input class="score-input" type="number" min="1" max="10" id="'+idPrefix+'-score" value="'+(val||'')+'\" placeholder="—"'+ro+'>'+
+      '<span style="font-size:11px;color:#94a3b8">/10</span>'+
+    '</div>'+
+    '<textarea class="eval-ta" rows="2" id="'+idPrefix+'-opm" placeholder="Korte opmerking..."'+ro+'>'+  (opmerking||'')+'</textarea>'+
+  '</div>';
+}
+
 async function openEvalForm(matchId) {
   const evalDiv=$('eval-body-'+matchId);if(!evalDiv)return;
   const isOpen=evalDiv.classList.toggle('open');
   if(!isOpen)return;
-  const w=wedstrijdenData.find(x=>x.id===matchId);if(!w)return;
-  const myTeam=(w.blauw_spelers||[]).includes(userSpelerId)?'blauw':(w.geel_spelers||[]).includes(userSpelerId)?'geel':null;
+  evalDiv.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Laden...</div>';
+
+  const w=wedstrijdenData.find(x=>x.id===matchId);if(!w){evalDiv.innerHTML='';return;}
+  const uid=userSpelerId||(SB_USER?SB_USER.id:null);
+  if(!uid){evalDiv.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Geen speler gekoppeld.</div>';return;}
+
+  const myTeam=(w.blauw_spelers||[]).includes(uid)?'blauw':(w.geel_spelers||[]).includes(uid)?'geel':null;
   const teamPlayers=myTeam==='blauw'?(w.blauw_spelers||[]):myTeam==='geel'?(w.geel_spelers||[]):[];
+  const teammates=teamPlayers.filter(id=>id!==uid);
   const allPlayers=[...(w.blauw_spelers||[]),...(w.geel_spelers||[])];
-  const teammates=teamPlayers.filter(id=>id!==userSpelerId);
 
-  // Load existing eval
-  const {data:ev}=await sbGetOne('match_evaluaties','match_id=eq.'+matchId+'&beoordelaar=eq.'+userSpelerId+'&select=*');
+  if(!myTeam){evalDiv.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Je bent niet in de opstelling. Vraag de coach.</div>';return;}
+
+  const {data:ev}=await sbGetOne('match_evaluaties','match_id=eq.'+matchId+'&beoordelaar=eq.'+uid+'&select=*');
+  const locked=!!ev?.vergrendeld;
   const ratings=ev?.ratings||{};
+  const ro=locked?'disabled':'';
 
+  let html='';
+
+  // Locked banner
+  if(locked){html+='<div class="locked-banner">🔒 Evaluatie ingediend — alleen lezen</div>';}
+
+  // ── BLOK 1: Tegenstander ──
+  const sys=ev?.tegenstander_systeem||'';
+  html+='<div class="eval-block">'+
+    '<div class="eval-block-title"><span>⚽</span>Tegenstander</div>'+
+    '<div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:6px">Systeem tegenstander</div>'+
+    '<div class="radio-group" id="sys-group-'+matchId+'">'+
+      ['3-1-3','2-4-1','2-3-2'].map(s=>
+        '<div class="radio-opt'+(sys===s?' selected':'')+'" onclick="selectSys(this,\''+matchId+'\',\''+s+'\')">'+s+'</div>'
+      ).join('')+
+    '</div>'+
+    '<input id="sys-extra-'+matchId+'" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;outline:none;margin-bottom:10px" placeholder="Andere of extra opmerking..." value="'+(ev?.tegenstander_systeem_extra||'')+'"'+(locked?' disabled':'')+'>'+
+    '<div style="font-size:11px;font-weight:600;color:#475569;margin-bottom:4px">Beste speler tegenstander</div>'+
+    '<input id="beste-teg-'+matchId+'" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;outline:none" placeholder="Naam + nummer..." value="'+(ev?.tegenstander_beste||'')+'"'+(locked?' disabled':'')+'>'+
+  '</div>';
+
+  // ── BLOK 2: Teamgenoten beoordelen ──
+  const teamColor=myTeam==='blauw'?'🔵 Blauw':'🟡 Geel';
   const ratingRows=teammates.map(id=>{
     const p=PLAYERS.find(x=>x.id===id)||{voornaam:'?',naam:''};
-    return '<div class="rating-row"><span class="rating-name">'+p.voornaam+' '+p.naam+'</span>'+
-      '<input class="rating-input" type="number" min="0" max="10" id="rate-'+matchId+'-'+id+'" value="'+(ratings[id]!==undefined?ratings[id]:'')+'" placeholder="—"></div>';
+    return '<div class="rating-row">'+
+      '<span class="rating-name">'+p.voornaam+' '+p.naam+'</span>'+
+      '<input class="score-input" type="number" min="1" max="10" id="rate-'+matchId+'-'+id+'" value="'+(ratings[id]!==undefined?ratings[id]:'')+'" placeholder="—"'+(locked?' disabled':'')+'>'+
+      '<span style="font-size:11px;color:#94a3b8">/10</span>'+
+    '</div>';
   }).join('');
 
-  const selOpts=(selected)=>'<option value="">— kies een speler —</option>'+allPlayers.map(id=>{
+  html+='<div class="eval-block">'+
+    '<div class="eval-block-title"><span>👥</span>Teamgenoten beoordelen ('+teamColor+')</div>'+
+    (ratingRows||'<div style="font-size:12px;color:#94a3b8">Geen teamgenoten.</div>')+
+  '</div>';
+
+  // ── BLOK 3: Eigen prestatie ──
+  html+='<div class="eval-block">'+
+    '<div class="eval-block-title"><span>📊</span>Eigen prestatie</div>'+
+    '<div class="eigen-grid">'+
+      mkScoreBlock('B+ (aanvallend)','ep-bplus-'+matchId,ev?.eigen_b_plus,ev?.eigen_b_plus_opmerking,locked)+
+      mkScoreBlock('B- (verdedigend)','ep-bmin-'+matchId,ev?.eigen_b_min,ev?.eigen_b_min_opmerking,locked)+
+      mkScoreBlock('Transitie B+ → B-','ep-tbpbm-'+matchId,ev?.eigen_trans_bp_bm,ev?.eigen_trans_bp_bm_opmerking,locked)+
+      mkScoreBlock('Transitie B- → B+','ep-tbmbp-'+matchId,ev?.eigen_trans_bm_bp,ev?.eigen_trans_bm_bp_opmerking,locked)+
+    '</div>'+
+  '</div>';
+
+  // ── BLOK 4: MOTM / Weak Link ──
+  const selOpts=(selected)=>'<option value="">— kies —</option>'+allPlayers.map(id=>{
     const p=PLAYERS.find(x=>x.id===id)||{voornaam:'?',naam:''};
     return '<option value="'+id+'"'+(selected===id?' selected':'')+'>'+p.voornaam+' '+p.naam+'</option>';
   }).join('');
 
-  const ta=(id,val,ph)=>'<textarea id="'+id+'" rows="2" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:8px 10px;font-size:12px;font-family:inherit;outline:none;resize:none">'+(val||'')+'</textarea>';
-
-  evalDiv.innerHTML=''+
-    (teammates.length?
-      '<div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em">Beoordeel je teamgenoten (0–10)</div>'+
-      '<div class="rating-grid">'+ratingRows+'</div>':
-      '<div style="font-size:12px;color:#94a3b8;margin-bottom:10px">Vraag de coach om je toe te voegen aan de opstelling.</div>')+
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0">'+
-      '<div class="field"><label>⭐ Man of the Match</label><select id="eval-motm-'+matchId+'" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;outline:none">'+selOpts(ev?.motm)+'</select></div>'+
-      '<div class="field"><label>🔴 Weak Link</label><select id="eval-wl-'+matchId+'" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;outline:none">'+selOpts(ev?.weak_link)+'</select></div>'+
+  html+='<div class="eval-block">'+
+    '<div class="eval-block-title"><span>🏅</span>Man of the Match & Weak Link</div>'+
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">'+
+      '<div class="field"><label style="font-size:11px;font-weight:600;color:#15803d">⭐ Man of the Match</label>'+
+        '<select id="eval-motm-'+matchId+'" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;outline:none"'+(locked?' disabled':'')+'>'+selOpts(ev?.motm)+'</select></div>'+
+      '<div class="field"><label style="font-size:11px;font-weight:600;color:#dc2626">🔴 Weak Link</label>'+
+        '<select id="eval-wl-'+matchId+'" style="width:100%;border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:12px;outline:none"'+(locked?' disabled':'')+'>'+selOpts(ev?.weak_link)+'</select></div>'+
     '</div>'+
-    '<div class="field" style="margin-bottom:8px"><label style="font-size:11px;font-weight:600;color:#15803d">✅ Wat ging er goed vandaag?</label>'+ta('goed-'+matchId,ev?.wat_goed)+'</div>'+
-    '<div class="field" style="margin-bottom:8px"><label style="font-size:11px;font-weight:600;color:#dc2626">❌ Wat ging er minder goed?</label>'+ta('minder-'+matchId,ev?.wat_minder)+'</div>'+
-    '<div class="field" style="margin-bottom:12px"><label style="font-size:11px;font-weight:600;color:#d97706">💡 Hoe kunnen we dit verbeteren?</label>'+ta('verbeter-'+matchId,ev?.hoe_verbeteren)+'</div>'+
-    '<button onclick="saveEvaluatie('+matchId+',['+teammates.join(',')+'])" class="btn-green" style="width:100%;padding:10px;font-size:13px">💾 Evaluatie opslaan</button>';
+  '</div>';
+
+  if(!locked){
+    html+='<button onclick="saveEvaluatie('+matchId+',['+teammates.join(',')+'])" class="btn-green" style="width:100%;padding:11px;font-size:13px;font-weight:600">💾 Indienen & vergrendelen</button>';
+  }
+
+  evalDiv.innerHTML=html;
+
+  // Restore radio selection
+  if(sys){
+    const group=document.getElementById('sys-group-'+matchId);
+    if(group) group.querySelectorAll('.radio-opt').forEach(el=>{
+      if(el.textContent.trim()===sys)el.classList.add('selected');
+    });
+  }
+}
+
+function selectSys(el, matchId, val) {
+  if(el.classList.contains('disabled')) return;
+  const group=document.getElementById('sys-group-'+matchId);
+  if(group) group.querySelectorAll('.radio-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
 }
 
 async function saveEvaluatie(matchId, teamIds) {
   const ratings={};
-  teamIds.forEach(id=>{const v=$('rate-'+matchId+'-'+id)?.value;if(v!==''&&v!==undefined)ratings[id]=parseInt(v);});
-  const motm=parseInt($('eval-motm-'+matchId)?.value)||null;
-  const wl=parseInt($('eval-wl-'+matchId)?.value)||null;
-  const wat_goed=$('goed-'+matchId)?.value||'';
-  const wat_minder=$('minder-'+matchId)?.value||'';
-  const hoe_verbeteren=$('verbeter-'+matchId)?.value||'';
-  const {error}=await sbUpsert('match_evaluaties',{
-    match_id:matchId, beoordelaar:userSpelerId,
-    ratings, motm, weak_link:wl,
-    wat_goed, wat_minder, hoe_verbeteren,
-    updated_at:new Date().toISOString()
+  teamIds.forEach(id=>{
+    const v=document.getElementById('rate-'+matchId+'-'+id)?.value;
+    if(v!==''&&v!==null&&v!==undefined)ratings[id]=parseInt(v);
   });
+  const motm=parseInt(document.getElementById('eval-motm-'+matchId)?.value)||null;
+  const wl=parseInt(document.getElementById('eval-wl-'+matchId)?.value)||null;
+  const sysSel=document.querySelector('#sys-group-'+matchId+' .radio-opt.selected');
+  const uid=userSpelerId||(SB_USER?SB_USER.id:null);
+
+  const payload={
+    match_id:matchId, beoordelaar:uid,
+    ratings, motm, weak_link:wl,
+    vergrendeld:true,
+    tegenstander_systeem:sysSel?sysSel.textContent.trim():'',
+    tegenstander_systeem_extra:document.getElementById('sys-extra-'+matchId)?.value||'',
+    tegenstander_beste:document.getElementById('beste-teg-'+matchId)?.value||'',
+    eigen_b_plus:parseInt(document.getElementById('ep-bplus-'+matchId+'-score')?.value)||null,
+    eigen_b_plus_opmerking:document.getElementById('ep-bplus-'+matchId+'-opm')?.value||'',
+    eigen_b_min:parseInt(document.getElementById('ep-bmin-'+matchId+'-score')?.value)||null,
+    eigen_b_min_opmerking:document.getElementById('ep-bmin-'+matchId+'-opm')?.value||'',
+    eigen_trans_bp_bm:parseInt(document.getElementById('ep-tbpbm-'+matchId+'-score')?.value)||null,
+    eigen_trans_bp_bm_opmerking:document.getElementById('ep-tbpbm-'+matchId+'-opm')?.value||'',
+    eigen_trans_bm_bp:parseInt(document.getElementById('ep-tbmbp-'+matchId+'-score')?.value)||null,
+    eigen_trans_bm_bp_opmerking:document.getElementById('ep-tbmbp-'+matchId+'-opm')?.value||'',
+    updated_at:new Date().toISOString()
+  };
+
+  const {error}=await sbUpsert('match_evaluaties', payload);
   if(error){toast('Fout: '+(error.message||'onbekend'),true);return;}
-  toast('Evaluatie opgeslagen ✓');
+  toast('✓ Evaluatie ingediend en vergrendeld!');
+  // Reload form in locked state
+  const div=$('eval-body-'+matchId);
+  if(div){div.classList.remove('open');setTimeout(()=>{div.classList.add('open');openEvalForm(matchId);},100);}
+}
+
+// ══════════════════════════════════════════════════
+// ADMIN: EVALUATIES BEKIJKEN
+// ══════════════════════════════════════════════════
+async function bekijkEvaluaties(matchId) {
+  const div=$('eval-overzicht-'+matchId);if(!div)return;
+  if(div.style.display==='block'){div.style.display='none';return;}
+  div.style.display='block';
+  div.innerHTML='<div style="font-size:12px;color:#94a3b8">Laden...</div>';
+
+  const {data:evals}=await sbGet('match_evaluaties','match_id=eq.'+matchId+'&select=*');
+  if(!evals||!evals.length){div.innerHTML='<div style="font-size:12px;color:#94a3b8">Nog geen evaluaties.</div>';return;}
+
+  div.innerHTML='<div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">'+evals.length+' evaluatie(s)</div>'+
+  evals.map(ev=>{
+    const sp=PLAYERS.find(x=>x.id===ev.beoordelaar)||{voornaam:'?',naam:''};
+    const motmP=PLAYERS.find(x=>x.id===ev.motm);
+    const wlP=PLAYERS.find(x=>x.id===ev.weak_link);
+    const rHtml=Object.entries(ev.ratings||{}).map(([id,s])=>{
+      const p=PLAYERS.find(x=>x.id===parseInt(id))||{voornaam:'?'};
+      return '<span style="background:#f1f5f9;padding:2px 7px;border-radius:4px;font-size:11px">'+p.voornaam+' <b>'+s+'</b></span>';
+    }).join(' ');
+
+    const eigenHTML=[
+      {l:'B+',v:ev.eigen_b_plus,o:ev.eigen_b_plus_opmerking},
+      {l:'B-',v:ev.eigen_b_min,o:ev.eigen_b_min_opmerking},
+      {l:'Trans B+→B-',v:ev.eigen_trans_bp_bm,o:ev.eigen_trans_bp_bm_opmerking},
+      {l:'Trans B-→B+',v:ev.eigen_trans_bm_bp,o:ev.eigen_trans_bm_bp_opmerking},
+    ].filter(x=>x.v).map(x=>'<span style="font-size:11px"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
+
+    return '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">'+
+      '<div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px">'+sp.voornaam+' '+sp.naam+(ev.vergrendeld?' 🔒':'')+'</div>'+
+      (ev.tegenstander_systeem?'<div style="font-size:11px;color:#475569;margin-bottom:4px">⚽ Systeem tegenstander: <b>'+ev.tegenstander_systeem+'</b>'+(ev.tegenstander_systeem_extra?' — '+ev.tegenstander_systeem_extra:'')+'</div>':'')+
+      (ev.tegenstander_beste?'<div style="font-size:11px;color:#475569;margin-bottom:6px">⭐ Beste teg.: '+ev.tegenstander_beste+'</div>':'')+
+      (rHtml?'<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">'+rHtml+'</div>':'')+
+      (motmP?'<div style="font-size:11px;color:#15803d;margin-bottom:3px">⭐ MOTM: <b>'+motmP.voornaam+'</b></div>':'')+
+      (wlP?'<div style="font-size:11px;color:#dc2626;margin-bottom:6px">🔴 Weak Link: <b>'+wlP.voornaam+'</b></div>':'')+
+      (eigenHTML?'<div style="font-size:11px;line-height:1.8;color:#374151;border-top:1px solid #f1f5f9;padding-top:6px;margin-top:4px">'+eigenHTML+'</div>':'')+
+    '</div>';
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════
+// SPELER VAN DE MAAND
+// ══════════════════════════════════════════════════
+let svdmSelectedId = null;
+let svdmMatchIds   = [];
+
+async function loadSvdMAdmin() {
+  // Load matches for selection
+  const {data}=await sbGet('wedstrijden','select=id,datum,tegenstander&order=datum.desc');
+  const el=$('svm-match-select');if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen wedstrijden beschikbaar.</div>';return;}
+  el.innerHTML=data.map(w=>'<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">'+
+    '<input type="checkbox" class="svm-match-cb" value="'+w.id+'" style="width:14px;height:14px;accent-color:#15803d">'+
+    '<span>'+fmtDate(w.datum)+' — vs '+w.tegenstander+'</span>'+
+  '</label>').join('');
+  loadSvdMHuidig();
+}
+
+async function berekenSvdM() {
+  const checks=[...document.querySelectorAll('.svm-match-cb:checked')];
+  if(!checks.length){toast('Selecteer minimaal 1 wedstrijd',true);return;}
+  svdmMatchIds=checks.map(cb=>parseInt(cb.value));
+
+  const {data:evals}=await sbGet('match_evaluaties','match_id=in.('+svdmMatchIds.join(',')+')&select=beoordelaar,ratings,eigen_b_plus,eigen_b_min,eigen_trans_bp_bm,eigen_trans_bm_bp');
+  if(!evals||!evals.length){toast('Geen evaluaties gevonden voor deze wedstrijden',true);return;}
+
+  // Calculate average received rating per player
+  const received={}; // {playerId: {total, count}}
+  evals.forEach(ev=>{
+    Object.entries(ev.ratings||{}).forEach(([id,score])=>{
+      const pid=parseInt(id);
+      if(!received[pid])received[pid]={total:0,count:0};
+      received[pid].total+=score;received[pid].count++;
+    });
+  });
+
+  const ranking=Object.entries(received)
+    .map(([id,{total,count}])=>({id:parseInt(id),avg:Math.round(total/count*10)/10}))
+    .sort((a,b)=>b.avg-a.avg);
+
+  svdmSelectedId=ranking[0]?.id||null;
+
+  const el=$('svm-rank-list');if(!el)return;
+  el.innerHTML=ranking.map((r,i)=>{
+    const p=PLAYERS.find(x=>x.id===r.id)||{voornaam:'?',naam:''};
+    return '<div class="rank-row">'+
+      '<div class="rank-nr'+(i===0?' gold':'')+'>'+(i+1)+'</div>'+
+      '<div class="rank-name">'+p.voornaam+' '+p.naam+'</div>'+
+      '<div class="rank-score">'+r.avg+'/10</div>'+
+    '</div>';
+  }).join('');
+
+  $('svm-ranking').style.display='block';
+  toast('Berekening klaar — #1 is '+(PLAYERS.find(x=>x.id===svdmSelectedId)?.voornaam||'?'));
+}
+
+async function saveSvdM() {
+  if(!svdmSelectedId){toast('Geen winnaar berekend',true);return;}
+  const periode=$('svm-periode')?.value.trim();
+  if(!periode){toast('Vul een periodenaam in',true);return;}
+
+  let foto_url='';
+  const fotoFile=$('svm-foto')?.files[0];
+  if(fotoFile){
+    try { foto_url=await uploadFoto(fotoFile); }
+    catch(e){ toast('Foto upload mislukt: '+e.message,true);return; }
+  }
+
+  const {error}=await sbInsert('speler_vd_maand',{
+    speler_id:svdmSelectedId, periode, foto_url,
+    wedstrijd_ids:svdmMatchIds,
+    gemiddelde:0
+  });
+  if(error){toast('Fout: '+error.message,true);return;}
+  toast('🏆 Speler van de Maand opgeslagen!');
+  loadSvdMHuidig();
+  loadSvdMLanding();
+}
+
+async function uploadFoto(file) {
+  const ext=file.name.split('.').pop();
+  const fname='svm_'+Date.now()+'.'+ext;
+  const r=await fetch(SUPABASE_URL+'/storage/v1/object/fotos/'+fname,{
+    method:'POST',
+    headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SB_TOKEN,'Content-Type':file.type},
+    body:file
+  });
+  if(!r.ok){const e=await r.json();throw new Error(e.message||'Upload fout');}
+  return SUPABASE_URL+'/storage/v1/object/public/fotos/'+fname;
+}
+
+async function loadSvdMHuidig() {
+  const {data}=await sbGetOne('speler_vd_maand','select=*&order=id.desc');
+  const el=$('svm-huidig');const cont=$('svm-huidig-content');
+  if(!data||!el||!cont)return;
+  el.style.display='block';
+  const p=PLAYERS.find(x=>x.id===data.speler_id)||{voornaam:'?',naam:''};
+  cont.innerHTML='<div style="display:flex;align-items:center;gap:12px">'+
+    (data.foto_url?'<img src="'+data.foto_url+'" style="width:50px;height:50px;border-radius:50%;object-fit:cover">':'<div style="width:50px;height:50px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:20px">⭐</div>')+
+    '<div><div style="font-size:14px;font-weight:700">'+p.voornaam+' '+p.naam+'</div>'+
+    '<div style="font-size:12px;color:#64748b">'+data.periode+'</div></div></div>';
+}
+
+async function loadSvdMLanding() {
+  const {data}=await sbGetOne('speler_vd_maand','select=*&order=id.desc');
+  const el=$('svm-landing');if(!el)return;
+  if(!data){el.style.display='none';return;}
+  el.style.display='block';
+  const p=PLAYERS.find(x=>x.id===data.speler_id)||{voornaam:'?',naam:''};
+  $('svm-landing-name').textContent=p.voornaam+' '+p.naam;
+  $('svm-landing-periode').textContent=data.periode;
+  const wrap=$('svm-photo-wrap');
+  if(wrap){
+    if(data.foto_url){wrap.outerHTML='<img class="svm-photo" id="svm-photo-wrap" src="'+data.foto_url+'" alt="'+p.voornaam+'">';}
+    else{wrap.innerHTML='⭐';}
+  }
 }
 
 
@@ -1397,6 +1729,7 @@ init();
     <button class="beheer-tab on" onclick="switchBeheerTab('spelers',this)">👥 Spelers</button>
     <button class="beheer-tab"    onclick="switchBeheerTab('users',this)">🔑 Gebruikers</button>
     <button class="beheer-tab"    onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
+    <button class="beheer-tab"    onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
   </div>
   <div class="beheer-body">
 
@@ -1437,6 +1770,35 @@ init();
         <button class="btn-green" onclick="addWedstrijdBeheer()">+ Toevoegen</button>
       </div>
       <div id="beheer-match-list" class="match-list"></div>
+    </div>
+
+    <!-- Maandprijs -->
+    <div id="bp-maandprijs" class="beheer-pane">
+      <div class="section-card">
+        <div class="section-card-title">Bereken Speler van de Maand</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Selecteer 4 wedstrijden van de periode:</div>
+        <div id="svm-match-select" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
+        <button class="btn-green" onclick="berekenSvdM()">📊 Bereken</button>
+      </div>
+      <div id="svm-ranking" style="display:none" class="section-card">
+        <div class="section-card-title">Ranglijst</div>
+        <div id="svm-rank-list"></div>
+        <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
+          <div class="field">
+            <label>Periode naam (bijv. "September 2026")</label>
+            <input id="svm-periode" style="border:1px solid var(--border);border-radius:7px;padding:7px 10px;font-size:13px;width:100%;outline:none">
+          </div>
+          <div class="field">
+            <label>Foto uploaden</label>
+            <input type="file" id="svm-foto" accept="image/*" style="font-size:12px">
+          </div>
+          <button class="btn-green" onclick="saveSvdM()" style="width:100%;padding:10px">🏆 Sla op als Speler van de Maand</button>
+        </div>
+      </div>
+      <div id="svm-huidig" class="section-card" style="display:none">
+        <div class="section-card-title">Huidige Speler van de Maand</div>
+        <div id="svm-huidig-content"></div>
+      </div>
     </div>
 
     <!-- Gebruikers -->
