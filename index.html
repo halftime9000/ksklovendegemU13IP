@@ -354,7 +354,11 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
     <div id="login-fields">
       <div class="lf"><label>E-mail</label><input id="inp-email" type="email" placeholder="coach@email.com"></div>
       <div class="lf"><label>Wachtwoord</label><input id="inp-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button class="login-btn" id="login-btn" onclick="doLogin()">Inloggen</button>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <input type="checkbox" id="remember-me" checked style="width:14px;height:14px;accent-color:#15803d;cursor:pointer">
+      <label for="remember-me" style="font-size:12px;color:#475569;cursor:pointer">Onthoud mij (blijf ingelogd)</label>
+    </div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Inloggen</button>
     </div>
     <button id="demo-btn" class="demo-btn" style="display:none" onclick="startDemo()">👁️ Bekijk layout (zonder Supabase)</button>
     <div class="login-err" id="login-err"></div>
@@ -643,25 +647,48 @@ function sbH(extra) {
 }
 function sbLoadSession() {
   try {
-    const s = JSON.parse(localStorage.getItem('ksk_sb_session')||'null');
-    if (s && s.exp > Date.now()/1000 + 60) { SB_TOKEN=s.token; SB_USER=s.user; return s.user; }
+    const raw = localStorage.getItem('ksk_sb_session') || sessionStorage.getItem('ksk_sb_session');
+    const s = JSON.parse(raw||'null');
+    if (!s) return null;
+    SB_TOKEN=s.token; SB_USER=s.user;
+    // Store refresh token for later use
+    if (s.refresh) window._sbRefresh = s.refresh;
+    if (s.exp > Date.now()/1000 + 60) return s.user;
+    // Session expired but we have it - still return user, token refresh happens on first API call
+    return s.user;
   } catch(e) {}
   return null;
 }
-function sbSaveSession(data) {
+
+async function sbRefreshIfNeeded() {
+  if (!window._sbRefresh) return false;
+  try {
+    const r = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=refresh_token', {
+      method:'POST', headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({refresh_token:window._sbRefresh})
+    });
+    if (!r.ok) return false;
+    const d=await r.json();
+    sbSaveSession(d, !!localStorage.getItem('ksk_sb_session'));
+    return true;
+  } catch(e) { return false; }
+}
+function sbSaveSession(data, remember) {
   SB_TOKEN=data.access_token; SB_USER=data.user;
-  localStorage.setItem('ksk_sb_session', JSON.stringify({token:data.access_token,user:data.user,exp:Math.floor(Date.now()/1000)+(data.expires_in||3600)}));
+  const s=JSON.stringify({token:data.access_token,refresh:data.refresh_token,user:data.user,exp:Math.floor(Date.now()/1000)+(data.expires_in||3600)});
+  if(remember===false){ sessionStorage.setItem('ksk_sb_session',s); localStorage.removeItem('ksk_sb_session'); }
+  else { localStorage.setItem('ksk_sb_session',s); }
 }
 function sbClearSession() { SB_TOKEN=null; SB_USER=null; localStorage.removeItem('ksk_sb_session'); }
 
-async function sbSignIn(email, password) {
+async function sbSignIn(email, password, remember) {
   const r = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password', {
     method:'POST', headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
     body:JSON.stringify({email, password})
   });
   const d = await r.json();
   if (!r.ok) throw new Error(d.error_description||d.message||'Login mislukt');
-  sbSaveSession(d); return d;
+  sbSaveSession(d, remember); return d;
 }
 async function sbSignOut() {
   if (SB_TOKEN) fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:sbH()}).catch(()=>{});
@@ -788,7 +815,8 @@ async function doLogin() {
   if(!email||!pwd){$('login-err').textContent='Vul beide velden in.';return;}
   btn.disabled=true; btn.textContent='Bezig\u2026'; $('login-err').textContent='';
   try {
-    await sbSignIn(email,pwd);
+    const remember=$('remember-me')?.checked!==false;
+    await sbSignIn(email,pwd,remember);
     hide('s-login'); show('loading');
     await handleLogin();
   } catch(e) {
@@ -818,8 +846,8 @@ async function handleLogin() {
   if(userRole==='player'){await loadPlayerView();showFlex('s-player');}
   else if(userRole==='pending'){showFlex('s-pending');}
   else {
-    const _a=$('admin-sb-btn'); if(_a&&userRole==='admin')_a.style.display='block';
     await loadAll(); showFlex('s-app');
+  setTimeout(()=>{ const _a=$('admin-sb-btn'); if(_a&&userRole==='admin')_a.style.display='block'; },200);
   }
 }
 
