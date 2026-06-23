@@ -993,7 +993,7 @@ function updatePeriodSummary(){
 }
 
 // TABS
-function switchTab(id,btn){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));document.getElementById('tp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')loadWedstrijden();}
+function switchTab(id,btn){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));document.getElementById('tp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')loadWedstrijden().then(()=>{const ml=$('match-list');if(ml)renderPvMatchListIn('match-list');})}
 function switchTabById(id){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));document.getElementById('tp-'+id)?.classList.add('on');document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+id+"'"))b.classList.add('on');});}
 
 // STATS
@@ -1064,7 +1064,7 @@ async function linkSpeler(uid,spelerId){await sbPatch('user_roles','user_id=eq.'
 // WEDSTRIJDEN
 function setLocatie(loc){nmLocatie=loc;$('nm-thuis')?.classList.toggle('on',loc==='thuis');$('nm-uit')?.classList.toggle('on',loc==='uit');}
 function toggleAddMatchForm(){const f=$('add-match-form');if(f)f.style.display=f.style.display==='none'?'block':'none';}
-async function loadWedstrijden(){const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');if(error)return;wedstrijdenData=data||[];renderMatchList('match-list',wedstrijdenData,true);}
+async function loadWedstrijden(){const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');if(error)return;wedstrijdenData=data||[];}
 function renderMatchList(containerId,data,editable){
   const el=$(containerId);if(!el)return;
   if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
@@ -1121,81 +1121,47 @@ function toast(msg,isErr){const t=$('toast');if(!t)return;t.textContent=msg;t.cl
 
 
 
-function renderPvMatchList() {
-  const el=$('pv-match-list');if(!el)return;
+function renderPvMatchListIn(containerId) {
+  const el=$(containerId);if(!el)return;
   if(!wedstrijdenData.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
-  el.innerHTML=wedstrijdenData.map(w=>`
-    <div class="match-card">
-      <div class="match-head" onclick="toggleMatch(${w.id})">
-        <span class="match-datum">${fmtDate(w.datum)}</span>
-        <span class="match-opp">vs ${w.tegenstander}</span>
-        <span class="match-loc ${w.thuis_uit}">${w.thuis_uit}</span>
-        <span class="match-chevron" id="chev-${w.id}">▼</span>
-      </div>
-      <div class="match-body" id="mb-${w.id}">
-        <div class="match-teams">
-          <div class="match-team">
-            <div class="match-team-label"><span class="match-team-dot" style="background:#3b82f6"></span>Ploeg Blauw</div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">${w.blauw_score||'–'}</div>
-            <div style="font-size:11px;color:#64748b">${(w.blauw_spelers||[]).map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam:'';}).filter(Boolean).join(', ')||'–'}</div>
-          </div>
-          <div class="match-team">
-            <div class="match-team-label"><span class="match-team-dot" style="background:#eab308"></span>Ploeg Geel</div>
-            <div style="font-size:14px;font-weight:700;margin-bottom:4px">${w.geel_score||'–'}</div>
-            <div style="font-size:11px;color:#64748b">${(w.geel_spelers||[]).map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam:'';}).filter(Boolean).join(', ')||'–'}</div>
-          </div>
-        </div>
-        ${w.man_of_match?'<div style="padding:8px 16px;font-size:12px;color:#15803d;font-weight:600">⭐ MOTM: '+(PLAYERS.find(x=>x.id===w.man_of_match)?.voornaam||'')+'</div>':''}
-        ${w.weak_link?'<div style="padding:0 16px 8px;font-size:12px;color:#dc2626;font-weight:600">🔴 Weak Link: '+(PLAYERS.find(x=>x.id===w.weak_link)?.voornaam||'')+'</div>':''}
-        <div class="eval-section">
-          <div class="eval-header" onclick="openEvalForm(${w.id})">✏️ Jouw evaluatie — klik om in te vullen</div>
-          <div class="eval-body" id="eval-body-${w.id}"></div>
-        </div>
-      </div>
-    </div>`).join('');
-}
-
-
-
-async function bekijkEvaluaties(matchId) {
-  const div=$('eval-overzicht-'+matchId);if(!div)return;
-  if(div.style.display==='block'){div.style.display='none';return;}
-  div.style.display='block';
-  div.innerHTML='<div style="font-size:12px;color:#94a3b8">Laden...</div>';
-
-  const {data:evals}=await sbGet('match_evaluaties','match_id=eq.'+matchId+'&select=*');
-  if(!evals||!evals.length){div.innerHTML='<div style="font-size:12px;color:#94a3b8">Nog geen evaluaties ingediend.</div>';return;}
-
-  div.innerHTML='<div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">'+evals.length+' evaluatie(s) ontvangen</div>'+
-  evals.map(ev=>{
-    const sp=PLAYERS.find(x=>x.id===ev.beoordelaar)||{voornaam:'?',naam:''};
-    const motmP=PLAYERS.find(x=>x.id===ev.motm);
-    const wlP=PLAYERS.find(x=>x.id===ev.weak_link);
-    const ratingHtml=Object.keys(ev.ratings||{}).map(id=>{
-      const p=PLAYERS.find(x=>x.id===parseInt(id))||{voornaam:'?'};
-      return p.voornaam+': <strong>'+ev.ratings[id]+'/10</strong>';
-    }).join(' · ')||'—';
-    return '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">'+
-      '<div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px">'+sp.voornaam+' '+sp.naam+'</div>'+
-      '<div style="font-size:11px;color:#64748b;margin-bottom:6px">Scores: '+ratingHtml+'</div>'+
-      (motmP?'<div style="font-size:11px;margin-bottom:4px">⭐ MOTM: <strong>'+motmP.voornaam+' '+motmP.naam+'</strong></div>':'')+
-      (wlP?'<div style="font-size:11px;margin-bottom:6px">🔴 Weak Link: <strong>'+wlP.voornaam+' '+wlP.naam+'</strong></div>':'')+
-      (ev.wat_goed?'<div style="font-size:11px;color:#15803d;margin-bottom:3px">✅ <em>'+ev.wat_goed+'</em></div>':'')+
-      (ev.wat_minder?'<div style="font-size:11px;color:#dc2626;margin-bottom:3px">❌ <em>'+ev.wat_minder+'</em></div>':'')+
-      (ev.hoe_verbeteren?'<div style="font-size:11px;color:#d97706">💡 <em>'+ev.hoe_verbeteren+'</em></div>':'')+
+  el.innerHTML=wedstrijdenData.map(w=>{
+    const allPlayers=[...(w.blauw_spelers||[]),...(w.geel_spelers||[])];
+    const motmP=PLAYERS.find(x=>x.id===w.man_of_match);
+    const wlP=PLAYERS.find(x=>x.id===w.weak_link);
+    return '<div class="match-card">'+
+      '<div class="match-head" onclick="toggleMatch('+w.id+')">'+
+        '<span class="match-datum">'+fmtDate(w.datum)+'</span>'+
+        '<span class="match-opp">vs '+w.tegenstander+'</span>'+
+        '<span class="match-loc '+w.thuis_uit+'">'+w.thuis_uit+'</span>'+
+        '<span class="match-chevron" id="chev-'+w.id+'">▼</span>'+
+      '</div>'+
+      '<div class="match-body" id="mb-'+w.id+'">'+
+        '<div class="match-teams">'+
+          '<div class="match-team">'+
+            '<div class="match-team-label"><span class="match-team-dot" style="background:#3b82f6"></span>Ploeg Blauw</div>'+
+            '<div style="font-size:14px;font-weight:700;margin-bottom:4px">'+(w.blauw_score||'–')+'</div>'+
+            '<div style="font-size:11px;color:#64748b">'+(w.blauw_spelers||[]).map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam:'';}).filter(Boolean).join(', ')+'</div>'+
+          '</div>'+
+          '<div class="match-team">'+
+            '<div class="match-team-label"><span class="match-team-dot" style="background:#eab308"></span>Ploeg Geel</div>'+
+            '<div style="font-size:14px;font-weight:700;margin-bottom:4px">'+(w.geel_score||'–')+'</div>'+
+            '<div style="font-size:11px;color:#64748b">'+(w.geel_spelers||[]).map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam:'';}).filter(Boolean).join(', ')+'</div>'+
+          '</div>'+
+        '</div>'+
+        (motmP?'<div style="padding:6px 16px;font-size:12px;color:#15803d;font-weight:600">⭐ MOTM: '+motmP.voornaam+' '+motmP.naam+'</div>':'')+
+        (wlP?'<div style="padding:0 16px 6px;font-size:12px;color:#dc2626;font-weight:600">🔴 Weak Link: '+wlP.voornaam+' '+wlP.naam+'</div>':'')+
+        '<div class="eval-section">'+
+          '<div class="eval-header" onclick="openEvalForm('+w.id+')">✏️ Jouw evaluatie — klik om in te vullen</div>'+
+          '<div class="eval-body" id="eval-body-'+w.id+'"></div>'+
+        '</div>'+
+      '</div>'+
     '</div>';
   }).join('');
 }
 
-
-// ── BEHEER WEDSTRIJDEN ─────────────────────────────────────
-async function loadBeheerWedstrijden() {
-  const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');
-  if(error)return;
-  wedstrijdenData=data||[];
-  renderBeheerMatchList(data||[]);
+function renderPvMatchList() {
+  renderPvMatchListIn('pv-match-list');
 }
-
 function mkLineupList(players, bIds, gIds, mid) {
   return players.map(p=>{
     const inB=bIds.includes(p.id), inG=gIds.includes(p.id);
