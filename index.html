@@ -624,20 +624,93 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-// ==========================================
-// CONFIG - vul jouw waarden in!
-// ==========================================
+
+// CONFIG
 const SUPABASE_URL      = 'https://gfjqujhtligypbvrdnug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmanF1amh0bGlneXBidnJkbnVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNjgwNzQsImV4cCI6MjA5NzY0NDA3NH0.J_wkKkKMMsWRC2HFh6rYdOyv-WUERJ2hBypNSog9-RE';
-// ==========================================
-
 const DEMO = SUPABASE_URL.includes('JOUW');
-let sb = null;
-if (!DEMO) { try { sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY); } catch(e) {} }
 
-// ── MULTI-SELECT DATA ────────────────────
+// SUPABASE REST API
+let SB_TOKEN = null;
+let SB_USER  = null;
+
+function sbH(extra) {
+  const h = {'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+(SB_TOKEN||SUPABASE_ANON_KEY),'Content-Type':'application/json'};
+  if (extra) Object.assign(h, extra);
+  return h;
+}
+function sbLoadSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem('ksk_sb_session')||'null');
+    if (s && s.exp > Date.now()/1000 + 60) { SB_TOKEN=s.token; SB_USER=s.user; return s.user; }
+  } catch(e) {}
+  return null;
+}
+function sbSaveSession(data) {
+  SB_TOKEN=data.access_token; SB_USER=data.user;
+  localStorage.setItem('ksk_sb_session', JSON.stringify({token:data.access_token,user:data.user,exp:Math.floor(Date.now()/1000)+(data.expires_in||3600)}));
+}
+function sbClearSession() { SB_TOKEN=null; SB_USER=null; localStorage.removeItem('ksk_sb_session'); }
+
+async function sbSignIn(email, password) {
+  const r = await fetch(SUPABASE_URL+'/auth/v1/token?grant_type=password', {
+    method:'POST', headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify({email, password})
+  });
+  const d = await r.json();
+  if (!r.ok) throw new Error(d.error_description||d.message||'Login mislukt');
+  sbSaveSession(d); return d;
+}
+async function sbSignOut() {
+  if (SB_TOKEN) fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:sbH()}).catch(()=>{});
+  sbClearSession();
+}
+async function sbGet(table, qs) {
+  const url = SUPABASE_URL+'/rest/v1/'+table+(qs?'?'+qs:'');
+  const r = await fetch(url, {headers:sbH()});
+  if (!r.ok) { const e=await r.json().catch(()=>({})); return {data:null,error:e}; }
+  return {data:await r.json(), error:null};
+}
+async function sbGetOne(table, qs) {
+  const {data,error}=await sbGet(table,qs);
+  if(error) return {data:null,error};
+  return {data:Array.isArray(data)?(data[0]||null):data, error:null};
+}
+async function sbUpsert(table, body) {
+  const r = await fetch(SUPABASE_URL+'/rest/v1/'+table, {
+    method:'POST', headers:sbH({'Prefer':'resolution=merge-duplicates'}),
+    body:JSON.stringify(Array.isArray(body)?body:[body])
+  });
+  if (!r.ok) { const e=await r.json().catch(()=>({})); return {data:null,error:e}; }
+  return {data:null,error:null};
+}
+async function sbInsert(table, body) {
+  const r = await fetch(SUPABASE_URL+'/rest/v1/'+table, {
+    method:'POST', headers:sbH({'Prefer':'return=representation'}),
+    body:JSON.stringify(Array.isArray(body)?body:[body])
+  });
+  if (!r.ok) { const e=await r.json().catch(()=>({})); return {data:null,error:e}; }
+  return {data:await r.json().catch(()=>null),error:null};
+}
+async function sbPatch(table, filter, body) {
+  const r = await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+filter, {
+    method:'PATCH', headers:sbH(), body:JSON.stringify(body)
+  });
+  if (!r.ok) { const e=await r.json().catch(()=>({})); return {data:null,error:e}; }
+  return {data:null,error:null};
+}
+async function sbDelete(table, filter) {
+  await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+filter,{method:'DELETE',headers:sbH()});
+}
+async function sbRpc(fn, params) {
+  const r = await fetch(SUPABASE_URL+'/rest/v1/rpc/'+fn, {
+    method:'POST', headers:sbH(), body:JSON.stringify(params||{})
+  });
+  return r.json().catch(()=>({}));
+}
+
+// APP CONSTANTS
 const CATEGORIES = {
   technisch: ['Dribbelen','Passing / aanspelen','Eerste aanname','Balcontrole','Schieten','Koppen','Één-op-één','Overzicht','Vrij komen / aanlopen'],
   taktisch:  ['Positiespel','Omschakeling','Pressing','Ruimte creëren','Ruimte dichtlopen','Anticiperen','Communicatie op het veld'],
@@ -645,8 +718,6 @@ const CATEGORIES = {
   mentaal:   ['Doorzettingsvermogen','Focus / concentratie','Leiderschap','Teamspeler','Zelfvertrouwen','Vechtlust / inzet','Weerbaarheid'],
 };
 const CAT_LABELS = {technisch:'Technisch', taktisch:'Taktisch', fysiek:'Fysiek', mentaal:'Mentaal'};
-const MULTI_KEYS = ['sterke_technisch','sterke_taktisch','sterke_fysiek','sterke_mentaal','werk_technisch','werk_taktisch','werk_fysiek','werk_mentaal'];
-
 const PLAYERS = [
   {id:1,  naam:'Altintas',        voornaam:'Iltay'},
   {id:2,  naam:'Annaert',         voornaam:'Rémi'},
@@ -674,657 +745,345 @@ const PLAYERS = [
   {id:24, naam:'Vankeerberghen',  voornaam:'Len'},
   {id:25, naam:'Vereecke',        voornaam:'Liam'},
 ];
-
-const KEY_FIELDS  = ['geboortedatum','gsm_speler','positie','bf_niveau','bf_doel'];
-const TEXT_FIELDS = ['geboortedatum','gsm_speler','allergie','medicatie','medisch_info','vorige_club','bf_niveau','bf_doel','bf_verwachting','beschikbaarheid','school_naam'];
-
-let DB      = {};
-let selId   = null;
-let isDirty = false;
-let tgState = {positie:'', sterkevoet:'', bf_meest:'', bf_favoriet:''};
-let multiState = {};
-MULTI_KEYS.forEach(k => multiState[k] = []);
-
-// Calendar
-let calYear    = new Date().getFullYear();
-let calMonth   = new Date().getMonth();
-let unavailDates = [];
-let rangeStart   = null;
-const TODAY = new Date().toISOString().slice(0,10);
+const MULTI_KEYS = ['sterke_technisch','sterke_taktisch','sterke_fysiek','sterke_mentaal','werk_technisch','werk_taktisch','werk_fysiek','werk_mentaal'];
 const MONTHS = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
 const MON_SHORT = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
 
-// ── BUILD MULTI-SELECT HTML ───────────────
-function buildMultiSections() {
-  ['sterke','werk'].forEach(type => {
-    const c = $(`ms-container-${type}`);
-    if (!c) return;
-    c.innerHTML = Object.entries(CATEGORIES).map(([cat, opts]) => `
-      <div class="ms-section cat-${cat}">
-        <div class="ms-cat">${CAT_LABELS[cat]}</div>
-        <div class="ms-pills" id="ms-${type}_${cat}">
-          ${opts.map(o=>`<button class="pill" onclick="togglePill(this,'${type}_${cat}')">${o}</button>`).join('')}
-        </div>
-      </div>`).join('');
-  });
-}
+const KEY_FIELDS  = ['geboortedatum','gsm_speler','positie','bf_niveau','bf_doel'];
+const TEXT_FIELDS = ['geboortedatum','gsm_speler','allergie','medicatie','medisch_info','vorige_club','bf_niveau','bf_doel','bf_verwachting','beschikbaarheid','school_naam'];
+const LS_KEY = 'ksk_lovendegem_u13_demo';
+const TS_KEY = 'ksk_team_stats';
+const TODAY  = new Date().toISOString().slice(0,10);
 
-// ── INIT ─────────────────────────────────
+// APP STATE
+let DB={}, selId=null, isDirty=false;
+let tgState={positie:'',sterkevoet:'',bf_meest:'',bf_favoriet:''};
+let multiState={};
+MULTI_KEYS.forEach(k=>multiState[k]=[]);
+let calYear=new Date().getFullYear(), calMonth=new Date().getMonth();
+let unavailDates=[], rangeStart=null;
+let userRole='none', userSpelerId=null;
+let nmLocatie='thuis', wedstrijdenData=[], pvDirtyFlag=false;
+
+// INIT
 async function init() {
-  // Safety timeout: als na 6s nog laden → login tonen
-  const safetyTimer = setTimeout(() => {
-    if ($('loading') && $('loading').style.display !== 'none') {
-      hide('loading'); showFlex('s-login');
-    }
-  }, 6000);
-
-  try { buildMultiSections(); } catch(e) { console.warn('buildMultiSections:', e.message); }
-  try { renderCalendar(); }      catch(e) { console.warn('renderCalendar:', e.message); }
-
+  const safetyTimer = setTimeout(()=>{ if($('loading')&&$('loading').style.display!=='none'){hide('loading');showFlex('s-login');} },8000);
+  try { buildMultiSections(); } catch(e) { console.warn(e); }
+  try { renderCalendar(); }      catch(e) { console.warn(e); }
   if (DEMO) {
     clearTimeout(safetyTimer);
-    setDisp('demo-banner','block');
-    setDisp('demo-btn','block');
-    hide('loading');
-    showFlex('s-login');
-    return;
+    setDisp('demo-banner','block'); setDisp('demo-btn','block');
+    hide('loading'); showFlex('s-login'); return;
   }
-
-  try {
-    const {data:{session}} = await sb.auth.getSession();
-    clearTimeout(safetyTimer);
-    if (!session) { hide('loading'); showFlex('s-login'); return; }
-    await handleLogin();
-  } catch(e) {
-    clearTimeout(safetyTimer);
-    console.error('Init error:', e);
-    hide('loading');
-    showFlex('s-login');
-  }
+  const user = sbLoadSession();
+  clearTimeout(safetyTimer);
+  if (!user) { hide('loading'); showFlex('s-login'); return; }
+  await handleLogin();
 }
 
+// AUTH
 async function doLogin() {
-  if(!sb){$('login-err').textContent='Supabase niet geconfigureerd.';return;}
-  const email=$('inp-email').value.trim();
-  const pwd=$('inp-pwd').value;
-  const btn=$('login-btn');
+  const email=$('inp-email').value.trim(), pwd=$('inp-pwd').value, btn=$('login-btn');
   if(!email||!pwd){$('login-err').textContent='Vul beide velden in.';return;}
-  btn.disabled=true;
-  btn.textContent='Bezig…';
-  $('login-err').textContent='';
+  btn.disabled=true; btn.textContent='Bezig\u2026'; $('login-err').textContent='';
   try {
-    const {error} = await sb.auth.signInWithPassword({email, password:pwd});
-    if(error){
-      $('login-err').textContent='Onjuist e-mail of wachtwoord.';
-      btn.disabled=false;
-      btn.textContent='Inloggen';
-      return;
-    }
-    hide('s-login');
-    show('loading');
+    await sbSignIn(email,pwd);
+    hide('s-login'); show('loading');
     await handleLogin();
   } catch(e) {
-    console.error('doLogin error:',e);
-    hide('loading');
-    showFlex('s-login');
-    $('login-err').textContent='Fout: '+e.message;
-    btn.disabled=false;
-    btn.textContent='Inloggen';
+    console.error(e);
+    $('login-err').textContent=e.message||'Verbindingsfout';
+    btn.disabled=false; btn.textContent='Inloggen';
   }
 }
 
 async function handleLogin() {
   hide('loading');
-  // Always show the app first — role check is secondary
-  userRole = 'admin';
-  userSpelerId = null;
-
-  // Try role check in background (non-blocking)
-  try {
-    const {data:{session}} = await sb.auth.getSession();
-    if (session) {
-      try {
-        const {data:rd} = await sb.from('user_roles')
-          .select('role,speler_id').eq('user_id',session.user.id).maybeSingle();
-        if (rd) {
-          userRole = rd.role;
-          userSpelerId = rd.speler_id||null;
-        } else {
-          // Try to create admin entry
-          try {
-            await sb.rpc('setup_first_admin',{p_naam: session.user.email?.split('@')[0]||'Coach'});
-            const {data:rd2} = await sb.from('user_roles')
-              .select('role,speler_id').eq('user_id',session.user.id).maybeSingle();
-            if(rd2){userRole=rd2.role;userSpelerId=rd2.speler_id||null;}
-          } catch(e2){ /* SQL not run yet, stay admin */ }
-        }
-      } catch(e1){ /* user_roles missing, stay admin */ }
-    }
-  } catch(e){ /* session error, stay admin */ }
-
-  // Route based on role
-  if(userRole==='player'){
-    await loadPlayerView();
-    showFlex('s-player');
-  } else if(userRole==='pending'){
-    showFlex('s-pending');
-  } else {
-    if(userRole==='admin') const _asb=$('admin-sb-btn');if(_asb)_asb.style.display='block';
-    await loadAll();
-    showFlex('s-app');
+  userRole='admin'; userSpelerId=null;
+  if (SB_USER) {
+    try {
+      const {data:rd}=await sbGetOne('user_roles','user_id=eq.'+SB_USER.id+'&select=role,speler_id');
+      if (rd) { userRole=rd.role; userSpelerId=rd.speler_id||null; }
+      else {
+        try {
+          const sd=await sbRpc('setup_first_admin',{p_naam:SB_USER.email?.split('@')[0]||'Coach'});
+          userRole=sd?.role||'admin';
+          const {data:rd2}=await sbGetOne('user_roles','user_id=eq.'+SB_USER.id+'&select=role,speler_id');
+          if(rd2){userRole=rd2.role;userSpelerId=rd2.speler_id||null;}
+        } catch(e2){}
+      }
+    } catch(e){}
+  }
+  if(userRole==='player'){await loadPlayerView();showFlex('s-player');}
+  else if(userRole==='pending'){showFlex('s-pending');}
+  else {
+    const _a=$('admin-sb-btn'); if(_a&&userRole==='admin')_a.style.display='block';
+    await loadAll(); showFlex('s-app');
   }
 }
 
-
-async function doLogout(){
-  if(sb)await sb.auth.signOut();
+async function doLogout() {
+  sbSignOut();
   ['s-app','s-beheer','s-player','s-pending'].forEach(hide);
   showFlex('s-login');
-  const _db2=$('demo-badge');if(_db2)_db2.style.display='none';
-  const _asb2=$('admin-sb-btn');if(_asb2)_asb2.style.display='none';
-  selId=null;DB={};userRole='none';userSpelerId=null;
+  setDisp('admin-sb-btn','none');
+  setDisp('demo-badge','none');
+  selId=null; DB={}; userRole='none'; userSpelerId=null;
 }
 
-// ── RENDER LIST ───────────────────────────
-function renderList(){
+function startDemo() {
+  DB={}; PLAYERS.forEach(p=>DB[p.id]={id:p.id,naam:p.naam,voornaam:p.voornaam,data:{}});
+  try { const s=localStorage.getItem(LS_KEY); if(s){const p=JSON.parse(s);Object.keys(p).forEach(id=>{if(DB[id])DB[id].data=p[id].data||{};});} } catch(e){}
+  hide('s-login'); showFlex('s-app');
+  setDisp('demo-badge','inline');
+  renderList(); updateStats(); setTimeout(loadTeamStats,100);
+}
+
+// DATA
+async function loadAll() {
+  const {data,error}=await sbGet('spelers','select=*');
+  if(error){toast('DB-fout: '+(error.message||'onbekend'),true);return;}
+  if(!data||data.length===0){
+    await sbInsert('spelers',PLAYERS.map(p=>({id:p.id,naam:p.naam,voornaam:p.voornaam,seizoen:'2026-27',data:{}})));
+    await loadAll(); return;
+  }
+  DB={}; data.forEach(r=>DB[r.id]=r);
+  renderList(); updateStats(); setTimeout(loadTeamStats,100);
+}
+
+// MULTI-SELECT
+function buildMultiSections() {
+  ['sterke','werk'].forEach(type=>{
+    const c=$('ms-container-'+type); if(!c)return;
+    c.innerHTML=Object.entries(CATEGORIES).map(([cat,opts])=>
+      '<div class="ms-section cat-'+cat+'"><div class="ms-cat">'+CAT_LABELS[cat]+'</div><div class="ms-pills" id="ms-'+type+'_'+cat+'">'+
+      opts.map(o=>'<button class="pill" onclick="togglePill(this,\''+type+'_'+cat+'\')">'+o+'</button>').join('')+
+      '</div></div>').join('');
+  });
+}
+function togglePill(el,key){const v=el.textContent.trim(),a=multiState[key],i=a.indexOf(v);if(i>-1)a.splice(i,1);else a.push(v);el.classList.toggle('on',a.includes(v));markDirty();}
+function renderPills(){MULTI_KEYS.forEach(k=>{const c=document.getElementById('ms-'+k);if(!c)return;c.querySelectorAll('.pill').forEach(b=>b.classList.toggle('on',multiState[k].includes(b.textContent.trim())));});}
+
+// PLAYER LIST
+function renderList() {
   const q=document.querySelector('.sb-search input')?.value.toLowerCase()||'';
-  const ul=$('player-list');ul.innerHTML='';
-  PLAYERS.filter(p=>`${p.voornaam} ${p.naam}`.toLowerCase().includes(q)).forEach(p=>{
-    const d=DB[p.id]?.data||{},pc=calcPct(d),has=hasData(d),ini=(p.voornaam[0]+p.naam[0]).toUpperCase(),avc=pc===100?'c':has?'s':'';
+  const ul=$('player-list'); if(!ul)return; ul.innerHTML='';
+  PLAYERS.filter(p=>(p.voornaam+' '+p.naam).toLowerCase().includes(q)).forEach(p=>{
+    const d=DB[p.id]?.data||{},pc=calcPct(d),has=hasData(d);
+    const ini=(p.voornaam[0]+p.naam[0]).toUpperCase(),avc=pc===100?'c':has?'s':'';
     const el=document.createElement('div');
     el.className='pi'+(selId===p.id?' sel':'');
-    el.innerHTML=`<div class="pav ${avc}">${ini}</div><div class="pinfo"><div class="pname">${p.voornaam} ${p.naam}</div>${has?`<div class="pprog"><div class="pbar"><div class="pfill ${pc===100?'c':''}" style="width:${pc}%"></div></div><span class="ppct">${pc}%</span></div>`:''}</div>`;
-    el.onclick=()=>selectPlayer(p.id);ul.appendChild(el);
+    el.innerHTML='<div class="pav '+avc+'">'+ini+'</div><div class="pinfo"><div class="pname">'+p.voornaam+' '+p.naam+'</div>'+(has?'<div class="pprog"><div class="pbar"><div class="pfill '+(pc===100?'c':'')+'" style="width:'+pc+'%"></div></div><span class="ppct">'+pc+'%</span></div>':'')+'</div>';
+    el.onclick=()=>selectPlayer(p.id); ul.appendChild(el);
   });
 }
 
-// ── SELECT PLAYER ─────────────────────────
-function selectPlayer(id){
+// SELECT PLAYER
+function selectPlayer(id) {
   if(isDirty&&!confirm('Wijzigingen niet opgeslagen. Toch verder?'))return;
-  selId=id;isDirty=false;rangeStart=null;
-  const p=PLAYERS.find(x=>x.id===id),d=DB[id]?.data||{};
+  selId=id; isDirty=false; rangeStart=null;
+  const p=PLAYERS.find(x=>x.id===id), d=DB[id]?.data||{};
   $('hdr-av').textContent=(p.voornaam[0]+p.naam[0]).toUpperCase();
-  $('hdr-name').textContent=`${p.voornaam} ${p.naam}`;
+  $('hdr-name').textContent=p.voornaam+' '+p.naam;
   updSub(d);
-  $('f-voornaam').value=p.voornaam;$('f-naam').value=p.naam;
-  TEXT_FIELDS.forEach(f=>{const el=$(`f-${f}`);if(el)el.value=d[f]||'';});
+  $('f-voornaam').value=p.voornaam; $('f-naam').value=p.naam;
+  TEXT_FIELDS.forEach(f=>{const el=$('f-'+f);if(el)el.value=d[f]||'';});
   tgState={positie:d.positie||'',sterkevoet:d.sterkevoet||'',bf_meest:d.bf_meest||'',bf_favoriet:d.bf_favoriet||''};
   ['positie','sterkevoet','bf_meest','bf_favoriet'].forEach(g=>renderTg(g));
   MULTI_KEYS.forEach(k=>multiState[k]=Array.isArray(d[k])?[...d[k]]:[]);
   renderPills();
   unavailDates=Array.isArray(d.unavail_dates)?[...d.unavail_dates]:[];
-  renderCalendar();
-  setSaveBtn('idle');
-  setDisp('empty-state','none');setDisp('detail','flex');
-  if(isMobile()){ closeMobileList(); }
-  switchTabById('persoonlijk');renderList();
+  renderCalendar(); setSaveBtn('idle');
+  setDisp('empty-state','none');
+  const det=$('detail'); if(det)det.style.display='flex';
+  if(isMobile())closeMobileList();
+  switchTabById('persoonlijk'); renderList();
 }
+function updSub(d){const p=['U13 IP','2026-27'];if(d.positie)p.push(d.positie);$('hdr-sub').textContent=p.join(' · ');}
 
-function openMobileList(){
-  document.querySelector('.sb').classList.add('open');
-  $('sb-overlay')?.classList.add('show');
-}
-function closeMobileList(){
-  document.querySelector('.sb').classList.remove('open');
-  $('sb-overlay')?.classList.remove('show');
-}
-function backToList(){
-  if(isMobile()){
-    setDisp('detail','none');
-    setDisp('empty-state','flex');
-    selId=null; renderList();
-    openMobileList();
-  } else {
-    setDisp('detail','none');
-    setDisp('empty-state','flex');
-    selId=null; renderList();
-  }
-}
-function isMobile(){ return window.innerWidth <= 768; }
-
-function updSub(d){
-  let p=['U13 IP','2026–27'];
-  if(d.rugnummer)p.push('#'+d.rugnummer);if(d.positie)p.push(d.positie);
-  $('hdr-sub').textContent=p.join(' · ');
-}
-
-// ── FORM ─────────────────────────────────
+// FORM
 function markDirty(){isDirty=true;setSaveBtn('dirty');}
-function setSaveBtn(s){const b=$('save-btn');b.className=s==='idle'?'save-btn':`save-btn ${s}`;b.disabled=s==='idle';b.textContent=s==='saved'?'✓ Opgeslagen':'💾 Opslaan';}
+function setSaveBtn(s){const b=$('save-btn');if(!b)return;b.className=s==='idle'?'save-btn':'save-btn '+s;b.disabled=s==='idle';b.textContent=s==='saved'?'✓ Opgeslagen':'💾 Opslaan';}
 function toggleGrp(el,g){const v=el.textContent.trim();tgState[g]=tgState[g]===v?'':v;renderTg(g);markDirty();}
-function renderTg(g){document.querySelectorAll(`#tg-${g} .tgb`).forEach(b=>b.classList.toggle('on',b.textContent.trim()===tgState[g]));}
+function renderTg(g){document.querySelectorAll('#tg-'+g+' .tgb').forEach(b=>b.classList.toggle('on',b.textContent.trim()===tgState[g]));}
 
-function togglePill(el,key){
-  const v=el.textContent.trim(),arr=multiState[key],i=arr.indexOf(v);
-  if(i>-1)arr.splice(i,1);else arr.push(v);
-  el.classList.toggle('on',multiState[key].includes(v));markDirty();
+// SAVE
+async function savePlayer() {
+  if(!selId||!isDirty)return;
+  if(DEMO){const d=collectForm();DB[selId]={...(DB[selId]||{}),data:d};saveDemoToLS();isDirty=false;setSaveBtn('saved');setTimeout(()=>setSaveBtn('idle'),2000);updSub(d);updateStats();renderList();toast('Opgeslagen ✓ (lokaal)');return;}
+  $('save-btn').textContent='Bezig\u2026'; $('save-btn').disabled=true;
+  const p=PLAYERS.find(x=>x.id===selId),d=collectForm();
+  const {error}=await sbUpsert('spelers',{id:selId,naam:p.naam,voornaam:p.voornaam,seizoen:'2026-27',data:d,updated_at:new Date().toISOString()});
+  if(error){toast('Fout bij opslaan',true);setSaveBtn('dirty');return;}
+  DB[selId]={...(DB[selId]||{}),id:selId,naam:p.naam,voornaam:p.voornaam,data:d};
+  isDirty=false;setSaveBtn('saved');setTimeout(()=>setSaveBtn('idle'),2200);updSub(d);updateStats();renderList();toast('Opgeslagen ✓');
 }
-function renderPills(){
-  MULTI_KEYS.forEach(k=>{
-    const c=document.getElementById(`ms-${k}`);if(!c)return;
-    c.querySelectorAll('.pill').forEach(b=>b.classList.toggle('on',multiState[k].includes(b.textContent.trim())));
-  });
-}
+function collectForm(){const d={};TEXT_FIELDS.forEach(f=>{const el=$('f-'+f);if(el)d[f]=el.value.trim();});d.positie=tgState.positie;d.sterkevoet=tgState.sterkevoet;d.bf_meest=tgState.bf_meest;d.bf_favoriet=tgState.bf_favoriet;MULTI_KEYS.forEach(k=>d[k]=[...multiState[k]]);d.unavail_dates=[...unavailDates];return d;}
 
-// ── CALENDAR ─────────────────────────────
+// CALENDAR
 function renderCalendar(){
-  $('cal-title').textContent=`${MONTHS[calMonth]} ${calYear}`;
-  const firstDay=new Date(calYear,calMonth,1).getDay();
-  const startOff=(firstDay+6)%7;
-  const days=new Date(calYear,calMonth+1,0).getDate();
+  const ct=$('cal-title');if(!ct)return;
+  ct.textContent=MONTHS[calMonth]+' '+calYear;
+  const grid=$('cal-grid');if(!grid)return;
+  const firstDay=new Date(calYear,calMonth,1).getDay(),startOff=(firstDay+6)%7,days=new Date(calYear,calMonth+1,0).getDate();
   let h='';
-  ['Ma','Di','Wo','Do','Vr','Za','Zo'].forEach(d=>h+=`<div class="cal-day-hdr">${d}</div>`);
+  ['Ma','Di','Wo','Do','Vr','Za','Zo'].forEach(d=>h+='<div class="cal-day-hdr">'+d+'</div>');
   for(let i=0;i<startOff;i++)h+='<div class="cal-day empty"></div>';
   for(let day=1;day<=days;day++){
-    const ds=`${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
     const isU=unavailDates.includes(ds),isR=rangeStart===ds,isT=ds===TODAY;
-    h+=`<div class="cal-day ${isU?'unavail':''} ${isR?'range-start':''} ${isT?'today':''}" onclick="toggleDate('${ds}')">${day}</div>`;
+    h+='<div class="cal-day'+(isU?' unavail':'')+(isR?' range-start':'')+(isT?' today':'')+'" onclick="toggleDate(\''+ds+'\')">'+day+'</div>';
   }
-  $('cal-grid').innerHTML=h;
-  updatePeriodSummary();
+  grid.innerHTML=h; updatePeriodSummary();
 }
-
 function toggleDate(ds){
-  const isRed=unavailDates.includes(ds);
-  if(isRed){
-    // Click red day → remove it
-    unavailDates.splice(unavailDates.indexOf(ds),1);
-    if(rangeStart===ds)rangeStart=null;
-    renderCalendar();markDirty();
-  } else if(!rangeStart){
-    // First click on free day → immediately red + set as range start
-    unavailDates.push(ds);rangeStart=ds;
-    renderCalendar();markDirty();
-  } else {
-    // Second click → fill range from rangeStart to ds
-    const a=rangeStart<ds?rangeStart:ds, b=rangeStart<ds?ds:rangeStart;
-    let cur=new Date(a);const end=new Date(b);
-    while(cur<=end){
-      const s=cur.toISOString().slice(0,10);
-      if(!unavailDates.includes(s))unavailDates.push(s);
-      cur.setDate(cur.getDate()+1);
-    }
-    rangeStart=null;renderCalendar();markDirty();
-  }
+  const isR=unavailDates.includes(ds);
+  if(isR){unavailDates.splice(unavailDates.indexOf(ds),1);if(rangeStart===ds)rangeStart=null;renderCalendar();markDirty();}
+  else if(!rangeStart){unavailDates.push(ds);rangeStart=ds;renderCalendar();markDirty();}
+  else{const a=rangeStart<ds?rangeStart:ds,b=rangeStart<ds?ds:rangeStart;let cur=new Date(a);const end=new Date(b);while(cur<=end){const s=cur.toISOString().slice(0,10);if(!unavailDates.includes(s))unavailDates.push(s);cur.setDate(cur.getDate()+1);}rangeStart=null;renderCalendar();markDirty();}
 }
-
 function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
 function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
-
 function updatePeriodSummary(){
   const el=$('cal-periods');if(!el)return;
   if(!unavailDates.length){el.style.display='none';return;}
-  const sorted=[...unavailDates].sort();
-  const periods=[];let s=sorted[0],p=sorted[0];
-  for(let i=1;i<sorted.length;i++){
-    const diff=(new Date(sorted[i])-new Date(p))/(86400000);
-    if(diff<=1)p=sorted[i];
-    else{periods.push({s,e:p});s=sorted[i];p=sorted[i];}
-  }
+  const sorted=[...unavailDates].sort();const periods=[];let s=sorted[0],p=sorted[0];
+  for(let i=1;i<sorted.length;i++){const diff=(new Date(sorted[i])-new Date(p))/86400000;if(diff<=1)p=sorted[i];else{periods.push({s,e:p});s=sorted[i];p=sorted[i];}}
   periods.push({s,e:p});
-  const fmt=ds=>{const d=new Date(ds);return`${d.getDate()} ${MON_SHORT[d.getMonth()]} ${d.getFullYear()}`;};
-  const txt=periods.map(r=>r.s===r.e?fmt(r.s):`${fmt(r.s)} – ${fmt(r.e)}`).join('\n');
-  el.style.display='block';el.textContent='📅 Periodes:\n'+txt;
-  el.style.whiteSpace='pre-line';
+  const fmt=ds=>{const d=new Date(ds+'T00:00:00');return d.getDate()+' '+MON_SHORT[d.getMonth()]+' '+d.getFullYear();};
+  el.style.display='block';el.textContent='📅 Periodes:\n'+periods.map(r=>r.s===r.e?fmt(r.s):fmt(r.s)+' – '+fmt(r.e)).join('\n');el.style.whiteSpace='pre-line';
 }
 
-// ── SAVE ─────────────────────────────────
-async function savePlayer(){
-  if(!selId||!isDirty)return;
-  if(DEMO){
-    const d=collectForm();DB[selId]={...(DB[selId]||{}),data:d};
-    saveDemoToLS();
-    isDirty=false;setSaveBtn('saved');setTimeout(()=>setSaveBtn('idle'),2000);
-    updSub(d);updateStats();renderList();toast('Opgeslagen ✓ (lokaal)');return;
-  }
-  $('save-btn').textContent='Bezig…';$('save-btn').disabled=true;
-  const p=PLAYERS.find(x=>x.id===selId),d=collectForm();
-  const{error}=await sb.from('spelers').upsert({id:selId,naam:p.naam,voornaam:p.voornaam,seizoen:'2026-27',data:d,updated_at:new Date().toISOString()},{onConflict:'id'});
-  if(error){toast('Fout bij opslaan',true);setSaveBtn('dirty');return;}
-  DB[selId]={...(DB[selId]||{}),id:selId,naam:p.naam,voornaam:p.voornaam,data:d};
-  isDirty=false;setSaveBtn('saved');setTimeout(()=>setSaveBtn('idle'),2200);
-  updSub(d);updateStats();renderList();toast('Opgeslagen ✓');
-}
+// TABS
+function switchTab(id,btn){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));document.getElementById('tp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')loadWedstrijden();}
+function switchTabById(id){document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));document.getElementById('tp-'+id)?.classList.add('on');document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes("'"+id+"'"))b.classList.add('on');});}
 
-function collectForm(){
-  const d={};
-  TEXT_FIELDS.forEach(f=>{const el=$(`f-${f}`);if(el)d[f]=el.value.trim();});
-  Object.assign(d,{positie:tgState.positie,sterkevoet:tgState.sterkevoet,bf_meest:tgState.bf_meest,bf_favoriet:tgState.bf_favoriet});
-  MULTI_KEYS.forEach(k=>d[k]=[...multiState[k]]);
-  d.unavail_dates=[...unavailDates];
-  return d;
-}
-
-// ── TABS ─────────────────────────────────
-function switchTab(id,btn){
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
-  $(`tp-${id}`)?.classList.add('on');btn?.classList.add('on');
-  if(id==='wedstrijden')loadWedstrijden();
-}
-function switchTabById(id){
-  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('on'));
-  $(`tp-${id}`)?.classList.add('on');
-  document.querySelectorAll('.tab-btn').forEach(b=>{if(b.getAttribute('onclick')?.includes(`'${id}'`))b.classList.add('on');});
-}
-
-// ── STATS ─────────────────────────────────
+// STATS
 function updateStats(){
   const complete=Object.values(DB).filter(r=>calcPct(r.data||{})===100).length;
   const started=Object.values(DB).filter(r=>hasData(r.data||{})).length;
-  $('stat-n').textContent=complete;
-  $('foot-txt').textContent=`${started}/25 ingevuld`;
-  const es=$('es-started'); if(es) es.textContent=started;
-  const ec=$('es-complete'); if(ec) ec.textContent=complete;
+  const sn=$('stat-n');if(sn)sn.textContent=complete;
+  const ft=$('foot-txt');if(ft)ft.textContent=started+'/25 ingevuld';
+  const es=$('es-started');if(es)es.textContent=started;
+  const ec=$('es-complete');if(ec)ec.textContent=complete;
 }
 function calcPct(d){if(!d)return 0;return Math.round(KEY_FIELDS.filter(f=>{const v=d[f];return v!==''&&v!==false&&v!=null;}).length/KEY_FIELDS.length*100);}
 function hasData(d){return d&&Object.keys(d).some(k=>{const v=d[k];return v!==''&&v!==false&&v!=null&&!(Array.isArray(v)&&v.length===0);});}
 
-// ── UTILS ─────────────────────────────────
+// MOBILE
+function isMobile(){return window.innerWidth<=768;}
+function openMobileList(){document.querySelector('.sb')?.classList.add('open');$('sb-overlay')?.classList.add('show');}
+function closeMobileList(){document.querySelector('.sb')?.classList.remove('open');$('sb-overlay')?.classList.remove('show');}
+function backToList(){setDisp('detail','none');setDisp('empty-state','flex');selId=null;renderList();if(isMobile())openMobileList();}
+
+// DEMO/LS
+function saveDemoToLS(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}catch(e){}}
+function exportData(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ksk_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Backup gedownload ✓');}
+function importData(evt){const file=evt.target.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const p=JSON.parse(e.target.result);Object.keys(p).forEach(id=>{if(DB[id])DB[id].data=p[id].data||{};});saveDemoToLS();renderList();updateStats();toast('Import gelukt ✓');if(selId)selectPlayer(selId);}catch(err){toast('Fout bij import',true);}};r.readAsText(file);evt.target.value='';}
+
+// TEAM STATS
+function loadTeamStats(){try{const s=JSON.parse(localStorage.getItem(TS_KEY)||'{}');['blauw-w','blauw-d','blauw-l','geel-w','geel-d','geel-l'].forEach(id=>{const el=$(id);if(el&&s[id]!==undefined)el.value=s[id];});}catch(e){}}
+function saveTeamStats(){try{const s={};['blauw-w','blauw-d','blauw-l','geel-w','geel-d','geel-l'].forEach(id=>{const el=$(id);if(el)s[id]=el.value;});localStorage.setItem(TS_KEY,JSON.stringify(s));}catch(e){}}
+
+// ADMIN BEHEER
+function openBeheer(){hide('s-app');showFlex('s-beheer');loadBeheerSpelers();loadBeheerUsers();}
+function switchBeheerTab(id,btn){document.querySelectorAll('.beheer-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.beheer-tab').forEach(b=>b.classList.remove('on'));document.getElementById('bp-'+id)?.classList.add('on');btn?.classList.add('on');}
+async function loadBeheerSpelers(){
+  const {data}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
+  const {data:urs}=await sbGet('user_roles','select=speler_id&role=eq.player');
+  const linked=new Set((urs||[]).map(u=>u.speler_id));
+  const el=$('beheer-speler-list');if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen spelers</div>';return;}
+  el.innerHTML=data.map(s=>'<div class="user-row"><div class="user-info"><div class="user-name">'+s.voornaam+' '+s.naam+'</div><div class="user-email">'+(linked.has(s.id)?'✓ Account gekoppeld':'Geen account')+'</div></div><button class="btn-red" onclick="deleteSpeler('+s.id+',\''+s.voornaam+' '+s.naam+'\')">Verwijder</button></div>').join('');
+}
+function toggleAddSpeler(){const f=$('add-speler-form');if(f)f.style.display=f.style.display==='none'?'block':'none';}
+async function addSpeler(){
+  const vn=$('ns-voornaam')?.value.trim(),nm=$('ns-naam')?.value.trim();
+  if(!vn||!nm){toast('Vul voornaam en naam in',true);return;}
+  const newId=Math.max(...PLAYERS.map(p=>p.id),0)+1;
+  const {error}=await sbInsert('spelers',{id:newId,naam:nm,voornaam:vn,seizoen:'2026-27',data:{}});
+  if(error){toast('Fout: '+error.message,true);return;}
+  PLAYERS.push({id:newId,naam:nm,voornaam:vn});
+  if($('ns-voornaam'))$('ns-voornaam').value='';if($('ns-naam'))$('ns-naam').value='';
+  setDisp('add-speler-form','none');toast('Speler toegevoegd ✓');loadBeheerSpelers();renderList();updateStats();
+}
+async function deleteSpeler(id,naam){
+  if(!confirm(naam+' verwijderen?'))return;
+  await sbDelete('spelers','id=eq.'+id);
+  const idx=PLAYERS.findIndex(p=>p.id===id);if(idx>-1)PLAYERS.splice(idx,1);
+  delete DB[id];toast(naam+' verwijderd');loadBeheerSpelers();renderList();updateStats();
+}
+async function loadBeheerUsers(){
+  const {data}=await sbGet('user_roles','select=*');
+  const {data:sps}=await sbGet('spelers','select=id,naam,voornaam');
+  const el=$('beheer-user-list');if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen gebruikers</div>';return;}
+  el.innerHTML=data.map(u=>'<div class="user-row"><div class="user-info"><div class="user-name">'+(u.naam||u.email||'Gebruiker')+'</div><div class="user-email">'+(u.email||'')+'</div></div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select class="role-select" onchange="updateRole(\''+u.user_id+'\',this.value)">'+['admin','coach','player','pending'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>').join('')+'</select>'+(u.role==='player'?'<select class="speler-link-select" onchange="linkSpeler(\''+u.user_id+'\',this.value)"><option value="">Koppel speler...</option>'+(sps||[]).map(s=>'<option value="'+s.id+'"'+(u.speler_id===s.id?' selected':'')+'>'+s.voornaam+' '+s.naam+'</option>').join('')+'</select>':'')+'</div></div>').join('');
+}
+async function updateRole(uid,r){await sbPatch('user_roles','user_id=eq.'+uid,{role:r});toast('Rol bijgewerkt ✓');setTimeout(loadBeheerUsers,400);}
+async function linkSpeler(uid,spelerId){await sbPatch('user_roles','user_id=eq.'+uid,{speler_id:spelerId?parseInt(spelerId):null});toast('Speler gekoppeld ✓');}
+
+// WEDSTRIJDEN
+function setLocatie(loc){nmLocatie=loc;$('nm-thuis')?.classList.toggle('on',loc==='thuis');$('nm-uit')?.classList.toggle('on',loc==='uit');}
+function toggleAddMatchForm(){const f=$('add-match-form');if(f)f.style.display=f.style.display==='none'?'block':'none';}
+async function loadWedstrijden(){const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');if(error)return;wedstrijdenData=data||[];renderMatchList('match-list',wedstrijdenData,true);}
+function renderMatchList(containerId,data,editable){
+  const el=$(containerId);if(!el)return;
+  if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
+  el.innerHTML=data.map(w=>'<div class="match-card" id="mc-'+w.id+'"><div class="match-head" onclick="toggleMatch('+w.id+')"><span class="match-datum">'+fmtDate(w.datum)+'</span><span class="match-opp">vs '+w.tegenstander+'</span><span class="match-loc '+w.thuis_uit+'">'+w.thuis_uit+'</span><span class="match-chevron" id="chev-'+w.id+'">▼</span></div><div class="match-body" id="mb-'+w.id+'"><div class="match-teams"><div class="match-team"><div class="match-team-label"><span class="match-team-dot" style="background:#3b82f6"></span>Ploeg Blauw</div>'+(editable?'<input class="match-score-input" id="ms-blauw-'+w.id+'" value="'+(w.blauw_score||'')+'" placeholder="Score (3-1)"><textarea class="match-notes" id="mn-blauw-'+w.id+'" placeholder="Notities...">'+(w.blauw_notities||'')+'</textarea>':'<div style="font-size:14px;font-weight:700;margin-bottom:6px">'+(w.blauw_score||'–')+'</div><div style="font-size:12px;color:#64748b">'+(w.blauw_notities||'')+'</div>')+'</div><div class="match-team"><div class="match-team-label"><span class="match-team-dot" style="background:#eab308"></span>Ploeg Geel</div>'+(editable?'<input class="match-score-input" id="ms-geel-'+w.id+'" value="'+(w.geel_score||'')+'" placeholder="Score (2-2)"><textarea class="match-notes" id="mn-geel-'+w.id+'" placeholder="Notities...">'+(w.geel_notities||'')+'</textarea>':'<div style="font-size:14px;font-weight:700;margin-bottom:6px">'+(w.geel_score||'–')+'</div><div style="font-size:12px;color:#64748b">'+(w.geel_notities||'')+'</div>')+'</div></div>'+(editable?'<div class="match-save-row"><button class="btn-red" onclick="deleteWedstrijd('+w.id+')">Verwijder</button><button class="btn-green" onclick="saveWedstrijd('+w.id+')">💾 Opslaan</button></div>':'')+'</div></div>').join('');
+}
+function toggleMatch(id){const mb=$('mb-'+id),ch=$('chev-'+id);if(!mb)return;const o=mb.classList.toggle('open');if(ch)ch.classList.toggle('open',o);}
+function fmtDate(ds){if(!ds)return'';const d=new Date(ds+'T00:00:00');return d.getDate()+' '+MON_SHORT[d.getMonth()]+' '+d.getFullYear();}
+async function addWedstrijd(){
+  const datum=$('nm-datum')?.value,opp=$('nm-opp')?.value.trim();
+  if(!datum||!opp){toast('Vul datum en tegenstander in',true);return;}
+  const {error}=await sbInsert('wedstrijden',{datum,tegenstander:opp,thuis_uit:nmLocatie,seizoen:'2026-27'});
+  if(error){toast('Fout: '+error.message,true);return;}
+  if($('nm-datum'))$('nm-datum').value='';if($('nm-opp'))$('nm-opp').value='';
+  setDisp('add-match-form','none');toast('Wedstrijd toegevoegd ✓');loadWedstrijden();
+}
+async function saveWedstrijd(id){
+  const {error}=await sbPatch('wedstrijden','id=eq.'+id,{blauw_score:$('ms-blauw-'+id)?.value||'',blauw_notities:$('mn-blauw-'+id)?.value||'',geel_score:$('ms-geel-'+id)?.value||'',geel_notities:$('mn-geel-'+id)?.value||'',updated_at:new Date().toISOString()});
+  if(error){toast('Fout: '+error.message,true);return;}toast('Opgeslagen ✓');loadWedstrijden();
+}
+async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;await sbDelete('wedstrijden','id=eq.'+id);toast('Verwijderd');loadWedstrijden();}
+
+// PLAYER VIEW
+function switchPvTab(id,btn){document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));document.getElementById('pvp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')renderMatchList('pv-match-list',wedstrijdenData,false);}
+async function loadPlayerView(){
+  const {data:wdata}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wdata||[];
+  if(!userSpelerId){const t=$('pv-title');if(t)t.textContent='Mijn profiel';const pp=$('pvp-profiel');if(pp)pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b">Vraag de coach om je account te koppelen.</p></div>';return;}
+  const sp=PLAYERS.find(p=>p.id===userSpelerId)||{voornaam:'Speler',naam:''};
+  const t=$('pv-title');if(t)t.textContent='Welkom, '+sp.voornaam+'!';
+  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
+  const d=row?.data||{};
+  const pp=$('pvp-profiel');if(!pp)return;
+  pp.innerHTML='<div class="card"><div class="card-t">Persoonlijke gegevens</div><div class="fields"><div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly></div><div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly></div></div><div class="frow"><div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="'+(d.geboortedatum||'')+'" oninput="pvDirty()"></div><div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="'+(d.gsm_speler||'')+'" placeholder="+32 4xx xx xx xx" oninput="pvDirty()"></div></div></div></div><div class="card"><div class="card-t">Basisfiche 2026–27</div><div class="fields"><div class="field"><label>Hoe beoordeel je jouw huidig niveau?</label><textarea id="pv-niv" rows="3" oninput="pvDirty()">'+(d.bf_niveau||'')+'</textarea></div><div class="field"><label>Waar wil je staan einde seizoen?</label><textarea id="pv-doel" rows="3" oninput="pvDirty()">'+(d.bf_doel||'')+'</textarea></div><div class="field"><label>Verwachtingen van de trainer</label><textarea id="pv-verw" rows="3" oninput="pvDirty()">'+(d.bf_verwachting||'')+'</textarea></div></div></div><div class="card"><div class="card-t">School</div><div class="fields"><div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="Naam school" oninput="pvDirty()"></div></div></div><button id="pv-save" onclick="savePlayerView()" style="background:#e2e8f0;color:#94a3b8;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:default;width:100%">Opslaan</button>';
+}
+function pvDirty(){pvDirtyFlag=true;const b=$('pv-save');if(b){b.style.background='#15803d';b.style.color='#fff';b.style.cursor='pointer';}}
+async function savePlayerView(){
+  if(!userSpelerId||!pvDirtyFlag)return;
+  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=data');
+  const d={...(row?.data||{})};
+  d.geboortedatum=$('pv-geb')?.value||'';d.gsm_speler=$('pv-gsm')?.value||'';
+  d.bf_niveau=$('pv-niv')?.value||'';d.bf_doel=$('pv-doel')?.value||'';
+  d.bf_verwachting=$('pv-verw')?.value||'';d.school_naam=$('pv-school')?.value||'';
+  const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:d,updated_at:new Date().toISOString()});
+  if(error){toast('Fout bij opslaan',true);return;}
+  pvDirtyFlag=false;const b=$('pv-save');if(b){b.style.background='#16a34a';b.textContent='✓ Opgeslagen';setTimeout(()=>{b.style.background='#e2e8f0';b.style.color='#94a3b8';b.style.cursor='default';b.textContent='Opslaan';},2000);}toast('Opgeslagen ✓');
+}
+
+// UTILS
 const $=id=>document.getElementById(id);
 function setDisp(id,v){const el=$(id);if(el)el.style.display=v;}
 function show(id){const el=$(id);if(el)el.style.display='block';}
 function showFlex(id){const el=$(id);if(el)el.style.display='flex';}
 function hide(id){const el=$(id);if(el)el.style.display='none';}
-function toast(msg,isErr=false){const t=$('toast');t.textContent=msg;t.className='on'+(isErr?' err':'');setTimeout(()=>t.className='',2500);}
+function toast(msg,isErr){const t=$('toast');if(!t)return;t.textContent=msg;t.className='on'+(isErr?' err':'');setTimeout(()=>t.className='',2500);}
 
-// ─── ADMIN BEHEER ─────────────────────────────────────────
-function openBeheer(){
-  hide('s-app');
-  showFlex('s-beheer');
-  loadBeheerSpelers();
-  loadBeheerUsers();
-}
-
-function switchBeheerTab(id,btn){
-  document.querySelectorAll('.beheer-pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.beheer-tab').forEach(b=>b.classList.remove('on'));
-  $(`bp-${id}`)?.classList.add('on');btn?.classList.add('on');
-}
-
-async function loadBeheerSpelers(){
-  const{data}=await sb.from('spelers').select('id,naam,voornaam').order('naam');
-  const{data:urs}=await sb.from('user_roles').select('*').eq('role','player');
-  const linked = new Set((urs||[]).map(u=>u.speler_id));
-  const el=$('beheer-speler-list');
-  if(!data||data.length===0){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen spelers</div>';return;}
-  el.innerHTML = data.map(s=>`
-    <div class="user-row">
-      <div class="user-info">
-        <div class="user-name">${s.voornaam} ${s.naam}</div>
-        <div class="user-email">${linked.has(s.id)?'✓ Account gekoppeld':'Geen account'}</div>
-      </div>
-      <button class="btn-red" onclick="deleteSpeler(${s.id},'${s.voornaam} ${s.naam}')">Verwijder</button>
-    </div>`).join('');
-}
-
-function toggleAddSpeler(){
-  const f=$('add-speler-form');
-  f.style.display=f.style.display==='none'?'block':'none';
-}
-
-async function addSpeler(){
-  const vn=$('ns-voornaam').value.trim(), nm=$('ns-naam').value.trim();
-  if(!vn||!nm){toast('Vul voornaam en naam in',true);return;}
-  const maxId = Math.max(...PLAYERS.map(p=>p.id),0);
-  const newId = maxId+1;
-  const{error}=await sb.from('spelers').insert({id:newId,naam:nm,voornaam:vn,seizoen:'2026-27',data:{}});
-  if(error){toast('Fout: '+error.message,true);return;}
-  PLAYERS.push({id:newId,naam:nm,voornaam:vn});
-  $('ns-voornaam').value='';$('ns-naam').value='';
-  setDisp('add-speler-form','none');
-  toast('Speler toegevoegd ✓');
-  loadBeheerSpelers(); renderList(); updateStats();
-}
-
-async function deleteSpeler(id,naam){
-  if(!confirm(`${naam} verwijderen? Dit kan niet ongedaan worden.`))return;
-  const{error}=await sb.from('spelers').delete().eq('id',id);
-  if(error){toast('Fout: '+error.message,true);return;}
-  const idx=PLAYERS.findIndex(p=>p.id===id);
-  if(idx>-1)PLAYERS.splice(idx,1);
-  delete DB[id];
-  toast(`${naam} verwijderd`);
-  loadBeheerSpelers(); renderList(); updateStats();
-}
-
-async function loadBeheerUsers(){
-  const{data}=await sb.from('user_roles').select('*');
-  const{data:sps}=await sb.from('spelers').select('id,naam,voornaam');
-  const spMap={};(sps||[]).forEach(s=>spMap[s.id]=`${s.voornaam} ${s.naam}`);
-  const el=$('beheer-user-list');
-  if(!data||data.length===0){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen gebruikers</div>';return;}
-  el.innerHTML = data.map(u=>`
-    <div class="user-row">
-      <div class="user-info">
-        <div class="user-name">${u.naam||u.email||u.user_id.slice(0,8)}</div>
-        <div class="user-email">${u.email||''}</div>
-      </div>
-      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-        <select class="role-select" onchange="updateRole('${u.user_id}',this.value)">
-          ${['admin','coach','player','pending'].map(r=>`<option value="${r}" ${u.role===r?'selected':''}>${r}</option>`).join('')}
-        </select>
-        ${u.role==='player'?`<select class="speler-link-select" onchange="linkSpeler('${u.user_id}',this.value)">
-          <option value="">Koppel speler...</option>
-          ${(sps||[]).map(s=>`<option value="${s.id}" ${u.speler_id===s.id?'selected':''}>${s.voornaam} ${s.naam}</option>`).join('')}
-        </select>`:''}
-      </div>
-    </div>`).join('');
-}
-
-async function updateRole(uid, newRole){
-  await sb.from('user_roles').update({role:newRole}).eq('user_id',uid);
-  toast('Rol bijgewerkt ✓');
-  setTimeout(loadBeheerUsers, 400);
-}
-
-async function linkSpeler(uid, spelerId){
-  await sb.from('user_roles').update({speler_id: spelerId?parseInt(spelerId):null}).eq('user_id',uid);
-  toast('Speler gekoppeld ✓');
-}
-
-// ─── WEDSTRIJDEN ──────────────────────────────────────────
-function setLocatie(loc){
-  nmLocatie=loc;
-  $('nm-thuis').classList.toggle('on',loc==='thuis');
-  $('nm-uit').classList.toggle('on',loc==='uit');
-}
-
-function toggleAddMatchForm(){
-  const f=$('add-match-form');
-  f.style.display=f.style.display==='none'?'block':'none';
-}
-
-async function loadWedstrijden(){
-  const{data,error}=await sb.from('wedstrijden').select('*').order('datum');
-  if(error)return;
-  wedstrijdenData=data||[];
-  renderMatchList('match-list', wedstrijdenData, true);
-}
-
-function renderMatchList(containerId, data, editable=false){
-  const el=$(containerId);if(!el)return;
-  if(!data||data.length===0){
-    el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';
-    return;
-  }
-  el.innerHTML=data.map(w=>`
-    <div class="match-card" id="mc-${w.id}">
-      <div class="match-head" onclick="toggleMatch(${w.id})">
-        <span class="match-datum">${fmtDate(w.datum)}</span>
-        <span class="match-opp">vs ${w.tegenstander}</span>
-        <span class="match-loc ${w.thuis_uit}">${w.thuis_uit}</span>
-        <span class="match-chevron" id="chev-${w.id}">▼</span>
-      </div>
-      <div class="match-body" id="mb-${w.id}">
-        <div class="match-teams">
-          <div class="match-team">
-            <div class="match-team-label"><span class="match-team-dot" style="background:#3b82f6"></span>Ploeg Blauw</div>
-            ${editable?`<input class="match-score-input" id="ms-blauw-${w.id}" value="${w.blauw_score||''}" placeholder="Score (bijv. 3-1)">
-            <textarea class="match-notes" id="mn-blauw-${w.id}" placeholder="Notities...">${w.blauw_notities||''}</textarea>`
-            :`<div style="font-size:14px;font-weight:700;margin-bottom:6px">${w.blauw_score||'–'}</div>
-            <div style="font-size:12px;color:#64748b">${w.blauw_notities||''}</div>`}
-          </div>
-          <div class="match-team">
-            <div class="match-team-label"><span class="match-team-dot" style="background:#eab308"></span>Ploeg Geel</div>
-            ${editable?`<input class="match-score-input" id="ms-geel-${w.id}" value="${w.geel_score||''}" placeholder="Score (bijv. 2-2)">
-            <textarea class="match-notes" id="mn-geel-${w.id}" placeholder="Notities...">${w.geel_notities||''}</textarea>`
-            :`<div style="font-size:14px;font-weight:700;margin-bottom:6px">${w.geel_score||'–'}</div>
-            <div style="font-size:12px;color:#64748b">${w.geel_notities||''}</div>`}
-          </div>
-        </div>
-        ${editable?`<div class="match-save-row">
-          <button class="btn-red" onclick="deleteWedstrijd(${w.id})">Verwijder</button>
-          <button class="btn-green" onclick="saveWedstrijd(${w.id})">💾 Opslaan</button>
-        </div>`:''}
-      </div>
-    </div>`).join('');
-}
-
-function toggleMatch(id){
-  const mb=$(`mb-${id}`),ch=$(`chev-${id}`);
-  if(!mb)return;
-  const open=mb.classList.toggle('open');
-  if(ch)ch.classList.toggle('open',open);
-}
-
-function fmtDate(ds){
-  if(!ds)return'';
-  const d=new Date(ds+'T00:00:00');
-  return `${d.getDate()} ${['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'][d.getMonth()]} ${d.getFullYear()}`;
-}
-
-async function addWedstrijd(){
-  const datum=$('nm-datum')?.value, opp=$('nm-opp')?.value.trim();
-  if(!datum||!opp){toast('Vul datum en tegenstander in',true);return;}
-  const{error}=await sb.from('wedstrijden').insert({datum,tegenstander:opp,thuis_uit:nmLocatie,seizoen:'2026-27'});
-  if(error){toast('Fout: '+error.message,true);return;}
-  $('nm-datum').value='';$('nm-opp').value='';
-  setDisp('add-match-form','none');
-  toast('Wedstrijd toegevoegd ✓');
-  loadWedstrijden();
-}
-
-async function saveWedstrijd(id){
-  const bs=$(`ms-blauw-${id}`)?.value||'';
-  const bn=$(`mn-blauw-${id}`)?.value||'';
-  const gs=$(`ms-geel-${id}`)?.value||'';
-  const gn=$(`mn-geel-${id}`)?.value||'';
-  const{error}=await sb.from('wedstrijden').update({
-    blauw_score:bs,blauw_notities:bn,geel_score:gs,geel_notities:gn,
-    updated_at:new Date().toISOString()
-  }).eq('id',id);
-  if(error){toast('Fout: '+error.message,true);return;}
-  toast('Opgeslagen ✓');
-  loadWedstrijden();
-}
-
-async function deleteWedstrijd(id){
-  if(!confirm('Wedstrijd verwijderen?'))return;
-  await sb.from('wedstrijden').delete().eq('id',id);
-  toast('Verwijderd');
-  loadWedstrijden();
-}
-
-// ─── PLAYER VIEW ──────────────────────────────────────────
-function switchPvTab(id,btn){
-  document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));
-  $(`pvp-${id}`)?.classList.add('on');btn?.classList.add('on');
-  if(id==='wedstrijden') renderMatchList('pv-match-list', wedstrijdenData, false);
-}
-
-async function loadPlayerView(){
-  if(!userSpelerId){
-    $('pv-title').textContent='Mijn profiel';
-    $('pvp-profiel').innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b">Vraag de coach om je account te koppelen.</p></div>';
-    await loadWedstrijden();
-    return;
-  }
-  const sp=PLAYERS.find(p=>p.id===userSpelerId)||{voornaam:'Speler',naam:''};
-  $('pv-title').textContent=`Welkom, ${sp.voornaam}!`;
-  const{data:row}=await sb.from('spelers').select('*').eq('id',userSpelerId).single();
-  const d=row?.data||{};
-
-  $('pvp-profiel').innerHTML=`
-    <div class="card">
-      <div class="card-t">Persoonlijke gegevens</div>
-      <div class="fields">
-        <div class="frow">
-          <div class="field"><label>Voornaam</label><input value="${sp.voornaam}" readonly></div>
-          <div class="field"><label>Naam</label><input value="${sp.naam}" readonly></div>
-        </div>
-        <div class="frow">
-          <div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="${d.geboortedatum||''}" oninput="pvDirty()"></div>
-          <div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="${d.gsm_speler||''}" placeholder="+32 4xx xx xx xx" oninput="pvDirty()"></div>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-t">Basisfiche 2026–27</div>
-      <div class="fields">
-        <div class="field"><label>Hoe beoordeel je jouw huidig niveau?</label><textarea id="pv-niv" rows="3" oninput="pvDirty()">${d.bf_niveau||''}</textarea></div>
-        <div class="field"><label>Waar wil je staan einde seizoen?</label><textarea id="pv-doel" rows="3" oninput="pvDirty()">${d.bf_doel||''}</textarea></div>
-        <div class="field"><label>Verwachtingen van de trainer</label><textarea id="pv-verw" rows="3" oninput="pvDirty()">${d.bf_verwachting||''}</textarea></div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-t">School</div>
-      <div class="fields">
-        <div class="field"><label>Naam school</label><input id="pv-school" value="${d.school_naam||''}" placeholder="Naam school" oninput="pvDirty()"></div>
-      </div>
-    </div>
-    <button id="pv-save" onclick="savePlayerView()" style="background:#e2e8f0;color:#94a3b8;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:default;width:100%">Opslaan</button>
-  `;
-  await loadWedstrijden();
-}
-
-let pvDirtyFlag=false;
-function pvDirty(){
-  pvDirtyFlag=true;
-  const btn=$('pv-save');if(btn){btn.style.background='#15803d';btn.style.color='#fff';btn.style.cursor='pointer';}
-}
-
-async function savePlayerView(){
-  if(!userSpelerId||!pvDirtyFlag)return;
-  const{data:row}=await sb.from('spelers').select('data').eq('id',userSpelerId).single();
-  const d={...(row?.data||{})};
-  d.geboortedatum=$('pv-geb')?.value||'';
-  d.gsm_speler=$('pv-gsm')?.value||'';
-  d.bf_niveau=$('pv-niv')?.value||'';
-  d.bf_doel=$('pv-doel')?.value||'';
-  d.bf_verwachting=$('pv-verw')?.value||'';
-  d.school_naam=$('pv-school')?.value||'';
-  const{error}=await sb.from('spelers').update({data:d,updated_at:new Date().toISOString()}).eq('id',userSpelerId);
-  if(error){toast('Fout bij opslaan',true);return;}
-  pvDirtyFlag=false;
-  const btn=$('pv-save');if(btn){btn.style.background='#16a34a';btn.textContent='✓ Opgeslagen';setTimeout(()=>{btn.style.background='#e2e8f0';btn.style.color='#94a3b8';btn.style.cursor='default';btn.textContent='Opslaan';},2000);}
-  toast('Opgeslagen ✓');
-}
-
-
-// ── TEAM STATS ────────────────────────────────────────────
-const TS_KEY = 'ksk_team_stats';
-function loadTeamStats(){
-  try{
-    const s=JSON.parse(localStorage.getItem(TS_KEY)||'{}');
-    ['blauw-w','blauw-d','blauw-l','geel-w','geel-d','geel-l'].forEach(id=>{
-      const el=$(id);if(el&&s[id]!==undefined)el.value=s[id];
-    });
-  }catch(e){}
-}
-function saveTeamStats(){
-  try{
-    const s={};
-    ['blauw-w','blauw-d','blauw-l','geel-w','geel-d','geel-l'].forEach(id=>{
-      const el=$(id);if(el)s[id]=el.value;
-    });
-    localStorage.setItem(TS_KEY,JSON.stringify(s));
-  }catch(e){}
-}
-
+// START
 init();
+
 </script>
 
 <!-- ── PENDING SCREEN ── -->
