@@ -372,7 +372,10 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
   <div class="sb">
     <div class="sb-head">
       <button class="sb-close" onclick="closeMobileList()" style="display:none;background:none;border:none;color:rgba(255,255,255,.5);font-size:20px;cursor:pointer;float:right;padding:0;line-height:1">✕</button>
-      <div class="sb-label">KSK Lovendegem</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div class="sb-label">KSK Lovendegem</div>
+        <button id="admin-sb-btn" onclick="openBeheer()" style="display:none;background:rgba(234,179,8,.15);border:1px solid rgba(234,179,8,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#fbbf24;cursor:pointer">⚙️ Admin</button>
+      </div>
       <div class="sb-team">U13 IP · 2026–27 <span id="demo-badge" class="demo-badge" style="display:none">DEMO</span></div>
       <div class="sb-stats">
         <div class="sbox"><div class="sbox-n">25</div><div class="sbox-l">Spelers</div></div>
@@ -381,7 +384,6 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
     </div>
     <div class="sb-search"><div class="sb-wrap"><span class="sb-icon">🔍</span><input type="text" placeholder="Zoeken…" oninput="renderList()"></div></div>
     <div id="player-list"></div>
-    <div id="admin-sb-btn" style="padding:0 10px 6px;display:none"><button class="admin-btn" onclick="openBeheer()">&#9881; Admin beheer</button></div>
     <div class="sb-foot">
       <div class="sb-foot-row">
         <span id="foot-txt">0/25 ingevuld</span>
