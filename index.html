@@ -711,14 +711,36 @@ function buildMultiSections() {
 
 // ── INIT ─────────────────────────────────
 async function init() {
-  buildMultiSections();
-  renderCalendar();
-  if (DEMO) { setDisp('demo-banner','block'); setDisp('demo-btn','block'); hide('loading'); showFlex('s-login'); return; }
+  // Safety timeout: als na 6s nog laden → login tonen
+  const safetyTimer = setTimeout(() => {
+    if ($('loading') && $('loading').style.display !== 'none') {
+      hide('loading'); showFlex('s-login');
+    }
+  }, 6000);
+
+  try { buildMultiSections(); } catch(e) { console.warn('buildMultiSections:', e.message); }
+  try { renderCalendar(); }      catch(e) { console.warn('renderCalendar:', e.message); }
+
+  if (DEMO) {
+    clearTimeout(safetyTimer);
+    setDisp('demo-banner','block');
+    setDisp('demo-btn','block');
+    hide('loading');
+    showFlex('s-login');
+    return;
+  }
+
   try {
     const {data:{session}} = await sb.auth.getSession();
+    clearTimeout(safetyTimer);
     if (!session) { hide('loading'); showFlex('s-login'); return; }
     await handleLogin();
-  } catch(e) { console.error('Init error:',e); hide('loading'); showFlex('s-login'); }
+  } catch(e) {
+    clearTimeout(safetyTimer);
+    console.error('Init error:', e);
+    hide('loading');
+    showFlex('s-login');
+  }
 }
 
 async function doLogin() {
