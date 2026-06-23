@@ -405,23 +405,42 @@ body{font-family:system-ui,-apple-system,sans-serif;font-size:14px;background:va
 <div id="toast"></div>
 
 <!-- LOGIN -->
-<div id="s-login" class="screen">
-  <div class="login-card">
-    <div class="login-logo">⚽</div>
-    <div class="login-h1">KSK Lovendegem</div>
-    <div class="login-sub">U13 IP · Spelersplatform 2026–27</div>
-    <div id="demo-banner" class="demo-banner" style="display:none">⚠️ <strong>Supabase niet geconfigureerd.</strong><br>Klik op "Bekijk layout" om lokaal te testen.</div>
-    <div id="login-fields">
-      <div class="lf"><label>E-mail</label><input id="inp-email" type="email" placeholder="coach@email.com"></div>
-      <div class="lf"><label>Wachtwoord</label><input id="inp-pwd" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-      <input type="checkbox" id="remember-me" checked style="width:14px;height:14px;accent-color:#15803d;cursor:pointer">
-      <label for="remember-me" style="font-size:12px;color:#475569;cursor:pointer">Onthoud mij (blijf ingelogd)</label>
+  <div id="s-login" class="screen" style="display:flex">
+    <div class="login-box">
+      <img src="" class="login-logo" alt="KSK Lovendegem">
+      <div class="login-title">KSK Lovendegem U13 IP</div>
+
+      <!-- Toggle -->
+      <div style="display:flex;background:#f1f5f9;border-radius:8px;padding:3px;margin-bottom:18px">
+        <button id="tab-login" onclick="showLoginTab('login')" style="flex:1;padding:7px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:#fff;color:#0f172a;box-shadow:0 1px 3px rgba(0,0,0,.1)">Inloggen</button>
+        <button id="tab-register" onclick="showLoginTab('register')" style="flex:1;padding:7px;border:none;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;background:transparent;color:#64748b">Nieuw account</button>
+      </div>
+
+      <!-- Login form -->
+      <div id="form-login">
+        <input class="login-input" id="inp-email" type="email" placeholder="E-mailadres" autocomplete="username">
+        <input class="login-input" id="inp-pwd" type="password" placeholder="Wachtwoord" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <input type="checkbox" id="remember-me" checked style="width:14px;height:14px;accent-color:#15803d;cursor:pointer">
+          <label for="remember-me" style="font-size:12px;color:#475569;cursor:pointer">Onthoud mij</label>
+        </div>
+        <div id="login-err" class="login-err"></div>
+        <button class="login-btn" id="login-btn" onclick="doLogin()">Inloggen</button>
+      </div>
+
+      <!-- Register form -->
+      <div id="form-register" style="display:none">
+        <input class="login-input" id="reg-voornaam" type="text" placeholder="Voornaam">
+        <input class="login-input" id="reg-naam" type="text" placeholder="Naam">
+        <input class="login-input" id="reg-email" type="email" placeholder="E-mailadres" autocomplete="username">
+        <input class="login-input" id="reg-pwd" type="password" placeholder="Wachtwoord (min. 6 tekens)" autocomplete="new-password">
+        <input class="login-input" id="reg-pwd2" type="password" placeholder="Herhaal wachtwoord" autocomplete="new-password">
+        <div id="reg-err" class="login-err"></div>
+        <button class="login-btn" id="reg-btn" onclick="doRegister()">Account aanmaken</button>
+        <div style="font-size:11px;color:#94a3b8;text-align:center;margin-top:8px">Na registratie wordt je account geactiveerd door de coach.</div>
+      </div>
+
     </div>
-    <button class="login-btn" id="login-btn" onclick="doLogin()">Inloggen</button>
-    </div>
-    <button id="demo-btn" class="demo-btn" style="display:none" onclick="startDemo()">👁️ Bekijk layout (zonder Supabase)</button>
-    <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
@@ -1714,6 +1733,58 @@ async function loadSvdMLanding() {
   }
 }
 
+
+
+function showLoginTab(tab) {
+  const isLogin = tab === 'login';
+  $('form-login').style.display  = isLogin ? 'block' : 'none';
+  $('form-register').style.display = isLogin ? 'none' : 'block';
+  $('tab-login').style.background    = isLogin ? '#fff' : 'transparent';
+  $('tab-login').style.color         = isLogin ? '#0f172a' : '#64748b';
+  $('tab-login').style.boxShadow     = isLogin ? '0 1px 3px rgba(0,0,0,.1)' : 'none';
+  $('tab-register').style.background = isLogin ? 'transparent' : '#fff';
+  $('tab-register').style.color      = isLogin ? '#64748b' : '#0f172a';
+  $('tab-register').style.boxShadow  = isLogin ? 'none' : '0 1px 3px rgba(0,0,0,.1)';
+}
+
+async function doRegister() {
+  const vn   = $('reg-voornaam')?.value.trim();
+  const nm   = $('reg-naam')?.value.trim();
+  const email= $('reg-email')?.value.trim();
+  const pwd  = $('reg-pwd')?.value;
+  const pwd2 = $('reg-pwd2')?.value;
+  const err  = $('reg-err');
+  if(!vn||!nm||!email||!pwd){err.textContent='Vul alle velden in.';return;}
+  if(pwd.length<6){err.textContent='Wachtwoord minimaal 6 tekens.';return;}
+  if(pwd!==pwd2){err.textContent='Wachtwoorden komen niet overeen.';return;}
+  const btn=$('reg-btn'); btn.disabled=true; btn.textContent='Bezig…'; err.textContent='';
+  try {
+    // 1. Signup in Supabase Auth
+    const r = await fetch(SUPABASE_URL+'/auth/v1/signup',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({email,password:pwd})
+    });
+    const d = await r.json();
+    if(!r.ok||d.error) throw new Error(d.error_description||d.msg||d.error||'Registratie mislukt');
+
+    // 2. Login to get token
+    await sbSignIn(email,pwd,true);
+
+    // 3. Add to user_roles as pending
+    await sbInsert('user_roles',{
+      user_id:SB_USER.id, role:'pending',
+      naam:vn+' '+nm, email
+    });
+
+    // 4. Show pending screen
+    hide('s-login'); showFlex('s-pending');
+    toast('Account aangemaakt! Wacht op activatie door de coach.');
+  } catch(e) {
+    err.textContent = e.message||'Fout bij registratie';
+    btn.disabled=false; btn.textContent='Account aanmaken';
+  }
+}
 
 // START
 init();
