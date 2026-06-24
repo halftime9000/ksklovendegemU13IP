@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v71</title>
+<title>KSK Lovendegem U13 IP v72</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -280,6 +280,41 @@ textarea{resize:vertical;min-height:70px}
   .form-header>div:nth-child(2){font-size:28px!important;margin-bottom:8px!important}
 }
 </style>
+<script>
+// Mobile login fix
+(function(){
+  function applyMobileLogin(){
+    if(window.innerWidth > 860) return;
+    var sl = document.getElementById('s-login');
+    if(!sl) return;
+    sl.style.cssText = 'display:flex;flex-direction:column;padding:0;gap:0;justify-content:flex-start;align-items:stretch;overflow-y:auto;background:#fff;position:fixed;inset:0;z-index:10';
+    var logo = sl.children[0];
+    var card = sl.children[1];
+    if(logo){
+      logo.style.cssText = 'display:flex;flex-direction:row;align-items:center;gap:10px;padding:10px 16px;background:#f0f4f8;border-bottom:2px solid #e0d040;flex-shrink:0';
+      var img = logo.querySelector('img');
+      if(img) img.style.cssText = 'width:44px;height:44px;object-fit:contain';
+      var txt = logo.querySelector('div');
+      if(txt){
+        txt.style.cssText = 'display:flex;align-items:center;gap:8px';
+        var divs = txt.querySelectorAll('div');
+        if(divs[0]) divs[0].style.cssText = 'font-size:22px;font-weight:900;letter-spacing:-1px;line-height:1;color:#203060';
+        if(divs[1]) divs[1].style.cssText = 'font-size:10px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#203060';
+        if(divs[2]) divs[2].style.cssText = 'font-size:13px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;border-left:3px solid #e0d040;padding-left:6px;color:#203060';
+      }
+    }
+    if(card){
+      card.style.cssText = 'flex:1;padding:20px 18px;border-radius:0;box-shadow:none;width:100%;background:#182448;min-height:0;overflow-y:auto';
+    }
+  }
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded', applyMobileLogin);
+  } else {
+    applyMobileLogin();
+  }
+  window.addEventListener('resize', applyMobileLogin);
+})();
+</script>
 </head>
 <body>
 
