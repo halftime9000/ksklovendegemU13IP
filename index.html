@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v67</title>
+<title>KSK Lovendegem U13 IP v68</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1096,10 +1096,31 @@ async function deleteSpeler(id,naam){
 }
 async function loadBeheerUsers(){
   const {data}=await sbGet('user_roles','select=*');
-  const {data:sps}=await sbGet('spelers','select=id,naam,voornaam');
+  const {data:sps}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
   const el=$('beheer-user-list');if(!el)return;
-  if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen gebruikers</div>';return;}
-  el.innerHTML=data.map(u=>'<div class="user-row"><div class="user-info"><div class="user-name">'+(u.naam||u.email||'Gebruiker')+'</div><div class="user-email">'+(u.email||'')+'</div></div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><select class="role-select" onchange="updateRole(\''+u.user_id+'\',this.value)">'+['admin','coach','player','pending'].map(r=>'<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>').join('')+'</select>'+(u.role==='player'?'<select class="speler-link-select" onchange="linkSpeler(\''+u.user_id+'\',this.value)"><option value="">Koppel speler...</option>'+(sps||[]).map(s=>'<option value="'+s.id+'"'+(u.speler_id===s.id?' selected':'')+'>'+s.voornaam+' '+s.naam+'</option>').join('')+'</select>':'')+'</div></div>').join('');
+  if(!data||!data.length){
+    el.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Nog geen gebruikers. Laat spelers registreren via "Nieuw account".</div>';
+    return;
+  }
+  let html='';
+  data.forEach(u=>{
+    const linked=sps?.find(s=>s.id===u.speler_id);
+    const uid=u.user_id;
+    const spOptHtml='<option value="">— koppel speler —</option>'+(sps||[]).map(s=>'<option value="'+s.id+'"'+(s.id===u.speler_id?' selected':'')+'>'+s.voornaam+' '+s.naam+'</option>').join('');
+    html+='<div class="user-row" style="flex-wrap:wrap;gap:6px;padding:10px 0">';
+    html+='<div class="user-info" style="min-width:130px">';
+    html+='<div class="user-name">'+(u.naam||'Gebruiker')+'</div>';
+    html+='<div class="user-email">'+(u.email||'')+'</div>';
+    html+=linked?'<div style="font-size:10px;color:#15803d;font-weight:600;margin-top:2px">✓ '+linked.voornaam+' '+linked.naam+'</div>':'<div style="font-size:10px;color:#f59e0b;margin-top:2px">Niet gekoppeld</div>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
+    html+='<select class="role-select" onchange="updateRole(this.dataset.uid,this.value)" data-uid="'+uid+'">';
+    ['admin','coach','player','pending'].forEach(r=>{html+='<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';});
+    html+='</select>';
+    html+='<select class="speler-link-select" style="max-width:160px" onchange="linkSpeler(this.dataset.uid,this.value)" data-uid="'+uid+'">'+spOptHtml+'</select>';
+    html+='</div></div>';
+  });
+  el.innerHTML=html;
 }
 async function updateRole(uid,r){await sbPatch('user_roles','user_id=eq.'+uid,{role:r});toast('Rol bijgewerkt ✓');setTimeout(loadBeheerUsers,400);}
 async function linkSpeler(uid,spelerId){await sbPatch('user_roles','user_id=eq.'+uid,{speler_id:spelerId?parseInt(spelerId):null});toast('Speler gekoppeld ✓');}
