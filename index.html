@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v63</title>
+<title>KSK Lovendegem U13 IP v64</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1171,7 +1171,7 @@ function toast(msg,isErr){const t=$('toast');if(!t)return;t.textContent=msg;t.cl
 function renderPvMatchListIn(containerId) {
   const el=$(containerId);if(!el)return;
   if(!wedstrijdenData.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
-  const uid=userSpelerId||(SB_USER?SB_USER.id:null);
+  const uid=userSpelerId?parseInt(userSpelerId):null;
   el.innerHTML=wedstrijdenData.map(w=>{
     const motmP=PLAYERS.find(x=>x.id===w.man_of_match);
     const wlP=PLAYERS.find(x=>x.id===w.weak_link);
@@ -1392,10 +1392,10 @@ async function openEvalForm(matchId) {
   evalDiv.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Laden...</div>';
 
   const w=wedstrijdenData.find(x=>x.id===matchId);if(!w){evalDiv.innerHTML='';return;}
-  const uid=userSpelerId||(SB_USER?SB_USER.id:null);
+  const uid=userSpelerId?parseInt(userSpelerId):null;
   if(!uid){evalDiv.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Geen speler gekoppeld.</div>';return;}
 
-  const myTeam=(w.blauw_spelers||[]).includes(uid)?'blauw':(w.geel_spelers||[]).includes(uid)?'geel':null;
+  const myTeam=(w.blauw_spelers||[]).map(Number).includes(uid)?'blauw':(w.geel_spelers||[]).map(Number).includes(uid)?'geel':null;
   const teamPlayers=myTeam==='blauw'?(w.blauw_spelers||[]):myTeam==='geel'?(w.geel_spelers||[]):[];
   const teammates=teamPlayers.filter(id=>id!==uid);
   const allPlayers=[...(w.blauw_spelers||[]),...(w.geel_spelers||[])];
@@ -1501,7 +1501,7 @@ async function saveEvaluatie(matchId, teamIds) {
   const motm=parseInt(document.getElementById('eval-motm-'+matchId)?.value)||null;
   const wl=parseInt(document.getElementById('eval-wl-'+matchId)?.value)||null;
   const sysSel=document.querySelector('#sys-group-'+matchId+' .radio-opt.selected');
-  const uid=userSpelerId||(SB_USER?SB_USER.id:null);
+  const uid=userSpelerId?parseInt(userSpelerId):null;
 
   const payload={
     match_id:matchId, beoordelaar:uid,
