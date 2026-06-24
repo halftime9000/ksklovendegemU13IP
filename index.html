@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v69</title>
+<title>KSK Lovendegem U13 IP v70</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -238,37 +238,37 @@ textarea{resize:vertical;min-height:70px}
 
 /* ── LOGIN ── */
 #s-login{background:#fff}
+
+
 @media(max-width:860px){
-  #s-login{
-    flex-direction:column!important;
-    padding:0!important;
-    gap:0!important;
-    overflow-y:auto!important;
-    justify-content:flex-start!important;
-    align-items:stretch!important
-  }
-  #s-login>div:first-child{
-    flex-direction:row!important;
-    gap:10px!important;
-    align-items:center!important;
-    padding:10px 16px!important;
-    background:#f8fafc!important;
-    border-bottom:1px solid #e2e8f0!important
-  }
-  #s-login>div:first-child img{width:40px!important;height:40px!important}
-  #s-login>div:first-child>div{display:flex!important;flex-direction:row!important;align-items:center!important;gap:6px!important;flex-wrap:wrap!important}
-  #s-login>div:first-child>div>div:nth-child(1){font-size:20px!important;line-height:1!important;letter-spacing:-1px!important}
-  #s-login>div:first-child>div>div:nth-child(2){font-size:10px!important;margin:0!important;letter-spacing:.15em!important}
-  #s-login>div:first-child>div>div:nth-child(3){font-size:14px!important;border-left:3px solid #e0d040!important;padding-left:6px!important;letter-spacing:.05em!important}
-  #s-login>div:last-child{
-    padding:20px 16px 16px!important;
-    width:100%!important;
-    max-width:100%!important;
-    border-radius:0!important;
-    box-shadow:none!important
-  }
-  #s-login>div:last-child>div>div:first-child{margin-bottom:16px!important}
+  #s-login{flex-direction:column!important;padding:0!important;gap:0!important;overflow-y:auto!important;justify-content:flex-start!important;align-items:stretch!important}
+  /* Compact header strip */
+  #s-login>div:first-child{flex-direction:row!important;gap:8px!important;align-items:center!important;padding:8px 14px!important;background:#f0f4f8!important;border-bottom:1px solid #e2e8f0!important;flex:0 0 auto!important}
+  #s-login>div:first-child img{width:36px!important;height:36px!important}
+  #s-login>div:first-child>div{display:flex!important;align-items:center!important;gap:6px!important}
+  #s-login>div:first-child>div>div:nth-child(1){font-size:18px!important;line-height:1!important;letter-spacing:-1px!important;margin:0!important}
+  #s-login>div:first-child>div>div:nth-child(2){font-size:9px!important;letter-spacing:.12em!important;margin:0!important}
+  #s-login>div:first-child>div>div:nth-child(3){font-size:12px!important;border-left:2px solid #e0d040!important;padding-left:5px!important;letter-spacing:.04em!important}
+  /* Compact card */
+  #s-login>div:last-child{padding:14px 16px 12px!important;border-radius:0!important;box-shadow:none!important;width:100%!important;max-width:100%!important}
+  /* Compact form header */
+  #s-login .form-header{margin-bottom:12px!important}
 }
+
+
+@media(max-width:860px){
+  .form-header{margin-bottom:10px!important}
+  .form-header>div:nth-child(2){font-size:26px!important;margin-bottom:6px!important;line-height:1!important}
+  .form-header>div:first-child{margin-bottom:4px!important;font-size:10px!important}
+  .form-header>div:last-child{font-size:12px!important}
+  #s-login input[type=email],#s-login input[type=password]{padding:9px 9px 8px 34px!important;font-size:13px!important}
+  #s-login div[style*="margin-bottom:14px"],#s-login div[style*="margin-bottom:10px"]{margin-bottom:8px!important}
+  #s-login div[style*="margin-bottom:22px"]{margin-bottom:10px!important}
+  #s-login button#login-btn{padding:10px!important;font-size:13px!important}
+  #s-login div[style*="margin:18px 0"]{margin:10px 0!important}
+  #s-login button:last-child{padding:9px!important;font-size:12px!important}
+}
+
 </style>
 </head>
 <body>
@@ -614,7 +614,7 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <div style="flex:0 0 380px;width:380px;background:#182448;border-radius:20px;padding:40px 36px;box-shadow:0 24px 60px rgba(32,48,96,.3);border:1px solid rgba(224,208,64,.15)">
     <div id="form-login">
-      <div style="margin-bottom:28px">
+      <div class="form-header" style="margin-bottom:28px">
         <div style="font-size:11px;font-weight:700;color:#e0d040;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">· Inloggen ·</div>
         <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.05;margin-bottom:10px">Spelers<br><span style="color:#e0d040">Platform</span></div>
         <div style="font-size:13px;color:rgba(255,255,255,.4)">Log in om verder te gaan</div>
