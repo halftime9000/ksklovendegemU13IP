@@ -22,7 +22,9 @@ html,body{height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-s
 /* ── SCREENS ── */
 .screen{display:none;position:fixed;inset:0;z-index:10}
 #s-login,#s-pending{display:flex;align-items:center;justify-content:center}
-#s-app,#s-beheer,#s-player{display:block;overflow:hidden}
+#s-app{overflow:hidden}
+#s-beheer,#s-player{overflow-y:auto}
+#s-player>div{height:100vh;overflow-y:auto}
 
 /* ── APP LAYOUT ── */
 #s-app{background:var(--bg)}
@@ -234,6 +236,7 @@ textarea{resize:vertical;min-height:70px}
   .team-grid{grid-template-columns:1fr}
 }
 @keyframes spin{to{transform:rotate(360deg)}}
+#s-beheer.screen,#s-player.screen{display:block!important}
 
 /* ── LOGIN ── */
 #s-login{background:#fff}
@@ -1126,8 +1129,13 @@ async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;
 // PLAYER VIEW
 function switchPvTab(id,btn){document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));document.getElementById('pvp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')renderPvMatchList();}
 async function loadPlayerView(){
-  const {data:wdata}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wdata||[];
-  if(!userSpelerId){const t=$('pv-title');if(t)t.textContent='Mijn profiel';const pp=$('pvp-profiel');if(pp)pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b">Vraag de coach om je account te koppelen.</p></div>';return;}
+  try{const {data:wdata}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wdata||[];}catch(e){}
+  if(!userSpelerId){
+    const t=$('pv-title');if(t)t.textContent='Mijn profiel';
+    const pp=$('pvp-profiel');
+    if(pp)pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b;margin-top:8px">Vraag de coach om je account te koppelen.</p></div>';
+    return;
+  }
   const sp=PLAYERS.find(p=>p.id===userSpelerId)||{voornaam:'Speler',naam:''};
   const t=$('pv-title');if(t)t.textContent='Welkom, '+sp.voornaam+'!';
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
