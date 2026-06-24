@@ -1035,17 +1035,25 @@ async function init() {
     showFlex('s-login'); return;
   }
 
+  // Always show login first - never get stuck on white screen
+  clearTimeout(safety);
+  hide('loading');
+  showFlex('s-login');
+  
+  // Then silently check session in background
   try {
     const user = sbLoadSession();
-    if (!user) { clearTimeout(safety); hide('loading'); showFlex('s-login'); return; }
-    showFlex('loading');
+    if (!user) return;
+    // Auto-login: show brief loading state on button
+    const btn = document.getElementById('login-btn');
+    if (btn) { btn.textContent = 'Inloggen…'; btn.disabled = true; }
     await handleLogin();
-    clearTimeout(safety);
+    if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
   } catch(e) {
     console.error('init error:', e);
-    clearTimeout(safety);
     sbClearSession();
-    hide('loading'); showFlex('s-login');
+    const btn = document.getElementById('login-btn');
+    if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
   }
 }
 
