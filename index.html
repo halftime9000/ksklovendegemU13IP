@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v75</title>
+<title>KSK Lovendegem U13 IP v76</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -293,28 +293,22 @@ textarea{resize:vertical;min-height:70px}
     var card = sl.children[1];
     var vh = window.innerHeight;
     if(logo){
-      // Header = 38% of screen height
-      var hh = Math.round(vh * 0.38);
-      logo.style.cssText = 'display:flex;flex-direction:row;align-items:center;gap:16px;padding:0 24px;background:#fff;border-bottom:4px solid #e0d040;flex-shrink:0;height:'+hh+'px';
-      var imgSize = Math.round(hh * 0.55);
+      // Header: auto height, big logo + text (3x of original ~44px base)
+      logo.style.cssText = 'display:flex;flex-direction:row;align-items:center;gap:16px;padding:16px 20px;background:#fff;border-bottom:4px solid #e0d040;flex-shrink:0';
       var img = logo.querySelector('img');
-      if(img) img.style.cssText = 'width:'+imgSize+'px;height:'+imgSize+'px;object-fit:contain;flex-shrink:0';
+      if(img) img.style.cssText = 'width:120px;height:120px;object-fit:contain;flex-shrink:0';
       var txt = logo.querySelector('div');
       if(txt){
         txt.style.cssText = 'display:flex;align-items:center;gap:10px';
         var divs = txt.querySelectorAll('div');
-        var fs1 = Math.round(hh*0.22);
-        var fs2 = Math.round(hh*0.075);
-        var fs3 = Math.round(hh*0.1);
-        if(divs[0]) divs[0].style.cssText = 'font-size:'+fs1+'px;font-weight:900;letter-spacing:-2px;line-height:1;color:#203060';
-        if(divs[1]) divs[1].style.cssText = 'font-size:'+fs2+'px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#203060';
-        if(divs[2]) divs[2].style.cssText = 'font-size:'+fs3+'px;font-weight:900;letter-spacing:.05em;text-transform:uppercase;border-left:4px solid #e0d040;padding-left:8px;color:#203060';
+        if(divs[0]) divs[0].style.cssText = 'font-size:60px;font-weight:900;letter-spacing:-3px;line-height:1;color:#203060';
+        if(divs[1]) divs[1].style.cssText = 'font-size:14px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#203060';
+        if(divs[2]) divs[2].style.cssText = 'font-size:28px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;border-left:4px solid #e0d040;padding-left:8px;color:#203060';
       }
     }
     if(card){
-      // Card = remaining 62% of screen
-      var ch = vh - Math.round(vh * 0.38);
-      card.style.cssText = 'height:'+ch+'px;padding:20px 20px;border-radius:0;box-shadow:none;width:100%;background:#182448;overflow-y:auto;flex-shrink:0';
+      // Card: fixed 52vh (15% smaller than before), scroll inside
+      card.style.cssText = 'height:52vh;padding:18px 18px;border-radius:0;box-shadow:none;width:100%;background:#182448;overflow-y:auto;flex-shrink:0';
       var inner = card.children[0];
       if(inner) inner.style.cssText = 'width:100%';
     }
