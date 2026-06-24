@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v60</title>
+<title>KSK Lovendegem U13 IP v62</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -566,7 +566,7 @@ textarea{resize:vertical;min-height:70px}
       </div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:20px">
-      <div id="pvp-profiel" class="pv-pane on"></div>
+      <div id="pvp-profiel" class="pv-pane on"><div style="padding:20px;text-align:center;color:#64748b;font-size:13px">Profiel laden...</div></div>
       <div id="pvp-wedstrijden" class="pv-pane">
         <div id="pv-match-list" class="match-list"></div>
       </div>
@@ -1129,18 +1129,22 @@ async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;
 // PLAYER VIEW
 function switchPvTab(id,btn){document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));document.getElementById('pvp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')renderPvMatchList();}
 async function loadPlayerView(){
-  try{const {data:wdata}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wdata||[];}catch(e){}
+  // Show something immediately
+  const pp=$('pvp-profiel');
+  if(pp) pp.innerHTML='<div class="card" style="text-align:center;padding:24px"><div style="font-size:13px;color:#64748b">Gegevens laden...</div></div>';
+  
+  try{const {data:wdata}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wdata||[];}catch(e){console.warn('wedstrijden:',e);}
+  
   if(!userSpelerId){
     const t=$('pv-title');if(t)t.textContent='Mijn profiel';
-    const pp=$('pvp-profiel');
-    if(pp)pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b;margin-top:8px">Vraag de coach om je account te koppelen.</p></div>';
+    if(pp)pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b;margin-top:8px">Vraag de coach om je account te koppelen via Admin Beheer.</p></div>';
     return;
   }
   const sp=PLAYERS.find(p=>p.id===userSpelerId)||{voornaam:'Speler',naam:''};
   const t=$('pv-title');if(t)t.textContent='Welkom, '+sp.voornaam+'!';
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
   const d=row?.data||{};
-  const pp=$('pvp-profiel');if(!pp)return;
+  if(!pp)return;
   pp.innerHTML='<div class="card"><div class="card-t">Persoonlijke gegevens</div><div class="fields"><div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly></div><div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly></div></div><div class="frow"><div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="'+(d.geboortedatum||'')+'" oninput="pvDirty()"></div><div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="'+(d.gsm_speler||'')+'" placeholder="+32 4xx xx xx xx" oninput="pvDirty()"></div></div></div></div><div class="card"><div class="card-t">Basisfiche 2026–27</div><div class="fields"><div class="field"><label>Hoe beoordeel je jouw huidig niveau?</label><textarea id="pv-niv" rows="3" oninput="pvDirty()">'+(d.bf_niveau||'')+'</textarea></div><div class="field"><label>Waar wil je staan einde seizoen?</label><textarea id="pv-doel" rows="3" oninput="pvDirty()">'+(d.bf_doel||'')+'</textarea></div><div class="field"><label>Verwachtingen van de trainer</label><textarea id="pv-verw" rows="3" oninput="pvDirty()">'+(d.bf_verwachting||'')+'</textarea></div></div></div><div class="card"><div class="card-t">School</div><div class="fields"><div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="Naam school" oninput="pvDirty()"></div></div></div><button id="pv-save" onclick="savePlayerView()" style="background:#e2e8f0;color:#94a3b8;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:default;width:100%">Opslaan</button>';
 }
 function pvDirty(){pvDirtyFlag=true;const b=$('pv-save');if(b){b.style.background='#15803d';b.style.color='#fff';b.style.cursor='pointer';}}
