@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v66</title>
+<title>KSK Lovendegem U13 IP v67</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -239,11 +239,10 @@ textarea{resize:vertical;min-height:70px}
 /* ── LOGIN ── */
 #s-login{background:#fff}
 @media(max-width:860px){
-  #s-login{flex-direction:column!important;padding:16px 14px!important;gap:12px!important;overflow-y:auto!important;justify-content:flex-start!important;align-items:center!important}
-  #s-login>div:first-child{flex-direction:row!important;gap:12px!important;align-items:center!important;width:100%!important;max-width:440px!important}
-  #s-login>div:first-child img{width:56px!important;height:56px!important}
-  #s-login>div:last-child{padding:24px 20px!important;width:100%!important;max-width:440px!important}
-  #s-login>div:last-child>div>div:first-child{margin-bottom:16px!important}
+  #s-login{flex-direction:column!important;padding:10px 14px 0!important;gap:8px!important;overflow-y:auto!important;justify-content:flex-start!important;align-items:center!important}
+  #s-login>div:first-child{flex-direction:row!important;gap:10px!important;align-items:center!important;width:100%!important;max-width:440px!important}
+  #s-login>div:first-child img{width:48px!important;height:48px!important}
+  #s-login>div:last-child{padding:18px 18px!important;width:100%!important;max-width:440px!important}
 }
 </style>
 </head>
@@ -1178,6 +1177,7 @@ function renderPvMatchListIn(containerId) {
   const el=$(containerId);if(!el)return;
   if(!wedstrijdenData.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
   const uid=userSpelerId?parseInt(userSpelerId):null;
+  console.log('renderPvMatchList uid:', uid, 'userSpelerId:', userSpelerId);
   el.innerHTML=wedstrijdenData.map(w=>{
     const motmP=PLAYERS.find(x=>x.id===w.man_of_match);
     const wlP=PLAYERS.find(x=>x.id===w.weak_link);
@@ -1399,6 +1399,7 @@ async function openEvalForm(matchId) {
 
   const w=wedstrijdenData.find(x=>x.id===matchId);if(!w){evalDiv.innerHTML='';return;}
   const uid=userSpelerId?parseInt(userSpelerId):null;
+  console.log('openEvalForm uid:', uid, 'blauw:', w.blauw_spelers, 'geel:', w.geel_spelers);
   if(!uid){evalDiv.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Geen speler gekoppeld.</div>';return;}
 
   const myTeam=(w.blauw_spelers||[]).map(Number).includes(Number(uid))?'blauw':(w.geel_spelers||[]).map(Number).includes(Number(uid))?'geel':null;
