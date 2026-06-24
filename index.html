@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v65</title>
+<title>KSK Lovendegem U13 IP v66</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -313,6 +313,10 @@ textarea{resize:vertical;min-height:70px}
           <div id="svm-photo-wrap" class="svm-photo-placeholder">⭐</div>
           <div class="svm-name" id="svm-landing-name">—</div>
           <div class="svm-avg" id="svm-landing-periode"></div>
+        </div>
+        <div style="text-align:center;margin-bottom:4px">
+          <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase">KSK Lovendegem U13 IP</div>
+          <div style="font-size:28px;font-weight:900;color:#0a1628;letter-spacing:-.8px;margin-top:2px">2026–2027</div>
         </div>
         <div class="team-grid">
           <div class="team-card">
@@ -1177,8 +1181,8 @@ function renderPvMatchListIn(containerId) {
   el.innerHTML=wedstrijdenData.map(w=>{
     const motmP=PLAYERS.find(x=>x.id===w.man_of_match);
     const wlP=PLAYERS.find(x=>x.id===w.weak_link);
-    const inBlauw=(w.blauw_spelers||[]).includes(uid);
-    const inGeel=(w.geel_spelers||[]).includes(uid);
+    const inBlauw=(w.blauw_spelers||[]).map(Number).includes(Number(uid));
+    const inGeel=(w.geel_spelers||[]).map(Number).includes(Number(uid));
     const inLineup=inBlauw||inGeel;
     return '<div class="match-card">'+
       '<div class="match-head" onclick="toggleMatch('+w.id+')">'+
@@ -1397,7 +1401,7 @@ async function openEvalForm(matchId) {
   const uid=userSpelerId?parseInt(userSpelerId):null;
   if(!uid){evalDiv.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Geen speler gekoppeld.</div>';return;}
 
-  const myTeam=(w.blauw_spelers||[]).map(Number).includes(uid)?'blauw':(w.geel_spelers||[]).map(Number).includes(uid)?'geel':null;
+  const myTeam=(w.blauw_spelers||[]).map(Number).includes(Number(uid))?'blauw':(w.geel_spelers||[]).map(Number).includes(Number(uid))?'geel':null;
   const teamPlayers=myTeam==='blauw'?(w.blauw_spelers||[]):myTeam==='geel'?(w.geel_spelers||[]):[];
   const teammates=teamPlayers.filter(id=>id!==uid);
   const allPlayers=[...(w.blauw_spelers||[]),...(w.geel_spelers||[])];
