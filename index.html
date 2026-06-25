@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v89</title>
+<title>KSK Lovendegem U13 IP v91</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -657,11 +657,13 @@ textarea{resize:vertical;min-height:70px}
       </div>
       <div style="display:flex;gap:4px;margin-bottom:0">
         <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:10px 4px;background:none;border:none;border-bottom:2px solid #1d4ed8;color:#fff;font-size:12px;font-weight:600;cursor:pointer">👤 Profiel</button>
+        <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:10px 4px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer">⚽ Voetbal</button>
         <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:10px 4px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer">🏟️ Wedstrijden</button>
       </div>
     </div>
     <div style="flex:1;overflow-y:auto;padding:20px">
       <div id="pvp-profiel" class="pv-pane on"><div style="padding:20px;text-align:center;color:#64748b;font-size:13px">Profiel laden...</div></div>
+      <div id="pvp-voetbal" class="pv-pane"></div>
       <div id="pvp-wedstrijden" class="pv-pane">
         <div id="pv-match-list" class="match-list"></div>
       </div>
@@ -1252,7 +1254,152 @@ async function saveWedstrijd(id){
 async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;await sbDelete('wedstrijden','id=eq.'+id);toast('Verwijderd');loadWedstrijden();}
 
 // PLAYER VIEW
-function switchPvTab(id,btn){document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));document.getElementById('pvp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')renderPvMatchList();}
+function switchPvTab(tab, btn) {
+  document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.player-view-tab').forEach(b=>{
+    b.style.color='rgba(255,255,255,.5)';
+    b.style.borderBottomColor='transparent';
+  });
+  const pane=$('pvp-'+tab);
+  if(pane) pane.classList.add('on');
+  if(btn){btn.style.color='#fff';btn.style.borderBottomColor='#1d4ed8';}
+  if(tab==='wedstrijden') renderPvMatchListIn('pvp-wedstrijden');
+  if(tab==='voetbal') loadPvVoetbal();
+}
+
+function zelfScoreBtns(id) {
+  let h = '';
+  for(let n=1;n<=10;n++){
+    h+='<button type="button" class="zb-btn" data-zbid="'+id+'" data-val="'+n+'" onclick="selectZbBtn(this)" style="padding:4px 7px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;color:#374151;font-size:12px;font-weight:700;cursor:pointer;min-width:30px">'+n+'</button>';
+  }
+  return h;
+}
+
+function selectZbBtn(btn) {
+  const id = btn.dataset.zbid;
+  const container = document.getElementById(id);
+  if(container) container.querySelectorAll('.zb-btn').forEach(b=>{
+    b.style.background='#f8fafc'; b.style.color='#374151'; b.style.borderColor='#e2e8f0';
+  });
+  btn.style.background='#203060'; btn.style.color='#e0d040'; btn.style.borderColor='#203060';
+}
+function loadPvVoetbal() {
+  const el=$('pvp-voetbal'); if(!el) return;
+  if(el.innerHTML.trim()) { applyPvPills(); return; }
+  el.innerHTML =
+    '<div class="card"><div class="card-t">ℹ️ Basisinfo</div><div class="fields">' +
+    '<div class="frow">' +
+    '<div class="field"><label>Positie</label><input id="pv-pos" placeholder="bv. Aanvaller" oninput="pvDirty()"></div>' +
+    '<div class="field"><label>Voorkeurspoot</label><select id="pv-poot" onchange="pvDirty()"><option value="">—</option><option>Links</option><option>Rechts</option><option>Beide</option></select></div>' +
+    '</div>' +
+    '<div class="field"><label>Speelstijl</label><textarea id="pv-stijl" rows="2" placeholder="bv. Snel, technisch, graag met bal aan de voet..." oninput="pvDirty()"></textarea></div>' +
+    '</div></div>' +
+    '<div class="card"><div class="card-t">📅 Speelervaring</div><div class="fields">' +
+    '<div class="frow">' +
+    '<div class="field"><label>Jaren actief</label><select id="pv-jaren" onchange="pvDirty()"><option value="">—</option><option>1-2 jaar</option><option>3-4 jaar</option><option>5+ jaar</option></select></div>' +
+    '<div class="field"><label>Vorige club(s)</label><input id="pv-clubs" placeholder="bv. FC Gent" oninput="pvDirty()"></div>' +
+    '</div>' +
+    '</div></div>' +
+    '<div class="card"><div class="card-t">⭐ Motivatie & Identiteit</div><div class="fields">' +
+    '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Lionel Messi" oninput="pvDirty()"></div>' +
+    '<div class="field"><label>Waarom speel je voetbal?</label><textarea id="pv-waarom" rows="3" placeholder="Vertel in eigen woorden..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Waar zie je jezelf over 5 jaar?</label><textarea id="pv-droom" rows="3" placeholder="Jouw droomscenario..." oninput="pvDirty()"></textarea></div>' +
+    '</div></div>' +
+    '<div class="card"><div class="card-t">💡 Niveau & Doelen</div><div class="fields">' +
+    '<div class="field"><label>Hoe beoordeel je jouw huidig niveau?</label><textarea id="pv-niv" rows="3" placeholder="Eerlijk en in eigen woorden..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Waar wil je staan einde seizoen?</label><textarea id="pv-doel" rows="3" placeholder="Concreet doel..." oninput="pvDirty()"></textarea></div>' +
+    '</div></div>' +
+    '<div class="card"><div class="card-t">🔍 Zelfbeoordeling</div>' +
+    '<p style="font-size:12px;color:#64748b;padding:0 16px 12px">Geef jezelf een eerlijk cijfer van 1 tot 10</p>' +
+    '<div class="fields">' +
+    '<div class="field"><label>Inzet op training</label><div style="display:flex;gap:4px;flex-wrap:wrap" id="zb-inzet">' + zelfScoreBtns('zb-inzet') + '</div></div>' +
+    '<div class="field"><label>Gedrag in de groep</label><div style="display:flex;gap:4px;flex-wrap:wrap" id="zb-gedrag">' + zelfScoreBtns('zb-gedrag') + '</div></div>' +
+    '<div class="field"><label>Luisteren naar de coach</label><div style="display:flex;gap:4px;flex-wrap:wrap" id="zb-coach">' + zelfScoreBtns('zb-coach') + '</div></div>' +
+    '</div></div>' +
+    '<div class="card"><div class="card-t">🌟 Sterke punten</div><div class="fields"><div class="ms-section"><div class="ms-cat">⚙️ Technisch</div><div class="ms-pills" id="pvp-sterke_technisch"><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">Dribbelen</button><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">Passing</button><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">Eerste aanname</button><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">Balcontrole</button><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">Schieten</button><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">Koppen</button><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">1-op-1</button><button class="pill" data-pvkey="sterke_technisch" onclick="pvPill(this)">Overzicht</button></div></div><div class="ms-section"><div class="ms-cat">🧠 Taktisch</div><div class="ms-pills" id="pvp-sterke_taktisch"><button class="pill" data-pvkey="sterke_taktisch" onclick="pvPill(this)">Positiespel</button><button class="pill" data-pvkey="sterke_taktisch" onclick="pvPill(this)">Omschakeling</button><button class="pill" data-pvkey="sterke_taktisch" onclick="pvPill(this)">Pressing</button><button class="pill" data-pvkey="sterke_taktisch" onclick="pvPill(this)">Ruimte creëren</button><button class="pill" data-pvkey="sterke_taktisch" onclick="pvPill(this)">Anticiperen</button><button class="pill" data-pvkey="sterke_taktisch" onclick="pvPill(this)">Communicatie</button></div></div><div class="ms-section"><div class="ms-cat">💪 Fysiek</div><div class="ms-pills" id="pvp-sterke_fysiek"><button class="pill" data-pvkey="sterke_fysiek" onclick="pvPill(this)">Snelheid</button><button class="pill" data-pvkey="sterke_fysiek" onclick="pvPill(this)">Uithouding</button><button class="pill" data-pvkey="sterke_fysiek" onclick="pvPill(this)">Kracht</button><button class="pill" data-pvkey="sterke_fysiek" onclick="pvPill(this)">Wendbaarheid</button></div></div><div class="ms-section"><div class="ms-cat">❤️ Mentaal</div><div class="ms-pills" id="pvp-sterke_mentaal"><button class="pill" data-pvkey="sterke_mentaal" onclick="pvPill(this)">Concentratie</button><button class="pill" data-pvkey="sterke_mentaal" onclick="pvPill(this)">Veerkracht</button><button class="pill" data-pvkey="sterke_mentaal" onclick="pvPill(this)">Leiderschap</button><button class="pill" data-pvkey="sterke_mentaal" onclick="pvPill(this)">Werklust</button><button class="pill" data-pvkey="sterke_mentaal" onclick="pvPill(this)">Zelfvertrouwen</button></div></div></div></div>' +
+    '<div class="card"><div class="card-t">📈 Werkpunten</div><div class="fields"><div class="ms-section"><div class="ms-cat">⚙️ Technisch</div><div class="ms-pills" id="pvp-werk_technisch"><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Dribbelen</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Passing</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Eerste aanname</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Balcontrole</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Schieten</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Koppen</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">1-op-1</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Overzicht</button></div></div><div class="ms-section"><div class="ms-cat">🧠 Taktisch</div><div class="ms-pills" id="pvp-werk_taktisch"><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Positiespel</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Omschakeling</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Pressing</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Ruimte creëren</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Anticiperen</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Communicatie</button></div></div><div class="ms-section"><div class="ms-cat">💪 Fysiek</div><div class="ms-pills" id="pvp-werk_fysiek"><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Snelheid</button><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Uithouding</button><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Kracht</button><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Wendbaarheid</button></div></div><div class="ms-section"><div class="ms-cat">❤️ Mentaal</div><div class="ms-pills" id="pvp-werk_mentaal"><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Concentratie</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Veerkracht</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Leiderschap</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Werklust</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Zelfvertrouwen</button></div></div></div></div>' +
+    '<button onclick="savePvVoetbal()" style="width:100%;padding:12px;background:#203060;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px">💾 Opslaan</button>';
+  sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*').then(({data:row})=>{
+    const d=row?.data||{};
+    const flds = {'pv-pos':'positie','pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
+      'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
+      'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario',
+      'pv-niv':'bf_niveau','pv-doel':'bf_doel'};
+    Object.entries(flds).forEach(([id,key])=>{const el=$(id);if(el)el.value=d[key]||''});
+    // Zelfbeoordeling scores
+    ['inzet','gedrag','coach'].forEach(k=>{
+      const v=d['zb_'+k];
+      if(v){const el=document.getElementById('zb-'+k);
+        if(el)el.querySelectorAll('.zb-btn[data-val="'+v+'"]').forEach(b=>selectZbBtn(b));}
+    });
+    applyPvPills(d);
+  });
+}
+
+
+function applyPvPills(d) {
+  if(!d){sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*').then(({data:row})=>applyPvPills(row?.data||{}));return;}
+  ['sterke','werk'].forEach(type=>{
+    ['technisch','taktisch','fysiek','mentaal'].forEach(cat=>{
+      const key=type+'_'+cat;
+      const el=$('pvp-'+key);
+      const saved=d[key]||[];
+      if(el)el.querySelectorAll('.pill').forEach(b=>{b.classList.toggle('on',saved.includes(b.textContent));});
+    });
+  });
+}
+
+async function savePvVoetbal() {
+  const d2={};
+  const flds={'pv-pos':'positie','pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
+    'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
+    'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario',
+    'pv-niv':'bf_niveau','pv-doel':'bf_doel'};
+  Object.entries(flds).forEach(([id,key])=>{const el=$(id);if(el)d2[key]=el.value;});
+  // Zelfbeoordeling
+  ['inzet','gedrag','coach'].forEach(k=>{
+    const el=document.getElementById('zb-'+k);
+    if(el){const sel=el.querySelector('.zb-btn[style*="203060"]');if(sel)d2['zb_'+k]=parseInt(sel.dataset.val);}
+  });
+  // Pills
+  ['sterke','werk'].forEach(type=>{
+    ['technisch','taktisch','fysiek','mentaal'].forEach(cat=>{
+      const key=type+'_'+cat;
+      const el=$('pvp-'+key);
+      if(el)d2[key]=[...el.querySelectorAll('.pill.on')].map(b=>b.textContent);
+    });
+  });
+  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
+  const merged=Object.assign({},row?.data||{},d2);
+  const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
+  if(!error) showToast('✓ Opgeslagen!');
+  else showToast('Fout bij opslaan','err');
+}
+
+
+async function loadPlayerView(){
+  const pp=$('pvp-profiel');
+  if(pp) pp.innerHTML='<div class="card" style="text-align:center;padding:24px"><div style="font-size:13px;color:#64748b">Laden...</div></div>';
+  try{const {data:wdata}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wdata||[];}catch(e){}
+  if(!userSpelerId){
+    const t=$('pv-title');if(t)t.textContent='Mijn profiel';
+    if(pp)pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b;margin-top:8px">Vraag de coach om je account te koppelen.</p></div>';
+    return;
+  }
+  const sp=PLAYERS.find(p=>p.id===userSpelerId)||{voornaam:'Speler',naam:''};
+  const t=$('pv-title');if(t)t.textContent='Welkom, '+sp.voornaam+'!';
+  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
+  const d=row?.data||{};
+  if(!pp)return;
+  pp.innerHTML=
+    '<div class="card"><div class="card-t">👤 Persoonlijke gegevens</div><div class="fields">'+
+    '<div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly></div>'+
+    '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly></div></div>'+
+    '<div class="frow"><div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="'+(d.geboortedatum||'')+'" oninput="pvDirty()"></div>'+
+    '<div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="'+(d.gsm_speler||'')+'" placeholder="+32 4xx xx xx xx" oninput="pvDirty()"></div></div>'+
+    '</div></div>'+
+    '<button id="pv-save" onclick="savePlayerView()" style="background:#e2e8f0;color:#94a3b8;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:default;width:100%">Opslaan</button>';
+}
 async function loadPlayerView(){
   // Show something immediately
   const pp=$('pvp-profiel');
@@ -1278,16 +1425,16 @@ function pvPill(btn) {
 }
 function pvDirty(){pvDirtyFlag=true;const b=$('pv-save');if(b){b.style.background='#15803d';b.style.color='#fff';b.style.cursor='pointer';}}
 async function savePlayerView(){
-  if(!userSpelerId||!pvDirtyFlag)return;
-  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=data');
-  const d={...(row?.data||{})};
-  d.geboortedatum=$('pv-geb')?.value||'';d.gsm_speler=$('pv-gsm')?.value||'';
-  d.bf_niveau=$('pv-niv')?.value||'';d.bf_doel=$('pv-doel')?.value||'';
-  d.bf_verwachting=$('pv-verw')?.value||'';d.school_naam=$('pv-school')?.value||'';
-  const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:d,updated_at:new Date().toISOString()});
-  if(error){toast('Fout bij opslaan',true);return;}
-  pvDirtyFlag=false;const b=$('pv-save');if(b){b.style.background='#16a34a';b.textContent='✓ Opgeslagen';setTimeout(()=>{b.style.background='#e2e8f0';b.style.color='#94a3b8';b.style.cursor='default';b.textContent='Opslaan';},2000);}toast('Opgeslagen ✓');
+  const d2={};
+  if($('pv-geb'))d2.geboortedatum=$('pv-geb').value;
+  if($('pv-gsm'))d2.gsm_speler=$('pv-gsm').value;
+  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
+  const merged=Object.assign({},row?.data||{},d2);
+  const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
+  if(!error){showToast('Opgeslagen!');const b=$('pv-save');if(b){b.textContent='Opgeslagen ✓';b.style.background='#15803d';b.style.color='#fff';}}
+  else showToast('Fout bij opslaan','err');
 }
+
 
 // UTILS
 const $=id=>document.getElementById(id);
