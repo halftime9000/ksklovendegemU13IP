@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v135</title>
+<title>KSK Lovendegem U13 IP v136</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1397,8 +1397,7 @@ async function savePvVoetbal() {
   const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
   if(!error) {
     toast('✓ Basisfiche opgeslagen!');
-    // Flash the button green
-    const saveBtn = el ? el.querySelector('button[onclick*="savePvVoetbal"]') : null;
+    const saveBtn = document.querySelector('#pvp-voetbal button[onclick*="savePvVoetbal"]');
     if(saveBtn){ saveBtn.textContent='✓ Opgeslagen'; saveBtn.style.background='#15803d'; setTimeout(()=>{ saveBtn.textContent='💾 Opslaan'; saveBtn.style.background='#203060'; }, 2000); }
   } else toast('Fout bij opslaan: '+(error.message||JSON.stringify(error)),true);
 }
