@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v132</title>
+<title>KSK Lovendegem U13 IP v133</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1321,6 +1321,7 @@ function loadPvVoetbal() {
     '<div class="card"><div class="card-t">📈 Werkpunten</div><div class="fields"><div class="ms-section"><div class="ms-cat">⚙️ Technisch</div><div class="ms-pills" id="pvp-werk_technisch"><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Dribbelen</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Passing</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Eerste aanname</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Balcontrole</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Schieten</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Koppen</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">1-op-1</button><button class="pill" data-pvkey="werk_technisch" onclick="pvPill(this)">Overzicht</button></div></div><div class="ms-section"><div class="ms-cat">🧠 Taktisch</div><div class="ms-pills" id="pvp-werk_taktisch"><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Positiespel</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Omschakeling</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Pressing</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Ruimte creëren</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Anticiperen</button><button class="pill" data-pvkey="werk_taktisch" onclick="pvPill(this)">Communicatie</button></div></div><div class="ms-section"><div class="ms-cat">💪 Fysiek</div><div class="ms-pills" id="pvp-werk_fysiek"><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Snelheid</button><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Uithouding</button><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Kracht</button><button class="pill" data-pvkey="werk_fysiek" onclick="pvPill(this)">Wendbaarheid</button></div></div><div class="ms-section"><div class="ms-cat">❤️ Mentaal</div><div class="ms-pills" id="pvp-werk_mentaal"><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Concentratie</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Veerkracht</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Leiderschap</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Werklust</button><button class="pill" data-pvkey="werk_mentaal" onclick="pvPill(this)">Zelfvertrouwen</button></div></div></div></div>' +
     '<button onclick="savePvVoetbal()" style="width:100%;padding:12px;background:#203060;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px">💾 Opslaan</button>';
   sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*').then(({data:row})=>{
+    toast('⚽ loadPvVoetbal geladen, userSpelerId='+userSpelerId);
     const d=row?.data||{};
     const flds = {'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
       'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
@@ -1345,6 +1346,7 @@ function loadPvVoetbal() {
     });
     applyPvPills(d);
   });
+  .catch(e=>{ toast("❌ Laad fout: "+e.message, true); });
 }
 
 
