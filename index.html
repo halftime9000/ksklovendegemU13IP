@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v102</title>
+<title>KSK Lovendegem U13 IP v103</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1498,6 +1498,8 @@ async function loadPlayerView(){
     '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly></div></div>'+
     '<div class="frow"><div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="'+(d.geboortedatum||'')+'" oninput="pvDirty()"></div>'+
     '<div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="'+(d.gsm_speler||'')+'" placeholder="+32 4xx xx xx xx" oninput="pvDirty()"></div></div>'+
+    '<div class="frow"><div class="field"><label>Favoriete ploeg</label><input id="pv-ploeg" value="'+(d.fav_ploeg||'')+'" placeholder="bv. Club Brugge" oninput="pvDirty()"></div>'+
+    '<div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="bv. Evergem 2020" oninput="pvDirty()"></div></div>'+
     '</div></div>'+
     '<button id="pv-save" onclick="savePlayerView()" style="background:#e2e8f0;color:#94a3b8;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:default;width:100%">Opslaan</button>';
 }
@@ -1530,6 +1532,8 @@ async function savePlayerView(){
   const d2={};
   if($('pv-geb'))d2.geboortedatum=$('pv-geb').value;
   if($('pv-gsm'))d2.gsm_speler=$('pv-gsm').value;
+  if($('pv-ploeg'))d2.fav_ploeg=$('pv-ploeg').value;
+  if($('pv-school'))d2.school_naam=$('pv-school').value;
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
   const merged=Object.assign({},row?.data||{},d2);
   const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
