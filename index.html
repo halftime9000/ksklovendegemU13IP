@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v136</title>
+<title>KSK Lovendegem U13 IP v137</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1277,10 +1277,12 @@ function selectZbBtn(btn) {
 }
 
 function togglePos(btn) {
-  const sel = btn.style.background.includes('203060');
+  const sel = btn.dataset.selected === '1';
+  btn.dataset.selected = sel ? '' : '1';
   btn.style.background = sel ? '#f8fafc' : '#203060';
   btn.style.color = sel ? '#374151' : '#e0d040';
   btn.style.borderColor = sel ? '#e2e8f0' : '#203060';
+  pvDirty();
 }
 function loadPvVoetbal() {
   const el=$('pvp-voetbal'); if(!el) return;
@@ -1343,7 +1345,7 @@ function loadPvVoetbal() {
       const saved=d[id]||[];
       const el=document.getElementById(id);
       if(el)el.querySelectorAll('.pos-btn').forEach(b=>{
-        if(saved.includes(b.dataset.val)){
+        if(saved.includes(b.dataset.val)){b.dataset.selected='1';
           b.style.background='#203060';b.style.color='#e0d040';b.style.borderColor='#203060';
         }
       });
@@ -1372,7 +1374,7 @@ async function savePvVoetbal() {
   // Collect positions
   ['pv-fav-pos','pv-ges-pos'].forEach(id=>{
     const el=document.getElementById(id);
-    if(el)d2[id]=[...el.querySelectorAll('.pos-btn')].filter(b=>b.style.background.includes('203060')).map(b=>b.dataset.val);
+    if(el)d2[id]=[...el.querySelectorAll('.pos-btn')].filter(b=>b.dataset.selected==='1').map(b=>b.dataset.val);
   });
   const flds={'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
     'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
