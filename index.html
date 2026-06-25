@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v137</title>
+<title>KSK Lovendegem U13 IP v140</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -307,7 +307,7 @@ textarea{resize:vertical;min-height:70px}
   opacity: 0.4 !important;
   cursor: default !important;
 }
-#detail.admin-view .pill,
+#detail.admin-view #detail.admin-view .pill,
 #detail.admin-view .pos-btn,
 #detail.admin-view .zb-btn,
 #detail.admin-view .radio-opt,
@@ -1271,9 +1271,12 @@ function selectZbBtn(btn) {
   const id = btn.dataset.zbid;
   const container = document.getElementById(id);
   if(container) container.querySelectorAll('.zb-btn').forEach(b=>{
+    b.dataset.selected = '';
     b.style.background='#f8fafc'; b.style.color='#374151'; b.style.borderColor='#e2e8f0';
   });
+  btn.dataset.selected = '1';
   btn.style.background='#203060'; btn.style.color='#e0d040'; btn.style.borderColor='#203060';
+  pvDirty();
 }
 
 function togglePos(btn) {
@@ -1362,7 +1365,7 @@ function applyPvPills(d) {
       const key=type+'_'+cat;
       const el=$('pvp-'+key);
       const saved=d[key]||[];
-      if(el)el.querySelectorAll('.pill').forEach(b=>{b.classList.toggle('on',saved.includes(b.textContent));});
+      if(el)el.querySelectorAll('.pill').forEach(b=>{b.classList.toggle('on',saved.includes(b.textContent.trim()));});
     });
   });
 }
@@ -1384,14 +1387,14 @@ async function savePvVoetbal() {
   // Zelfbeoordeling
   ['inzet','gedrag','coach'].forEach(k=>{
     const el=document.getElementById('zb-'+k);
-    if(el){const sel=el.querySelector('.zb-btn[style*="203060"]');if(sel)d2['zb_'+k]=parseInt(sel.dataset.val);}
+    if(el){const sel=el.querySelector('.zb-btn[data-selected="1"]');if(sel)d2['zb_'+k]=parseInt(sel.dataset.val);}
   });
   // Pills
   ['sterke','werk'].forEach(type=>{
     ['technisch','taktisch','fysiek','mentaal'].forEach(cat=>{
       const key=type+'_'+cat;
       const el=$('pvp-'+key);
-      if(el)d2[key]=[...el.querySelectorAll('.pill.on')].map(b=>b.textContent);
+      if(el)d2[key]=[...el.querySelectorAll('.pill.on')].map(b=>b.textContent.trim());
     });
   });
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
@@ -1436,6 +1439,7 @@ async function loadPlayerView(){
 
 function pvPill(btn) {
   btn.classList.toggle('on');
+  pvDirty();
 }
 function pvDirty(){if(userRole==='admin'||userRole==='coach')return;pvDirtyFlag=true;const b=$('pv-save');if(b){b.style.background='#15803d';b.style.color='#fff';b.style.cursor='pointer';}}
 async function savePlayerView(){
