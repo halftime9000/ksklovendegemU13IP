@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v80</title>
+<title>KSK Lovendegem U13 IP v83</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -279,6 +279,18 @@ textarea{resize:vertical;min-height:70px}
   }
   .form-header>div:nth-child(2){font-size:28px!important;margin-bottom:8px!important}
 }
+
+/* ── MULTI-SECTIONS (Sterke/Werkpunten) ── */
+.ms-section{margin-bottom:12px}
+.ms-cat{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;padding:4px 0;border-bottom:1px solid var(--border)}
+.ms-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.pill{padding:5px 11px;border:1px solid var(--border);border-radius:20px;background:#f8fafc;font-size:11px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .1s}
+.pill.on{background:var(--accent-dk);color:#fff;border-color:var(--accent-dk)}
+.cat-technisch .ms-cat{color:#1d4ed8}
+.cat-taktisch .ms-cat{color:#7c3aed}
+.cat-fysiek .ms-cat{color:#059669}
+.cat-mentaal .ms-cat{color:#d97706}
+
 </style>
 <script>
 // Mobile login fix
@@ -287,6 +299,9 @@ textarea{resize:vertical;min-height:70px}
     if(window.innerWidth > 860) return;
     var sl = document.getElementById('s-login');
     if(!sl) return;
+    // GUARD: only apply if s-login is the active screen
+    var computedDisplay = window.getComputedStyle(sl).display;
+    if(computedDisplay === 'none') return;
     // Full screen column layout
     sl.style.cssText = 'display:flex!important;flex-direction:column;padding:0;gap:0;justify-content:flex-start;align-items:stretch;background:#fff;position:fixed;inset:0;z-index:10;overflow:hidden';
     var logo = sl.children[0];
@@ -319,7 +334,7 @@ textarea{resize:vertical;min-height:70px}
   } else {
     applyMobileLogin();
   }
-  window.addEventListener('resize', applyMobileLogin);
+  // NO resize listener - keyboard open triggers resize and would show login over other screens!
 })();
 </script>
 </head>
@@ -731,7 +746,7 @@ async function ensureToken() {
       headers:{'apikey':SUPABASE_ANON_KEY,'Content-Type':'application/json'},
       body:JSON.stringify({refresh_token:s.refresh})
     });
-    if (!r.ok) { sbClearSession(); showFlex('s-login'); return; }
+    if (!r.ok) { console.warn('Token refresh failed, continuing with existing token'); return; }
     const d = await r.json();
     sbSaveSession(d, !!localStorage.getItem('ksk_sb_session'));
   } catch(e) { console.warn('Token refresh:', e); }
@@ -789,7 +804,11 @@ async function sbGet(table, qs) {
   await ensureToken();
   const url = SUPABASE_URL+'/rest/v1/'+table+(qs?'?'+qs:'');
   const r = await fetch(url, {headers:sbH()});
-  if (!r.ok) { const e=await r.json().catch(()=>({})); return {data:null,error:e}; }
+  if (!r.ok) {
+    const e=await r.json().catch(()=>({}));
+    if(r.status===401){showToast('Sessie verlopen — log opnieuw in','err');setTimeout(()=>doLogout(),2000);}
+    return {data:null,error:e};
+  }
   return {data:await r.json(), error:null};
 }
 async function sbGetOne(table, qs) {
@@ -980,6 +999,9 @@ async function doLogout() {
   setDisp('admin-sb-btn','none');
   setDisp('demo-badge','none');
   selId=null; DB={}; userRole='none'; userSpelerId=null;
+  // Reset login button
+  const btn=$('login-btn');
+  if(btn){btn.textContent='Inloggen';btn.disabled=false;}
 }
 
 function startDemo() {
