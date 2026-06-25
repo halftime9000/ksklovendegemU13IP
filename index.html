@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v116</title>
+<title>KSK Lovendegem U13 IP v127</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -21,7 +21,7 @@ html,body{height:100%;overflow:hidden;font-family:system-ui,-apple-system,sans-s
 
 /* ── SCREENS ── */
 .screen{display:none;position:fixed;inset:0;z-index:10}
-#s-login,#s-pending{display:flex;align-items:center;justify-content:center}
+#s-login{display:flex;align-items:center;justify-content:center}
 #s-app{overflow:hidden}
 
 /* ── APP LAYOUT ── */
@@ -476,48 +476,29 @@ textarea{resize:vertical;min-height:70px}
         <button class="mob-list-btn" onclick="openMobileList()">👥 Spelers bekijken →</button>
 
         <!-- Admin navigation cards -->
-        <div id="admin-nav-cards" style="display:none;width:100%;max-width:560px;margin:18px auto 0;padding:0 12px">
-          <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Beheer</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div onclick="openBeheerTab('spelers')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1.5px solid #e2e8f0;transition:all .15s" onmouseover="this.style.borderColor='#203060';this.style.boxShadow='0 4px 16px rgba(32,48,96,.15)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='0 2px 12px rgba(0,0,0,.08)'">
-              <div style="font-size:26px;margin-bottom:8px">👥</div>
-              <div style="font-size:14px;font-weight:700;color:#0a1628">Spelers</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Beheer & keeper</div>
+        <div id="admin-nav-cards" style="display:none;width:100%;max-width:560px;margin:14px auto 0;padding:0 12px">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+
+            <div onclick="openBeheerTab('spelers')" style="background:#203060;border-radius:14px;padding:16px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 12px rgba(32,48,96,.18)">
+              <div style="font-size:24px;margin-bottom:6px">⚙️</div>
+              <div style="font-size:12px;font-weight:700;color:#e0d040">Beheer</div>
+              <div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">Spelers · Gebruikers<br>Wedstrijden · Maand</div>
             </div>
-            <div onclick="openBeheerTab('users')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1.5px solid #e2e8f0;transition:all .15s" onmouseover="this.style.borderColor='#203060';this.style.boxShadow='0 4px 16px rgba(32,48,96,.15)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='0 2px 12px rgba(0,0,0,.08)'">
-              <div style="font-size:26px;margin-bottom:8px">🔑</div>
-              <div style="font-size:14px;font-weight:700;color:#0a1628">Gebruikers</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Rollen & koppelingen</div>
+
+            <div onclick="showSpelersList('profiel')" style="background:#fff;border-radius:14px;padding:16px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1.5px solid #e2e8f0">
+              <div style="font-size:24px;margin-bottom:6px">👤</div>
+              <div style="font-size:12px;font-weight:700;color:#0a1628">Profielen</div>
+              <div style="font-size:10px;color:#94a3b8;margin-top:2px">Persoonlijke<br>gegevens</div>
             </div>
-            <div onclick="openBeheerTab('wedstrijden')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1.5px solid #e2e8f0;transition:all .15s" onmouseover="this.style.borderColor='#203060';this.style.boxShadow='0 4px 16px rgba(32,48,96,.15)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='0 2px 12px rgba(0,0,0,.08)'">
-              <div style="font-size:26px;margin-bottom:8px">🏟️</div>
-              <div style="font-size:14px;font-weight:700;color:#0a1628">Wedstrijden</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Aanmaken & opstelling</div>
+
+            <div onclick="showSpelersList('voetbal')" style="background:#fff;border-radius:14px;padding:16px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1.5px solid #e2e8f0">
+              <div style="font-size:24px;margin-bottom:6px">⚽</div>
+              <div style="font-size:12px;font-weight:700;color:#0a1628">Voetbalfiches</div>
+              <div style="font-size:10px;color:#94a3b8;margin-top:2px">Basisfiche<br>& doelen</div>
             </div>
-            <div onclick="openBeheerTab('maandprijs')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:1.5px solid #e2e8f0;transition:all .15s" onmouseover="this.style.borderColor='#203060';this.style.boxShadow='0 4px 16px rgba(32,48,96,.15)'" onmouseout="this.style.borderColor='#e2e8f0';this.style.boxShadow='0 2px 12px rgba(0,0,0,.08)'">
-              <div style="font-size:26px;margin-bottom:8px">🏆</div>
-              <div style="font-size:14px;font-weight:700;color:#0a1628">Maandprijs</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Speler van de maand</div>
-            </div>
+
           </div>
-        
-        <!-- Speler data cards -->
-        <div style="width:100%;max-width:560px;margin:14px auto 0;padding:0 12px">
-          <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Spelersdata</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-            <div onclick="showSpelersList('profiel')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:2px solid #203060">
-              <div style="font-size:26px;margin-bottom:8px">👤</div>
-              <div style="font-size:14px;font-weight:700;color:#0a1628">Spelersprofielen</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Persoonlijke info</div>
-            </div>
-            <div onclick="showSpelersList('voetbal')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:2px solid #203060">
-              <div style="font-size:26px;margin-bottom:8px">⚽</div>
-              <div style="font-size:14px;font-weight:700;color:#0a1628">Voetbalfiches</div>
-              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Basisfiche & doelen</div>
-            </div>
-          </div>
-        </div></div>
-      </div>
+        </div>      </div>
 
       <!-- Detail -->
       <div id="detail" style="display:none;flex-direction:column;height:100%;overflow:hidden;background:#f8fafc">
@@ -542,6 +523,10 @@ textarea{resize:vertical;min-height:70px}
           <div id="admin-pane-voetbal" style="display:none"></div>
         </div>
       </div>
+    </div><!-- /layout -->
+</div><!-- /s-app -->
+</div><!-- /s-app-FINAL -->
+
 
 
 <div id="s-login" class="screen" style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:64px;padding:40px 48px">
@@ -684,12 +669,8 @@ textarea{resize:vertical;min-height:70px}
       </div>
     </div>
 
-  </div>
-</div>
-
-
-  </div>
-</div>
+      </div>
+    </div>
 
 <script>
 // CONFIG
@@ -779,7 +760,7 @@ async function sbGet(table, qs) {
   const r = await fetch(url, {headers:sbH()});
   if (!r.ok) {
     const e=await r.json().catch(()=>({}));
-    if(r.status===401){showToast('Sessie verlopen — log opnieuw in','err');setTimeout(()=>doLogout(),2000);}
+    if(r.status===401){console.warn('401 - session expired');if(document.getElementById('s-app')?.style.display!=='none'||document.getElementById('s-player')?.style.display!=='none'){showToast('Sessie verlopen — log opnieuw in','err');setTimeout(()=>doLogout(),2000);}else{sbClearSession();}}
     return {data:null,error:e};
   }
   return {data:await r.json(), error:null};
@@ -898,20 +879,18 @@ async function init() {
 
   clearTimeout(safety);
   hide('loading');
-  showFlex('s-login');
 
   // Async session check in inner IIFE
   (async function() {
     try {
       const user = sbLoadSession();
-      if (!user) return;
-      const btn = document.getElementById('login-btn');
-      if (btn) { btn.textContent = 'Inloggen…'; btn.disabled = true; }
+      if (!user) { showFlex('s-login'); return; }
+      // Has session - try auto-login without showing login screen first
       await handleLogin();
-      if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
     } catch(e) {
       console.error('init error:', e);
       sbClearSession();
+      showFlex('s-login');
       const btn = document.getElementById('login-btn');
       if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
     }
@@ -953,20 +932,28 @@ async function handleLogin() {
     }
   } catch(e){ console.warn('role fetch:', e); }
 
-  if(userRole==='player'){
-    try { await loadPlayerView(); } catch(e){ console.warn(e); }
-    showFlex('s-player');
-  } else if(userRole==='pending'){
-    showFlex('s-pending');
-  } else {
-    try { await loadAll(); } catch(e){ console.warn(e); }
-    showFlex('s-app');
-    // Show admin nav cards for admin/coach
-    setTimeout(()=>{
-      const cards=document.getElementById('admin-nav-cards');
-      if(cards && (userRole==='admin'||userRole==='coach')) cards.style.display='block';
-    },100);
+  try {
+    // Hide all screens first
+    ['s-login','s-pending','s-app','s-player','s-beheer'].forEach(hide);
+
+    if(userRole==='player'){
+      try { await loadPlayerView(); } catch(e){ console.warn(e); }
+      showFlex('s-player');
+    } else if(userRole==='pending'){
+      showFlex('s-pending');
+    } else {
+      try { await loadAll(); } catch(e){ console.warn(e); }
+      showFlex('s-app');
+      setTimeout(()=>{
+        const cards=document.getElementById('admin-nav-cards');
+        if(cards) cards.style.display='block';
+      },100);
     }
+  } catch(e) {
+    // Fallback: always show login if something goes wrong
+    console.error('handleLogin error:', e);
+    showFlex('s-login');
+  }
 }
 
 async function doLogout() {
