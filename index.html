@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v83</title>
+<title>KSK Lovendegem U13 IP v85</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1064,6 +1064,7 @@ function selectPlayer(id) {
   tgState={positie:d.positie||'',sterkevoet:d.sterkevoet||'',bf_meest:d.bf_meest||'',bf_favoriet:d.bf_favoriet||''};
   ['positie','sterkevoet','bf_meest','bf_favoriet'].forEach(g=>renderTg(g));
   MULTI_KEYS.forEach(k=>multiState[k]=Array.isArray(d[k])?[...d[k]]:[]);
+  buildMultiSections();
   renderPills();
   unavailDates=Array.isArray(d.unavail_dates)?[...d.unavail_dates]:[];
   renderCalendar(); setSaveBtn('idle');
@@ -1558,11 +1559,19 @@ async function openEvalForm(matchId) {
   const teamColor=myTeam==='blauw'?'🔵 Blauw':'🟡 Geel';
   const ratingRows=teammates.map(id=>{
     const p=PLAYERS.find(x=>x.id===id)||{voornaam:'?',naam:''};
-    return '<div class="rating-row">'+
-      '<span class="rating-name">'+p.voornaam+' '+p.naam+'</span>'+
-      '<input class="score-input" type="number" min="1" max="10" id="rate-'+matchId+'-'+id+'" value="'+(ratings[id]!==undefined?ratings[id]:'')+'" placeholder="—"'+(locked?' disabled':'')+'>'+
-      '<span style="font-size:11px;color:#94a3b8">/10</span>'+
+    {var rv=ratings[id]!==undefined?parseInt(ratings[id]):null;
+    var rBtns=[4,5,6,7,8,9,10].map(function(n){
+      var sel=rv===n;
+      var dis=locked?' disabled':'';
+      var st=sel?'background:#203060;color:#e0d040;border-color:#203060;':'background:#f8fafc;color:#374151;border-color:#e2e8f0;';
+      return '<button class="score-btn" data-val="'+n+'" data-mid="'+matchId+'" data-pid="'+id+'" onclick="setRating(this)"'+dis+' title="{4:\'Onvoldoende\',5:\'Onvoldoende\',6:\'Matig\',7:\'Gemiddeld\',8:\'Goed\',9:\'Zeer goed\',10:\'Uitstekend\'}['+n+']" style="'+st+'padding:4px 6px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:30px">'+n+'</button>';
+    }).join('');
+    var lbl={4:'Onvoldoende',5:'Onvoldoende',6:'Matig',7:'Gemiddeld',8:'Goed',9:'Zeer goed',10:'Uitstekend'};
+    return '<div class="rating-row" style="flex-direction:column;align-items:flex-start;gap:4px">'+
+      '<span class="rating-name">'+p.voornaam+' '+p.naam+(rv?' — <b style=\'color:#203060\'>'+rv+'/10 '+lbl[rv]+'</b>':'')+'</span>'+
+      '<div style="display:flex;gap:3px">'+rBtns+'</div>'+
     '</div>';
+    }
   }).join('');
 
   html+='<div class="eval-block">'+
@@ -1619,12 +1628,40 @@ function selectSys(el, matchId, val) {
   el.classList.add('selected');
 }
 
+
+function setRating(btn) {
+  if(btn.disabled) return;
+  var mid = btn.dataset.mid, pid = btn.dataset.pid, val = parseInt(btn.dataset.val);
+  var labels = {4:'Onvoldoende',5:'Onvoldoende',6:'Matig',7:'Gemiddeld',8:'Goed',9:'Zeer goed',10:'Uitstekend'};
+  // Update visual
+  var row = btn.closest('.rating-row');
+  row.querySelectorAll('.score-btn').forEach(function(b){
+    b.style.background='#f8fafc'; b.style.color=''; b.style.borderColor='#e2e8f0';
+  });
+  btn.style.background='#203060'; btn.style.color='#e0d040'; btn.style.borderColor='#203060';
+  // Update label
+  var lbl = row.querySelector('span:last-child');
+  if(lbl && lbl.style.fontSize==='10px') lbl.textContent='→ '+labels[val];
+  // Store in evalRatings
+  if(!window._evalRatings) window._evalRatings={};
+  if(!window._evalRatings[mid]) window._evalRatings[mid]={};
+  window._evalRatings[mid][pid]=val;
+}
 async function saveEvaluatie(matchId, teamIds) {
   const ratings={};
-  teamIds.forEach(id=>{
-    const v=document.getElementById('rate-'+matchId+'-'+id)?.value;
-    if(v!==''&&v!==null&&v!==undefined)ratings[id]=parseInt(v);
-  });
+  // Collect from button selections
+  const evalContainer=document.getElementById('eval-body-'+matchId);
+  if(evalContainer){
+    evalContainer.querySelectorAll('.score-btn[data-mid="'+matchId+'"]').forEach(btn=>{
+      if(btn.style.background.includes('203060')||btn.style.backgroundColor==='rgb(32, 48, 96)'){
+        ratings[btn.dataset.pid]=parseInt(btn.dataset.val);
+      }
+    });
+  }
+  // Fallback: window._evalRatings
+  if(window._evalRatings&&window._evalRatings[matchId]){
+    Object.assign(ratings, window._evalRatings[matchId]);
+  }
   const motm=parseInt(document.getElementById('eval-motm-'+matchId)?.value)||null;
   const wl=parseInt(document.getElementById('eval-wl-'+matchId)?.value)||null;
   const sysSel=document.querySelector('#sys-group-'+matchId+' .radio-opt.selected');
