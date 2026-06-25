@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v112</title>
+<title>KSK Lovendegem U13 IP v115</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -500,245 +500,48 @@ textarea{resize:vertical;min-height:70px}
               <div style="font-size:11px;color:#94a3b8;margin-top:2px">Speler van de maand</div>
             </div>
           </div>
-        </div>
+        
+        <!-- Speler data cards -->
+        <div style="width:100%;max-width:560px;margin:14px auto 0;padding:0 12px">
+          <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px">Spelersdata</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div onclick="showSpelersList('profiel')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:2px solid #203060">
+              <div style="font-size:26px;margin-bottom:8px">👤</div>
+              <div style="font-size:14px;font-weight:700;color:#0a1628">Spelersprofielen</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Persoonlijke info</div>
+            </div>
+            <div onclick="showSpelersList('voetbal')" style="background:#fff;border-radius:14px;padding:18px 16px;cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.08);border:2px solid #203060">
+              <div style="font-size:26px;margin-bottom:8px">⚽</div>
+              <div style="font-size:14px;font-weight:700;color:#0a1628">Voetbalfiches</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:2px">Basisfiche & doelen</div>
+            </div>
+          </div>
+        </div></div>
       </div>
 
       <!-- Detail -->
-      <div id="detail" style="display:none;flex-direction:column;height:100%;overflow:hidden">
-        <!-- Player header -->
-        <div class="hdr">
-          <button class="back-btn" onclick="backToList()">←</button>
-          <div class="hdr-av" id="hdr-av">?</div>
-          <div class="hdr-info">
-            <div class="hdr-name" id="hdr-name">Speler</div>
-            <div class="hdr-sub" id="hdr-sub">U13 IP · 2026–27</div>
+      <div id="detail" style="display:none;flex-direction:column;height:100%;overflow:hidden;background:#f8fafc">
+        <!-- Admin player header -->
+        <div style="background:#203060;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+          <button onclick="backToList()" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;width:32px;height:32px;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">←</button>
+          <div id="hdr-av" style="width:40px;height:40px;border-radius:50%;background:#e0d040;color:#203060;font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">?</div>
+          <div style="flex:1;min-width:0">
+            <div id="hdr-name" style="font-size:15px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">—</div>
+            <div id="hdr-sub" style="font-size:11px;color:#94a3b8;margin-top:1px">U13 IP · 2026–27</div>
           </div>
-          <button id="save-btn" class="save-btn" onclick="savePlayer()" disabled>💾 Opslaan</button>
+          <div id="admin-readonly-badge" style="font-size:10px;font-weight:700;background:rgba(224,208,64,.2);color:#e0d040;border:1px solid rgba(224,208,64,.4);border-radius:6px;padding:3px 8px;flex-shrink:0">👁 LEESMODUS</div>
         </div>
-        <!-- Tabs -->
-        <div class="tabs">
-          <button class="tab-btn on" onclick="switchTab('persoonlijk',this)">👤 Persoonlijk</button>
-          <button class="tab-btn" onclick="switchTab('voetbal',this)">⚽ Voetbal</button>
-          <button class="tab-btn" onclick="switchTab('wedstrijden',this)">🏟️ Wedstrijden</button>
-          <button class="tab-btn" onclick="switchTab('planning',this)">📅 Planning</button>
-          <button class="tab-btn" onclick="switchTab('medisch',this)">🏥 Medisch</button>
+        <!-- Tab buttons -->
+        <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
+          <button id="atab-profiel" onclick="switchAdminTab('profiel')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid #203060;background:none;font-size:13px;font-weight:700;color:#203060;cursor:pointer">👤 Profiel</button>
+          <button id="atab-voetbal" onclick="switchAdminTab('voetbal')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">⚽ Voetbal</button>
         </div>
-        <!-- Tab panes -->
-        <div class="tab-content">
-
-          <!-- PERSOONLIJK -->
-          <div id="tp-persoonlijk" class="tab-pane on">
-            <div class="card"><div class="card-t">Persoonlijke gegevens</div>
-              <div class="fields">
-                <div class="frow">
-                  <div class="field"><label>Voornaam</label><input id="f-voornaam" readonly></div>
-                  <div class="field"><label>Naam</label><input id="f-naam" readonly></div>
-                </div>
-                <div class="frow">
-                  <div class="field"><label>Geboortedatum</label><input id="f-geboortedatum" type="date" oninput="markDirty()"></div>
-                  <div class="field"><label>GSM nr speler</label><input id="f-gsm_speler" type="tel" placeholder="+32 4xx xx xx xx" oninput="markDirty()"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- VOETBAL -->
-          <div id="tp-voetbal" class="tab-pane">
-            <div class="card"><div class="card-t">Sportieve info</div>
-              <div class="fields">
-                <div class="field"><label>Sterke voet</label>
-                  <div class="tg" id="tg-sterkevoet">
-                    <button class="tgb" onclick="toggleGrp(this,'sterkevoet')">Links</button>
-                    <button class="tgb" onclick="toggleGrp(this,'sterkevoet')">Rechts</button>
-                    <button class="tgb" onclick="toggleGrp(this,'sterkevoet')">Beide</button>
-                  </div>
-                </div>
-                <div class="field"><label>Vorige club</label><input id="f-vorige_club" placeholder="Naam vorige club" oninput="markDirty()"></div>
-              </div>
-            </div>
-            <div class="card"><div class="card-t">Basisfiche Startseizoen 2026–27</div>
-              <div class="fields">
-                <div class="field"><label>Positie meest gespeeld</label>
-                  <div class="tg" id="tg-bf_meest">
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">1</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">2</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">3</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">5</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">7</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">8</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">9</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_meest')">11</button>
-                  </div>
-                </div>
-                <div class="field"><label>Favoriete positie</label>
-                  <div class="tg" id="tg-bf_favoriet">
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">1</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">2</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">3</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">5</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">7</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">8</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">9</button>
-                    <button class="tgb" onclick="toggleGrp(this,'bf_favoriet')">11</button>
-                  </div>
-                </div>
-                <div class="field"><label>Sterke punten</label><div id="ms-container-sterke"><div class="ms-section cat-technisch"><div class="ms-cat">⚙️ Technisch</div><div class="ms-pills" id="ms-sterke_technisch"><button class="pill" onclick="togglePill(this,'sterke_technisch')">Dribbelen</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">Passing</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">Eerste aanname</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">Balcontrole</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">Schieten</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">Koppen</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">1-op-1</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">Overzicht</button><button class="pill" onclick="togglePill(this,'sterke_technisch')">Vrij komen</button></div></div><div class="ms-section cat-taktisch"><div class="ms-cat">🧠 Taktisch</div><div class="ms-pills" id="ms-sterke_taktisch"><button class="pill" onclick="togglePill(this,'sterke_taktisch')">Positiespel</button><button class="pill" onclick="togglePill(this,'sterke_taktisch')">Omschakeling</button><button class="pill" onclick="togglePill(this,'sterke_taktisch')">Pressing</button><button class="pill" onclick="togglePill(this,'sterke_taktisch')">Ruimte creëren</button><button class="pill" onclick="togglePill(this,'sterke_taktisch')">Anticiperen</button><button class="pill" onclick="togglePill(this,'sterke_taktisch')">Communicatie</button></div></div><div class="ms-section cat-fysiek"><div class="ms-cat">💪 Fysiek</div><div class="ms-pills" id="ms-sterke_fysiek"><button class="pill" onclick="togglePill(this,'sterke_fysiek')">Snelheid</button><button class="pill" onclick="togglePill(this,'sterke_fysiek')">Uithouding</button><button class="pill" onclick="togglePill(this,'sterke_fysiek')">Kracht</button><button class="pill" onclick="togglePill(this,'sterke_fysiek')">Wendbaarheid</button><button class="pill" onclick="togglePill(this,'sterke_fysiek')">Sprongkracht</button></div></div><div class="ms-section cat-mentaal"><div class="ms-cat">❤️ Mentaal</div><div class="ms-pills" id="ms-sterke_mentaal"><button class="pill" onclick="togglePill(this,'sterke_mentaal')">Concentratie</button><button class="pill" onclick="togglePill(this,'sterke_mentaal')">Veerkracht</button><button class="pill" onclick="togglePill(this,'sterke_mentaal')">Leiderschap</button><button class="pill" onclick="togglePill(this,'sterke_mentaal')">Werklust</button><button class="pill" onclick="togglePill(this,'sterke_mentaal')">Zelfvertrouwen</button></div></div></div></div>
-                <div class="field"><label>Werkpunten</label><div id="ms-container-werk"><div class="ms-section cat-technisch"><div class="ms-cat">⚙️ Technisch</div><div class="ms-pills" id="ms-werk_technisch"><button class="pill" onclick="togglePill(this,'werk_technisch')">Dribbelen</button><button class="pill" onclick="togglePill(this,'werk_technisch')">Passing</button><button class="pill" onclick="togglePill(this,'werk_technisch')">Eerste aanname</button><button class="pill" onclick="togglePill(this,'werk_technisch')">Balcontrole</button><button class="pill" onclick="togglePill(this,'werk_technisch')">Schieten</button><button class="pill" onclick="togglePill(this,'werk_technisch')">Koppen</button><button class="pill" onclick="togglePill(this,'werk_technisch')">1-op-1</button><button class="pill" onclick="togglePill(this,'werk_technisch')">Overzicht</button><button class="pill" onclick="togglePill(this,'werk_technisch')">Vrij komen</button></div></div><div class="ms-section cat-taktisch"><div class="ms-cat">🧠 Taktisch</div><div class="ms-pills" id="ms-werk_taktisch"><button class="pill" onclick="togglePill(this,'werk_taktisch')">Positiespel</button><button class="pill" onclick="togglePill(this,'werk_taktisch')">Omschakeling</button><button class="pill" onclick="togglePill(this,'werk_taktisch')">Pressing</button><button class="pill" onclick="togglePill(this,'werk_taktisch')">Ruimte creëren</button><button class="pill" onclick="togglePill(this,'werk_taktisch')">Anticiperen</button><button class="pill" onclick="togglePill(this,'werk_taktisch')">Communicatie</button></div></div><div class="ms-section cat-fysiek"><div class="ms-cat">💪 Fysiek</div><div class="ms-pills" id="ms-werk_fysiek"><button class="pill" onclick="togglePill(this,'werk_fysiek')">Snelheid</button><button class="pill" onclick="togglePill(this,'werk_fysiek')">Uithouding</button><button class="pill" onclick="togglePill(this,'werk_fysiek')">Kracht</button><button class="pill" onclick="togglePill(this,'werk_fysiek')">Wendbaarheid</button><button class="pill" onclick="togglePill(this,'werk_fysiek')">Sprongkracht</button></div></div><div class="ms-section cat-mentaal"><div class="ms-cat">❤️ Mentaal</div><div class="ms-pills" id="ms-werk_mentaal"><button class="pill" onclick="togglePill(this,'werk_mentaal')">Concentratie</button><button class="pill" onclick="togglePill(this,'werk_mentaal')">Veerkracht</button><button class="pill" onclick="togglePill(this,'werk_mentaal')">Leiderschap</button><button class="pill" onclick="togglePill(this,'werk_mentaal')">Werklust</button><button class="pill" onclick="togglePill(this,'werk_mentaal')">Zelfvertrouwen</button></div></div></div></div>
-                <div class="field"><label>Hoe beoordeel je jouw huidig niveau en grootste werkpunt?</label><textarea id="f-bf_niveau" rows="3" oninput="markDirty()"></textarea></div>
-                <div class="field"><label>Waar wil je staan einde seizoen?</label><textarea id="f-bf_doel" rows="3" oninput="markDirty()"></textarea></div>
-                <div class="field"><label>Verwachtingen van de trainer</label><textarea id="f-bf_verwachting" rows="3" oninput="markDirty()"></textarea></div>
-                <div class="field"><label>Naam school</label><input id="f-school_naam" placeholder="Naam school" oninput="markDirty()"></div>
-              </div>
-            </div>
-          </div>
-
-          <!-- WEDSTRIJDEN -->
-          <div id="tp-wedstrijden" class="tab-pane">
-            <div style="max-width:700px;margin:0 auto;display:flex;flex-direction:column;gap:14px">
-              <div style="font-size:13px;font-weight:600;color:#374151">Wedstrijden 2026–27</div>
-              <div id="match-list" class="match-list"></div>
-            </div>
-          </div>
-
-          <!-- PLANNING -->
-          <div id="tp-planning" class="tab-pane">
-            <div class="card"><div class="card-t">Beschikbaarheid</div>
-              <div class="cal-nav">
-                <button onclick="prevMonth()">‹</button>
-                <span id="cal-title"></span>
-                <button onclick="nextMonth()">›</button>
-              </div>
-              <div id="cal-grid" class="cal-grid"></div>
-              <pre id="cal-periods" style="display:none;font-size:11px;color:#475569;background:#f8fafc;border-radius:6px;padding:10px;margin-top:10px;border:1px solid var(--border)"></pre>
-              <div class="field" style="margin-top:12px"><label>Andere opmerkingen</label><textarea id="f-beschikbaarheid" rows="3" oninput="markDirty()"></textarea></div>
-            </div>
-          </div>
-
-          <!-- MEDISCH -->
-          <div id="tp-medisch" class="tab-pane">
-            <div class="card"><div class="card-t">Medische info</div>
-              <div class="fields">
-                <div class="field"><label>Allergie</label><textarea id="f-allergie" rows="2" oninput="markDirty()"></textarea></div>
-                <div class="field"><label>Medicatie</label><textarea id="f-medicatie" rows="2" oninput="markDirty()"></textarea></div>
-                <div class="field"><label>Andere medische info</label><textarea id="f-medisch_info" rows="3" oninput="markDirty()"></textarea></div>
-              </div>
-            </div>
-          </div>
-
-        </div><!-- end tab-content -->
-      </div><!-- end detail -->
-    </div><!-- end main -->
-  </div><!-- end layout -->
-</div><!-- end s-app -->
-
-<!-- BEHEER -->
-<div id="s-beheer" class="screen" style="background:#f0f4f8">
-  <div style="max-width:700px;width:100%;margin:0 auto;padding:20px 16px;height:100%;overflow-y:auto">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-      <div style="font-size:18px;font-weight:800;color:#0a1628">⚙️ Admin Beheer</div>
-      <button onclick="hide('s-beheer');showFlex('s-app')" style="background:none;border:1px solid #e2e8f0;border-radius:7px;padding:6px 12px;font-size:12px;cursor:pointer;color:#64748b">← Terug</button>
-    </div>
-    <div class="beheer-tabs" style="display:flex;gap:4px;margin-bottom:16px;background:#fff;padding:4px;border-radius:10px;border:1px solid #e2e8f0">
-      <button class="beheer-tab on" onclick="switchBeheerTab('spelers',this)">👥 Spelers</button>
-      <button class="beheer-tab" onclick="switchBeheerTab('users',this)">🔑 Gebruikers</button>
-      <button class="beheer-tab" onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
-      <button class="beheer-tab" onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
-    </div>
-
-    <!-- Spelers -->
-    <div id="bp-spelers" class="beheer-pane on">
-      <div class="section-card">
-        <div class="section-card-title">Spelerslijst</div>
-        <div id="beheer-speler-list"></div>
-        <button class="btn-green" style="margin-top:10px" onclick="toggleAddSpeler()">+ Speler toevoegen</button>
-        <div id="add-speler-form" style="display:none;margin-top:12px;display:flex;flex-direction:none;gap:8px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <input id="ns-voornaam" placeholder="Voornaam" style="border:1px solid #e2e8f0;border-radius:7px;padding:8px 10px;font-size:13px;outline:none">
-            <input id="ns-naam" placeholder="Naam" style="border:1px solid #e2e8f0;border-radius:7px;padding:8px 10px;font-size:13px;outline:none">
-          </div>
-          <button class="btn-green" onclick="addSpeler()">Toevoegen</button>
+        <!-- Content -->
+        <div style="flex:1;overflow-y:auto;padding:16px">
+          <div id="admin-pane-profiel"></div>
+          <div id="admin-pane-voetbal" style="display:none"></div>
         </div>
       </div>
-    </div>
-
-    <!-- Gebruikers -->
-    <div id="bp-users" class="beheer-pane">
-      <div class="section-card">
-        <div class="section-card-title">Gebruikersbeheer</div>
-        <div id="beheer-user-list"></div>
-      </div>
-    </div>
-
-    <!-- Wedstrijden -->
-    <div id="bp-wedstrijden" class="beheer-pane">
-      <div class="section-card">
-        <div class="section-card-title">Wedstrijd toevoegen</div>
-        <div class="match-add-grid" style="margin-bottom:10px">
-          <div class="field"><label>Datum</label><input id="nm-datum" type="date"></div>
-          <div class="field"><label>Tegenstander</label><input id="nm-opp" placeholder="Naam tegenstander"></div>
-          <div class="field"><label>Locatie</label>
-            <div class="tg" style="margin-top:4px">
-              <button class="tgb on" id="nm-thuis" onclick="setLocatie('thuis')">Thuis</button>
-              <button class="tgb" id="nm-uit" onclick="setLocatie('uit')">Uit</button>
-            </div>
-          </div>
-        </div>
-        <button class="btn-green" onclick="addWedstrijdBeheer()">+ Toevoegen</button>
-      </div>
-      <div id="beheer-match-list" class="match-list"></div>
-    </div>
-
-    <!-- Maandprijs -->
-    <div id="bp-maandprijs" class="beheer-pane">
-      <div class="section-card">
-        <div class="section-card-title">Bereken Speler van de Maand</div>
-        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Selecteer wedstrijden van de periode:</div>
-        <div id="svm-match-select" style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px"></div>
-        <button class="btn-green" onclick="berekenSvdM()">📊 Bereken</button>
-      </div>
-      <div id="svm-ranking" style="display:none" class="section-card">
-        <div class="section-card-title">Ranglijst</div>
-        <div id="svm-rank-list"></div>
-        <div style="margin-top:14px;display:flex;flex-direction:column;gap:10px">
-          <div class="field"><label>Periode naam (bijv. "September 2026")</label>
-            <input id="svm-periode" style="border:1px solid #e2e8f0;border-radius:7px;padding:7px 10px;font-size:13px;width:100%;outline:none">
-          </div>
-          <div class="field"><label>Foto uploaden</label><input type="file" id="svm-foto" accept="image/*" style="font-size:12px"></div>
-          <button class="btn-green" onclick="saveSvdM()" style="width:100%;padding:10px">🏆 Sla op als Speler van de Maand</button>
-        </div>
-      </div>
-      <div id="svm-huidig" class="section-card" style="display:none">
-        <div class="section-card-title">Huidige Speler van de Maand</div>
-        <div id="svm-huidig-content"></div>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- PLAYER VIEW -->
-<div id="s-player" class="screen" style="background:#f0f4f8">
-  <div style="max-width:700px;width:100%;margin:0 auto;padding:0;height:100%;overflow-y:auto;display:flex;flex-direction:column">
-    <div style="background:#0a1628;padding:20px 20px 0">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-        <div style="font-size:16px;font-weight:700;color:#fff" id="pv-title">Mijn profiel</div>
-        <button onclick="doLogout()" style="background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);border-radius:7px;padding:6px 12px;color:rgba(255,255,255,.7);font-size:11px;cursor:pointer">Uitloggen</button>
-      </div>
-      <div style="display:flex;gap:4px;margin-bottom:0">
-        <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:10px 4px;background:none;border:none;border-bottom:2px solid #1d4ed8;color:#fff;font-size:12px;font-weight:600;cursor:pointer">👤 Profiel</button>
-        <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:10px 4px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer">⚽ Voetbal</button>
-        <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:10px 4px;background:none;border:none;border-bottom:2px solid transparent;color:rgba(255,255,255,.5);font-size:12px;font-weight:600;cursor:pointer">🏟️ Wedstrijden</button>
-      </div>
-    </div>
-    <div style="flex:1;overflow-y:auto;padding:20px">
-      <div id="pvp-profiel" class="pv-pane on"><div style="padding:20px;text-align:center;color:#64748b;font-size:13px">Profiel laden...</div></div>
-      <div id="pvp-voetbal" class="pv-pane"></div>
-      <div id="pvp-wedstrijden" class="pv-pane">
-        <div id="pv-match-list" class="match-list"></div>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 <div id="s-login" class="screen" style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:64px;padding:40px 48px">
@@ -986,26 +789,26 @@ async function init() {
     showFlex('s-login'); return;
   }
 
-  // Always show login first - never get stuck on white screen
   clearTimeout(safety);
   hide('loading');
   showFlex('s-login');
-  
-  // Then silently check session in background
-  try {
-    const user = sbLoadSession();
-    if (!user) return;
-    // Auto-login: show brief loading state on button
-    const btn = document.getElementById('login-btn');
-    if (btn) { btn.textContent = 'Inloggen…'; btn.disabled = true; }
-    await handleLogin();
-    if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
-  } catch(e) {
-    console.error('init error:', e);
-    sbClearSession();
-    const btn = document.getElementById('login-btn');
-    if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
-  }
+
+  // Async session check in inner IIFE
+  (async function() {
+    try {
+      const user = sbLoadSession();
+      if (!user) return;
+      const btn = document.getElementById('login-btn');
+      if (btn) { btn.textContent = 'Inloggen…'; btn.disabled = true; }
+      await handleLogin();
+      if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
+    } catch(e) {
+      console.error('init error:', e);
+      sbClearSession();
+      const btn = document.getElementById('login-btn');
+      if (btn) { btn.textContent = 'Inloggen'; btn.disabled = false; }
+    }
+  })();
 }
 
 // AUTH
@@ -1120,6 +923,7 @@ function renderList() {
 
 // SELECT PLAYER
 function selectPlayer(id) {
+  if(userRole==='admin'||userRole==='coach'){selectPlayerAdmin(id);return;}
   if(isDirty&&!confirm('Wijzigingen niet opgeslagen. Toch verder?'))return;
   selId=id; isDirty=false; rangeStart=null;
   const p=PLAYERS.find(x=>x.id===id), d=DB[id]?.data||{};
@@ -1218,7 +1022,13 @@ function hasData(d){return d&&Object.keys(d).some(k=>{const v=d[k];return v!==''
 function isMobile(){return window.innerWidth<=768;}
 function openMobileList(){document.querySelector('.sb')?.classList.add('open');$('sb-overlay')?.classList.add('show');}
 function closeMobileList(){document.querySelector('.sb')?.classList.remove('open');$('sb-overlay')?.classList.remove('show');}
-function backToList(){setDisp('detail','none');setDisp('empty-state','flex');selId=null;renderList();if(isMobile())openMobileList();}
+function backToList(){
+  setDisp('detail','none');
+  setDisp('empty-state','');
+  selId=null;
+  renderList();
+  if(isMobile())closeMobileList();
+}
 
 // DEMO/LS
 function saveDemoToLS(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}catch(e){}}
@@ -2173,6 +1983,141 @@ async function doRegister() {
   }
 }
 
+
+// ═══ ADMIN READ-ONLY VIEW ════════════════════════════════════════════════════
+
+function switchAdminTab(tab) {
+  ['profiel','voetbal'].forEach(t => {
+    const btn = document.getElementById('atab-'+t);
+    const pane = document.getElementById('admin-pane-'+t);
+    if(btn) {
+      btn.style.borderBottomColor = t===tab ? '#203060' : 'transparent';
+      btn.style.color = t===tab ? '#203060' : '#94a3b8';
+      btn.style.fontWeight = t===tab ? '700' : '600';
+    }
+    if(pane) pane.style.display = t===tab ? '' : 'none';
+  });
+  if(tab==='voetbal') loadAdminVoetbalPane();
+}
+
+function loadAdminProfielPane(d, speler) {
+  const el = document.getElementById('admin-pane-profiel');
+  if(!el) return;
+  const rowHtml = (label, val) => val
+    ? `<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">${label}</div><div style="font-size:14px;color:#0a1628;font-weight:500">${val}</div></div>`
+    : '';
+  el.innerHTML =
+    '<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:12px">' +
+    '<div style="font-size:12px;font-weight:700;color:#203060;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">👤 Persoonlijke gegevens</div>' +
+    rowHtml('Voornaam', speler.voornaam) +
+    rowHtml('Naam', speler.naam) +
+    rowHtml('Geboortedatum', d.geboortedatum || '—') +
+    rowHtml('GSM', d.gsm_speler || '—') +
+    rowHtml('Favoriete ploeg', d.fav_ploeg || '—') +
+    rowHtml('Naam school', d.school_naam || '—') +
+    '</div>';
+}
+
+function loadAdminVoetbalPane() {
+  const el = document.getElementById('admin-pane-voetbal');
+  if(!el || !selId) return;
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">Laden...</div>';
+  sbGetOne('spelers','id=eq.'+selId+'&select=*').then(({data:row}) => {
+    const d = row?.data || {};
+    const isKeeper = d.is_keeper === true;
+
+    // Posities display
+    const posBtns = (vals, all) => all.map(n =>
+      `<span style="display:inline-block;padding:3px 10px;margin:2px;border-radius:5px;font-size:12px;font-weight:700;background:${(vals||[]).includes(String(n))?'#203060':'#f1f5f9'};color:${(vals||[]).includes(String(n))?'#e0d040':'#64748b'}">${n}</span>`
+    ).join('');
+
+    // Pills display
+    const pills = (arr) => (arr||[]).length
+      ? (arr||[]).map(p=>`<span style="display:inline-block;padding:3px 12px;margin:2px;border-radius:20px;font-size:11px;background:#203060;color:#e0d040;font-weight:600">${p}</span>`).join('')
+      : '<span style="font-size:12px;color:#94a3b8">—</span>';
+
+    // Score display
+    const score = (val) => val ? `<span style="display:inline-block;width:36px;height:36px;border-radius:8px;background:#203060;color:#e0d040;font-size:16px;font-weight:800;text-align:center;line-height:36px">${val}</span>` : '—';
+
+    const sectionHtml = (title, content) =>
+      `<div style="background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:10px">
+        <div style="font-size:11px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">${title}</div>
+        ${content}
+      </div>`;
+
+    const rowHtml = (label, val) =>
+      `<div style="margin-bottom:10px">
+        <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">${label}</div>
+        <div style="font-size:13px;color:#0a1628">${val||'—'}</div>
+      </div>`;
+
+    const catLabels = isKeeper
+      ? {technisch:'⚙️ Technisch (Keeper)',taktisch:'🧠 Taktisch (Keeper)',fysiek:'💪 Fysiek (Keeper)',mentaal:'❤️ Mentaal (Keeper)'}
+      : {technisch:'⚙️ Technisch',taktisch:'🧠 Taktisch',fysiek:'💪 Fysiek',mentaal:'❤️ Mentaal'};
+
+    const pillSection = (prefix) => Object.entries(catLabels).map(([cat, label]) => {
+      const items = d[prefix+'_'+cat] || [];
+      return items.length ? `<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:4px">${label}</div>${pills(items)}</div>` : '';
+    }).join('');
+
+    el.innerHTML =
+      (isKeeper ? sectionHtml('🧤 Keeper', rowHtml('Type', '🧤 Keeper')) : '') +
+      sectionHtml('ℹ️ Basisinfo',
+        (!isKeeper ? `<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">FAVORIETE POSITIE</div>${posBtns(d['pv-fav-pos']||d.bf_favoriet,[2,3,5,7,8,9,11])}</div>
+        <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">MEEST GESPEELD</div>${posBtns(d['pv-ges-pos']||d.bf_meest,[2,3,5,7,8,9,11])}</div>` : '') +
+        rowHtml('Voorkeurspoot', d.voorkeurspoot || d['pv-poot']) +
+        row('Vorige club(s)', d.vorige_clubs || d['pv-clubs']) +
+        row('Favoriete voetballer', d.rolmodel || d['pv-rolmodel'])
+      ) +
+      sectionHtml('🎯 Doelen & Verwachtingen',
+        row('Huidig niveau & werkpunt', d.bf_niveau || d['pv-niv']) +
+        row('Doel einde seizoen', d.bf_doel || d['pv-doel']) +
+        row('Wat vind je leuk bij voetballen?', d.waarom_voetbal || d['pv-waarom']) +
+        rowHtml('Droomscenario', d.droomscenario || d['pv-droom']) +
+        row('Verwachtingen van de trainer', d.verw_trainer || d['pv-verw-trainer'])
+      ) +
+      sectionHtml('🔍 Zelfbeoordeling',
+        `<div style="display:flex;gap:16px;flex-wrap:wrap">
+          <div style="text-align:center">${score(d.zb_inzet)}<div style="font-size:10px;color:#64748b;margin-top:3px">Inzet</div></div>
+          <div style="text-align:center">${score(d.zb_gedrag)}<div style="font-size:10px;color:#64748b;margin-top:3px">Gedrag</div></div>
+          <div style="text-align:center">${score(d.zb_coach)}<div style="font-size:10px;color:#64748b;margin-top:3px">Coach</div></div>
+        </div>`
+      ) +
+      sectionHtml('🌟 Sterke punten', pillSection('sterke') || '<span style="font-size:12px;color:#94a3b8">Nog niet ingevuld</span>') +
+      sectionHtml('📈 Werkpunten', pillSection('werk') || '<span style="font-size:12px;color:#94a3b8">Nog niet ingevuld</span>');
+  });
+}
+
+// When admin selects player: show read-only 2-tab panel
+function selectPlayerAdmin(id) {
+  selId = id; isDirty = false;
+  const p = PLAYERS.find(x => x.id === id) || {voornaam:'?', naam:''};
+  const initials = ((p.voornaam||'?')[0]+(p.naam||'?')[0]).toUpperCase();
+
+  document.getElementById('hdr-av').textContent = initials;
+  document.getElementById('hdr-name').textContent = p.voornaam + ' ' + p.naam;
+
+  setDisp('empty-state','none');
+  const det = document.getElementById('detail');
+  if(det) det.style.display = 'flex';
+  if(isMobile()) closeMobileList();
+  renderList();
+
+  // Load profiel pane
+  sbGetOne('spelers','id=eq.'+id+'&select=*').then(({data:row}) => {
+    const d = row?.data || {};
+    loadAdminProfielPane(d, p);
+  });
+  switchAdminTab('profiel');
+}
+
+// Show full player list modal for profiel or voetbal
+function showSpelersList(type) {
+  // Redirect: click first player to preview, or just switch to player list
+  // For now: highlight the type in the sidebar and show first player
+  if(PLAYERS.length > 0) selectPlayerAdmin(PLAYERS[0].id);
+  switchAdminTab(type === 'voetbal' ? 'voetbal' : 'profiel');
+}
 // START
 init();
 
