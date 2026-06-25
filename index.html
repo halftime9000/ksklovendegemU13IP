@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v127</title>
+<title>KSK Lovendegem U13 IP v128</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -2160,15 +2160,15 @@ function loadAdminVoetbalPane() {
         (!isKeeper ? `<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">FAVORIETE POSITIE</div>${posBtns(d['pv-fav-pos']||d.bf_favoriet,[2,3,5,7,8,9,11])}</div>
         <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">MEEST GESPEELD</div>${posBtns(d['pv-ges-pos']||d.bf_meest,[2,3,5,7,8,9,11])}</div>` : '') +
         rowHtml('Voorkeurspoot', d.voorkeurspoot || d['pv-poot']) +
-        row('Vorige club(s)', d.vorige_clubs || d['pv-clubs']) +
-        row('Favoriete voetballer', d.rolmodel || d['pv-rolmodel'])
+        rowHtml('Vorige club(s)', d.vorige_clubs || d['pv-clubs']) +
+        rowHtml('Favoriete voetballer', d.rolmodel || d['pv-rolmodel'])
       ) +
       sectionHtml('🎯 Doelen & Verwachtingen',
-        row('Huidig niveau & werkpunt', d.bf_niveau || d['pv-niv']) +
-        row('Doel einde seizoen', d.bf_doel || d['pv-doel']) +
-        row('Wat vind je leuk bij voetballen?', d.waarom_voetbal || d['pv-waarom']) +
+        rowHtml('Huidig niveau & werkpunt', d.bf_niveau || d['pv-niv']) +
+        rowHtml('Doel einde seizoen', d.bf_doel || d['pv-doel']) +
+        rowHtml('Wat vind je leuk bij voetballen?', d.waarom_voetbal || d['pv-waarom']) +
         rowHtml('Droomscenario', d.droomscenario || d['pv-droom']) +
-        row('Verwachtingen van de trainer', d.verw_trainer || d['pv-verw-trainer'])
+        rowHtml('Verwachtingen van de trainer', d.verw_trainer || d['pv-verw-trainer'])
       ) +
       sectionHtml('🔍 Zelfbeoordeling',
         `<div style="display:flex;gap:16px;flex-wrap:wrap">
