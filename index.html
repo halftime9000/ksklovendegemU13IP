@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v130</title>
+<title>KSK Lovendegem U13 IP v132</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1361,6 +1361,7 @@ function applyPvPills(d) {
 }
 
 async function savePvVoetbal() {
+  toast('🔔 Opslaan gestart... userRole='+userRole+' speler='+userSpelerId);
   if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk','err');return;}
   const d2={};
   // Collect positions
@@ -1418,7 +1419,7 @@ async function loadPlayerView(){
     '<div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="bv. Ten Doorn" oninput="pvDirty()"></div></div>'+
     '</div></div>'+
     '<div style="font-size:9px;color:#cbd5e1;text-align:right;margin-bottom:4px">v103</div>'+
-    '<button id="pv-save" onclick="savePlayerView()" style="background:#e2e8f0;color:#94a3b8;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:default;width:100%">Opslaan</button>';
+    '<button id="pv-save" onclick="savePlayerView()" style="background:#203060;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%">💾 Opslaan</button>';
 }
 
 
@@ -1428,6 +1429,7 @@ function pvPill(btn) {
 }
 function pvDirty(){if(userRole==='admin'||userRole==='coach')return;pvDirtyFlag=true;const b=$('pv-save');if(b){b.style.background='#15803d';b.style.color='#fff';b.style.cursor='pointer';}}
 async function savePlayerView(){
+  toast('🔔 Profiel opslaan gestart... userRole='+userRole);
   if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk','err');return;}
   const d2={};
   if($('pv-geb'))d2.geboortedatum=$('pv-geb').value;
