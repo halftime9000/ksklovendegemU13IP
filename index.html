@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v115</title>
+<title>KSK Lovendegem U13 IP v116</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -581,6 +581,113 @@ textarea{resize:vertical;min-height:70px}
     </div>
     </div>
     </div>
+<!-- ── S-PLAYER ───────────────────────────────────────────────────── -->
+<div id="s-player" class="screen" style="background:#f0f4f8;flex-direction:column">
+  <!-- Header -->
+  <div style="background:#203060;padding:0 16px;display:flex;align-items:center;gap:0;flex-shrink:0">
+    <div style="flex:1;padding:12px 0">
+      <div style="font-size:10px;color:#94a3b8;font-weight:600;letter-spacing:.06em;text-transform:uppercase">KSK Lovendegem U13 IP</div>
+      <div id="pv-title" style="font-size:17px;font-weight:800;color:#fff;margin-top:1px">Mijn profiel</div>
+    </div>
+    <button onclick="doLogout()" style="background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 14px;color:#fff;font-size:12px;font-weight:600;cursor:pointer">Uitloggen</button>
+  </div>
+  <!-- Tabs -->
+  <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
+    <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:11px 6px;border:none;border-bottom:3px solid #203060;background:none;font-size:12px;font-weight:700;color:#203060;cursor:pointer">👤 Profiel</button>
+    <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:11px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;color:#94a3b8;cursor:pointer">⚽ Voetbal</button>
+    <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:11px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;color:#94a3b8;cursor:pointer">🏟️ Wedstrijden</button>
+  </div>
+  <!-- Panes -->
+  <div style="flex:1;overflow-y:auto">
+    <div id="pvp-profiel" class="pv-pane on" style="padding:16px"><div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px">Profiel laden...</div></div>
+    <div id="pvp-voetbal" class="pv-pane" style="padding:16px"></div>
+    <div id="pvp-wedstrijden" class="pv-pane" style="padding:16px">
+      <div id="pv-match-list" class="match-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── S-BEHEER ──────────────────────────────────────────────────── -->
+<div id="s-beheer" class="screen" style="background:#f0f4f8;flex-direction:column">
+  <div style="background:#203060;padding:12px 16px;display:flex;align-items:center;gap:12px;flex-shrink:0">
+    <button onclick="hide('s-beheer');showFlex('s-app')" style="background:rgba(255,255,255,.15);border:none;border-radius:8px;width:32px;height:32px;color:#fff;font-size:16px;cursor:pointer">←</button>
+    <div style="font-size:16px;font-weight:700;color:#fff">⚙️ Admin Beheer</div>
+  </div>
+  <!-- Beheer tabs -->
+  <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;flex-shrink:0">
+    <button class="beheer-tab on" onclick="switchBeheerTab('spelers',this)" style="padding:10px 16px;border:none;border-bottom:3px solid #203060;background:none;font-size:12px;font-weight:700;color:#203060;white-space:nowrap;cursor:pointer">👥 Spelers</button>
+    <button class="beheer-tab" onclick="switchBeheerTab('users',this)" style="padding:10px 16px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;cursor:pointer">🔑 Gebruikers</button>
+    <button class="beheer-tab" onclick="switchBeheerTab('wedstrijden',this)" style="padding:10px 16px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;cursor:pointer">🏟️ Wedstrijden</button>
+    <button class="beheer-tab" onclick="switchBeheerTab('maandprijs',this)" style="padding:10px 16px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;cursor:pointer">🏆 Maandprijs</button>
+  </div>
+  <!-- Beheer panes -->
+  <div style="flex:1;overflow-y:auto;padding:16px">
+
+    <!-- Spelers -->
+    <div id="bp-spelers" class="beheer-pane on">
+      <div class="section-card">
+        <div class="section-card-title">Spelerslijst</div>
+        <div id="beheer-speler-list"></div>
+        <button class="b-btn" onclick="showAddSpeler()" style="margin-top:10px">+ Speler toevoegen</button>
+      </div>
+      <div id="add-speler-form" style="display:none" class="section-card">
+        <div class="section-card-title">Nieuwe speler</div>
+        <div class="fields">
+          <div class="frow">
+            <div class="field"><label>Voornaam</label><input id="ns-voornaam" placeholder="Voornaam"></div>
+            <div class="field"><label>Naam</label><input id="ns-naam" placeholder="Naam"></div>
+          </div>
+          <div class="field"><label>Seizoen</label><input id="ns-seizoen" value="2026-27"></div>
+        </div>
+        <button class="b-btn" onclick="addSpeler()">Opslaan</button>
+        <button class="b-btn" style="background:#f1f5f9;color:#374151" onclick="setDisp('add-speler-form','none')">Annuleren</button>
+      </div>
+    </div>
+
+    <!-- Gebruikers -->
+    <div id="bp-users" class="beheer-pane">
+      <div class="section-card">
+        <div class="section-card-title">Gebruikersbeheer</div>
+        <div id="beheer-user-list"></div>
+      </div>
+    </div>
+
+    <!-- Wedstrijden -->
+    <div id="bp-wedstrijden" class="beheer-pane">
+      <div class="section-card">
+        <div class="section-card-title">Wedstrijd toevoegen</div>
+        <div class="match-add-grid" style="margin-bottom:10px">
+          <div class="field"><label>Datum</label><input type="date" id="w-datum"></div>
+          <div class="field"><label>Tegenstander</label><input id="w-teg" placeholder="Tegenstander"></div>
+          <div class="field"><label>Thuis/Uit</label>
+            <select id="w-tu"><option value="thuis">Thuis</option><option value="uit">Uit</option></select>
+          </div>
+          <div class="field"><label>Seizoen</label><input id="w-seizoen" value="2026-27"></div>
+        </div>
+        <button class="b-btn" onclick="addWedstrijd()">+ Wedstrijd toevoegen</button>
+      </div>
+      <div class="section-card">
+        <div class="section-card-title">Wedstrijden</div>
+        <div id="beheer-match-list"></div>
+      </div>
+    </div>
+
+    <!-- Maandprijs -->
+    <div id="bp-maandprijs" class="beheer-pane">
+      <div class="section-card">
+        <div class="section-card-title">Bereken Speler van de Maand</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Selecteer de wedstrijden die mee tellen voor de berekening.</div>
+        <div id="svm-wedstrijd-list"></div>
+        <div class="field" style="margin-top:12px"><label>Periode (bv. Oktober 2026)</label><input id="svm-periode" placeholder="Oktober 2026"></div>
+        <button class="b-btn" onclick="loadSvdMAdmin()">Herberekenen</button>
+        <div id="svm-result" style="margin-top:14px"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
   </div>
 </div>
 
