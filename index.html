@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v106</title>
+<title>KSK Lovendegem U13 IP v107</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -366,9 +366,9 @@ textarea{resize:vertical;min-height:70px}
     <!-- SIDEBAR -->
     <div class="sb">
       <div class="sb-head">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div style="display:flex;align-items:flex-start">
           <div class="sb-label">KSK Lovendegem</div>
-          <button id="admin-sb-btn" onclick="openBeheer()" style="background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.4);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:600;color:#fbbf24;cursor:pointer">⚙️ Admin</button>
+
         </div>
         <div class="sb-team">U13 IP · 2026–27 <span id="demo-badge" class="demo-badge" style="display:none">DEMO</span></div>
         <div class="sb-stats">
@@ -1022,15 +1022,13 @@ async function handleLogin() {
       const cards=document.getElementById('admin-nav-cards');
       if(cards && (userRole==='admin'||userRole==='coach')) cards.style.display='block';
     },100);
-    setTimeout(()=>{ const _a=$('admin-sb-btn'); if(_a&&userRole==='admin')_a.style.display='block'; },100);
-  }
+    }
 }
 
 async function doLogout() {
   sbSignOut();
   ['s-app','s-beheer','s-player','s-pending'].forEach(hide);
   showFlex('s-login');
-  setDisp('admin-sb-btn','none');
   setDisp('demo-badge','none');
   selId=null; DB={}; userRole='none'; userSpelerId=null;
   // Reset login button
@@ -1205,26 +1203,13 @@ async function loadBeheerWedstrijden() {
 function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toegang',true);return;}hide('s-app');showFlex('s-beheer');loadBeheerSpelers();loadBeheerUsers();}
 
 function openBeheerTab(tab) {
-  // Show beheer overlay with specific tab active
-  showBeheer(tab);
+  showFlex('s-beheer');
+  loadBeheerSpelers();
+  loadBeheerUsers();
+  const btn = document.querySelector('.beheer-tab[onclick*="\'" + tab + "\'"]');
+  switchBeheerTab(tab, btn);
 }
 
-function showBeheer(tab) {
-  const overlay = $('s-beheer');
-  if(!overlay) { openBeheer(); return; }
-  showFlex('s-beheer');
-  // Activate correct tab
-  overlay.querySelectorAll('.beheer-tab-btn').forEach(b => {
-    b.classList.toggle('on', b.dataset.tab === tab);
-  });
-  overlay.querySelectorAll('.beheer-pane').forEach(p => {
-    p.style.display = p.id === 'bp-'+tab ? '' : 'none';
-  });
-  if(tab==='spelers') loadBeheerSpelers();
-  else if(tab==='users') loadBeheerUsers();
-  else if(tab==='wedstrijden') loadBeheerWedstrijden();
-  else if(tab==='maandprijs') loadMaandprijsBeheer();
-}
 
 function switchBeheerTab(id,btn){document.querySelectorAll('.beheer-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.beheer-tab').forEach(b=>b.classList.remove('on'));document.getElementById('bp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')loadBeheerWedstrijden();else if(id==='maandprijs')loadSvdMAdmin();}
 async function loadBeheerSpelers(){
