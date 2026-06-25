@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v128</title>
+<title>KSK Lovendegem U13 IP v130</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -760,7 +760,7 @@ async function sbGet(table, qs) {
   const r = await fetch(url, {headers:sbH()});
   if (!r.ok) {
     const e=await r.json().catch(()=>({}));
-    if(r.status===401){console.warn('401 - session expired');if(document.getElementById('s-app')?.style.display!=='none'||document.getElementById('s-player')?.style.display!=='none'){showToast('Sessie verlopen — log opnieuw in','err');setTimeout(()=>doLogout(),2000);}else{sbClearSession();}}
+    if(r.status===401){console.warn('401 - session expired');if(document.getElementById('s-app')?.style.display!=='none'||document.getElementById('s-player')?.style.display!=='none'){toast('Sessie verlopen — log opnieuw in','err');setTimeout(()=>doLogout(),2000);}else{sbClearSession();}}
     return {data:null,error:e};
   }
   return {data:await r.json(), error:null};
@@ -1181,7 +1181,7 @@ async function toggleKeeper(spelerId, btn) {
   btn.style.background=d.is_keeper?'#fef3c7':'#f8fafc';
   btn.style.borderColor=d.is_keeper?'#fcd34d':'#e2e8f0';
   btn.style.color=d.is_keeper?'#92400e':'#94a3b8';
-  showToast(d.is_keeper?'🧤 Keeper ingesteld':'Keeper verwijderd');
+  toast(d.is_keeper?'🧤 Keeper ingesteld':'Keeper verwijderd');
 }
 async function deleteSpeler(id,naam){
   if(!confirm(naam+' verwijderen?'))return;
@@ -1361,7 +1361,7 @@ function applyPvPills(d) {
 }
 
 async function savePvVoetbal() {
-  if(userRole==='admin'||userRole==='coach'){showToast('Leesmodus — opslaan niet mogelijk','err');return;}
+  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk','err');return;}
   const d2={};
   // Collect positions
   ['pv-fav-pos','pv-ges-pos'].forEach(id=>{
@@ -1389,8 +1389,8 @@ async function savePvVoetbal() {
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
   const merged=Object.assign({},row?.data||{},d2);
   const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
-  if(!error) showToast('✓ Opgeslagen!');
-  else showToast('Fout bij opslaan','err');
+  if(!error) toast('✓ Opgeslagen!');
+  else toast('Fout bij opslaan','err');
 }
 
 
@@ -1428,7 +1428,7 @@ function pvPill(btn) {
 }
 function pvDirty(){if(userRole==='admin'||userRole==='coach')return;pvDirtyFlag=true;const b=$('pv-save');if(b){b.style.background='#15803d';b.style.color='#fff';b.style.cursor='pointer';}}
 async function savePlayerView(){
-  if(userRole==='admin'||userRole==='coach'){showToast('Leesmodus — opslaan niet mogelijk','err');return;}
+  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk','err');return;}
   const d2={};
   if($('pv-geb'))d2.geboortedatum=$('pv-geb').value;
   if($('pv-gsm'))d2.gsm_speler=$('pv-gsm').value;
@@ -1437,8 +1437,8 @@ async function savePlayerView(){
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
   const merged=Object.assign({},row?.data||{},d2);
   const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
-  if(!error){showToast('Opgeslagen!');const b=$('pv-save');if(b){b.textContent='Opgeslagen ✓';b.style.background='#15803d';b.style.color='#fff';}}
-  else showToast('Fout bij opslaan','err');
+  if(!error){toast('Opgeslagen!');const b=$('pv-save');if(b){b.textContent='Opgeslagen ✓';b.style.background='#15803d';b.style.color='#fff';}}
+  else toast('Fout bij opslaan','err');
 }
 
 
@@ -1825,7 +1825,7 @@ function selectScore(btn) {
   if(item){const lbl=item.querySelector('.eigen-label');if(lbl)lbl.innerHTML=lbl.textContent.split(' —')[0]+' — <b>'+scLabels[val]+'</b>';}
 }
 async function saveEvaluatie(matchId, teamIds) {
-  if(userRole==='admin'||userRole==='coach'){showToast('Leesmodus — opslaan niet mogelijk','err');return;}
+  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk','err');return;}
   const ratings={};
   // Collect from button selections
   const evalContainer=document.getElementById('eval-body-'+matchId);
