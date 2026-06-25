@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v94</title>
+<title>KSK Lovendegem U13 IP v95</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1322,20 +1322,20 @@ function loadPvVoetbal() {
         [2,3,5,7,8,9,11].map(n=>'<button type="button" class="pos-btn" data-field="pv-ges-pos" data-val="'+n+'" onclick="togglePos(this)" style="padding:4px 8px;border:1px solid #e2e8f0;border-radius:5px;background:#f8fafc;color:#374151;font-size:12px;font-weight:700;cursor:pointer;min-width:32px">'+n+'</button>').join('') +
         '</div></div>' +
         '<div class="frow" style="margin-top:4px"><div class="field"><label>Voorkeurspoot</label><select id="pv-poot" onchange="pvDirty()"><option value="">—</option><option>Links</option><option>Rechts</option><option>Beide</option></select></div></div>' +
-        '<div class="field"><label>Speelstijl</label><textarea id="pv-stijl" rows="2" placeholder="bv. Snel, technisch..." oninput="pvDirty()"></textarea></div>' +
+        
         '</div></div>' +
         '<div class="card"><div class="card-t">📅 Speelervaring</div><div class="fields">' +
-        '<div class="frow"><div class="field"><label>Jaren actief</label><select id="pv-jaren" onchange="pvDirty()"><option value="">—</option><option>1-2 jaar</option><option>3-4 jaar</option><option>5+ jaar</option></select></div>' +
-        '<div class="field"><label>Vorige club(s)</label><input id="pv-clubs" placeholder="bv. FC Gent" oninput="pvDirty()"></div></div>' +
+        '<div class="field"><label>Vorige club(s)</label><input id="pv-clubs" placeholder="bv. Evergem 2020" oninput="pvDirty()"></div>' +
         '</div></div>' +
         '<div class="card"><div class="card-t">⭐ Motivatie & Identiteit</div><div class="fields">' +
-        '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Lionel Messi" oninput="pvDirty()"></div>' +
-        '<div class="field"><label>Waarom speel je voetbal?</label><textarea id="pv-waarom" rows="2" oninput="pvDirty()"></textarea></div>' +
+        '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Messi, Ronaldo, Neuer" oninput="pvDirty()"></div>' +
+        '<div class="field"><label>Wat vind je leuk bij voetballen?</label><textarea id="pv-waarom" rows="2" oninput="pvDirty()"></textarea></div>' +
         '<div class="field"><label>Droomscenario over 5 jaar</label><textarea id="pv-droom" rows="2" oninput="pvDirty()"></textarea></div>' +
         '</div></div>' +
         '<div class="card"><div class="card-t">🎯 Doelen & Verwachtingen nieuw seizoen</div><div class="fields">' +
         '<div class="field"><label>Hoe beoordeel je jouw huidig niveau?</label><textarea id="pv-niv" rows="2" oninput="pvDirty()"></textarea></div>' +
         '<div class="field"><label>Waar wil je staan einde seizoen?</label><textarea id="pv-doel" rows="2" oninput="pvDirty()"></textarea></div>' +
+        '<div class="field"><label>Wat is je grootste werkpunt?</label><textarea id="pv-werkpunt" rows="2" oninput="pvDirty()"></textarea></div>' +
         '<div class="field"><label>Wat verwacht je van je trainer?</label><textarea id="pv-verw-trainer" rows="2" oninput="pvDirty()"></textarea></div>' +
         '</div></div>' +
         '<div class="card"><div class="card-t">🔍 Zelfbeoordeling</div><p style="font-size:12px;color:#64748b;padding:0 16px 10px">Cijfer van 1 tot 10</p><div class="fields">' +
@@ -1348,7 +1348,7 @@ function loadPvVoetbal() {
         '<button onclick="savePvVoetbal()" style="width:100%;padding:12px;background:#203060;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;margin-top:4px">💾 Opslaan</button>';
     }
     // Fill saved values
-    const flds={'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl','pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel','pv-waarom':'waarom_voetbal','pv-droom':'droomscenario','pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-verw-trainer':'verw_trainer','pv-sterk-keeper':'sterk_keeper','pv-tegengoal':'tegengoal'};
+    const flds={'pv-poot':'voorkeurspoot','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel','pv-waarom':'waarom_voetbal','pv-droom':'droomscenario','pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-werkpunt':'werkpunt','pv-verw-trainer':'verw_trainer','pv-sterk-keeper':'sterk_keeper','pv-tegengoal':'tegengoal'};
     Object.entries(flds).forEach(([id,key])=>{const el=$(id);if(el)el.value=d[key]||'';});
     // Restore positions
     ['pv-fav-pos','pv-ges-pos'].forEach(pid=>{
@@ -1387,7 +1387,7 @@ function loadPvVoetbal() {
     '</div>' +
     '</div></div>' +
     '<div class="card"><div class="card-t">⭐ Motivatie & Identiteit</div><div class="fields">' +
-    '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Lionel Messi" oninput="pvDirty()"></div>' +
+    '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Messi, Ronaldo, Neuer" oninput="pvDirty()"></div>' +
     '<div class="field"><label>Waarom speel je voetbal?</label><textarea id="pv-waarom" rows="3" placeholder="Vertel in eigen woorden..." oninput="pvDirty()"></textarea></div>' +
     '<div class="field"><label>Waar zie je jezelf over 5 jaar?</label><textarea id="pv-droom" rows="3" placeholder="Jouw droomscenario..." oninput="pvDirty()"></textarea></div>' +
     '</div></div>' +
@@ -1411,7 +1411,7 @@ function loadPvVoetbal() {
     const flds = {'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
       'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
       'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario',
-      'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-verw-trainer':'verw_trainer'};
+      'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-werkpunt':'werkpunt','pv-verw-trainer':'verw_trainer'};
     Object.entries(flds).forEach(([id,key])=>{const el=$(id);if(el)el.value=d[key]||''});
     // Zelfbeoordeling scores
     ['inzet','gedrag','coach'].forEach(k=>{
@@ -1456,7 +1456,7 @@ async function savePvVoetbal() {
   const flds={'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
     'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
     'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario',
-    'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-verw-trainer':'verw_trainer'};
+    'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-werkpunt':'werkpunt','pv-verw-trainer':'verw_trainer'};
   Object.entries(flds).forEach(([id,key])=>{const el=$(id);if(el)d2[key]=el.value;});
   // Zelfbeoordeling
   ['inzet','gedrag','coach'].forEach(k=>{
@@ -1502,6 +1502,7 @@ async function loadPlayerView(){
     '</div></div>'+
     '<button id="pv-save" onclick="savePlayerView()" style="background:#e2e8f0;color:#94a3b8;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:600;cursor:default;width:100%">Opslaan</button>';
 }
+
 async function loadPlayerView(){
   // Show something immediately
   const pp=$('pvp-profiel');
