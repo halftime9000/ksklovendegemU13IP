@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v192</title>
+<title>KSK Lovendegem U13 IP v193</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -272,8 +272,8 @@ textarea{resize:vertical;min-height:70px}
     overflow:hidden!important
   }
   #s-login>div:first-child img{
-    width:60px!important;
-    height:60px!important;
+    width:58px!important;
+    height:58px!important;
     object-fit:contain!important;
     flex-shrink:0!important;
     mix-blend-mode:multiply!important
@@ -412,12 +412,11 @@ textarea{resize:vertical;min-height:70px}
       card.style.overflowY = 'auto';
       card.style.boxSizing = 'border-box';
     }
-    // Logo hoogte = schermhoogte minus kaarthoogte (min 80px)
-    var cardH = card ? Math.min(card.scrollHeight, vh * 0.85) : 0;
-    var logoH = Math.max(80, vh - cardH);
+    // Logo hoogte vast op 90px — kaar past dan zonder scrollen
+    var logoH = 90;
     if(logo){
       logo.style.height = logoH + 'px';
-      logo.style.minHeight = '80px';
+      logo.style.minHeight = logoH + 'px';
       logo.style.flexShrink = '0';
     }
   }
