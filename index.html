@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v195</title>
+<title>KSK Lovendegem U13 IP v198</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -107,6 +107,10 @@ textarea{resize:vertical;min-height:70px}
 .btn-red{padding:8px 14px;background:#dc2626;color:#fff;border:none;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer}
 
 /* ── BEHEER ── */
+.b-btn{display:block;width:100%;padding:13px 16px;background:#203060;color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;text-align:center;min-height:48px;margin-bottom:8px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background .15s,transform .1s}
+.b-btn:active{transform:scale(.97);opacity:.9}
+.b-btn.success{background:#15803d!important;color:#fff!important}
+.b-btn.loading{background:#94a3b8!important;pointer-events:none}
 .beheer-tabs{display:flex;gap:4px;margin-bottom:16px;background:#fff;padding:4px;border-radius:10px;border:1px solid var(--border)}
 .beheer-tab{flex:1;padding:10px 14px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;cursor:pointer;color:#64748b;white-space:nowrap}
 .beheer-tab.on{border-bottom-color:#203060;color:#203060;font-weight:700}
@@ -852,10 +856,11 @@ async function sbInsert(table, body) {
 async function sbPatch(table, filter, body) {
   await ensureToken();
   const r = await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+filter, {
-    method:'PATCH', headers:sbH(), body:JSON.stringify(body)
+    method:'PATCH', headers:Object.assign({},sbH(),{'Prefer':'return=representation'}), body:JSON.stringify(body)
   });
   if (!r.ok) { const e=await r.json().catch(()=>({})); return {data:null,error:e}; }
-  return {data:null,error:null};
+  const d = await r.json().catch(()=>null);
+  return {data:d,error:null};
 }
 async function sbDelete(table, filter) {
   await ensureToken();
@@ -1253,12 +1258,18 @@ function toggleAddSpeler(){const f=$('add-speler-form');if(f)f.style.display=f.s
 async function addSpeler(){
   const vn=$('ns-voornaam')?.value.trim(),nm=$('ns-naam')?.value.trim();
   if(!vn||!nm){toast('Vul voornaam en naam in',true);return;}
+  const btn=document.querySelector('#add-speler-form .b-btn');
+  const orig=btn?.textContent||'Opslaan';
+  btnLoad(btn,'Bezig…');
   const newId=Math.max(...PLAYERS.map(p=>p.id),0)+1;
   const {error}=await sbInsert('spelers',{id:newId,naam:nm,voornaam:vn,seizoen:'2026-27',data:{}});
-  if(error){toast('Fout: '+error.message,true);return;}
+  if(error){toast('Fout: '+error.message,true);btnReset(btn,orig);return;}
   PLAYERS.push({id:newId,naam:nm,voornaam:vn});
-  if($('ns-voornaam'))$('ns-voornaam').value='';if($('ns-naam'))$('ns-naam').value='';
-  setDisp('add-speler-form','none');toast('Speler toegevoegd ✓');loadBeheerSpelers();renderList();updateStats();
+  if($('ns-voornaam'))$('ns-voornaam').value='';
+  if($('ns-naam'))$('ns-naam').value='';
+  btnOk(btn,1500);
+  toast('✓ '+vn+' '+nm+' toegevoegd');
+  setTimeout(()=>{setDisp('add-speler-form','none');loadBeheerSpelers();renderList();updateStats();},1200);
 }
 
 async function toggleKeeper(spelerId, btn) {
@@ -1305,7 +1316,22 @@ async function loadBeheerUsers(){
   });
   el.innerHTML=html;
 }
-async function updateRole(uid,r){await sbPatch('user_roles','user_id=eq.'+uid,{role:r});toast('Rol bijgewerkt ✓');setTimeout(loadBeheerUsers,400);}
+async function updateRole(uid,r){
+  // Huidige waarde bewaren voor herstel bij fout
+  const sel = document.querySelector('.role-select[data-uid="'+uid+'"]');
+  const prev = sel ? sel.value : null;
+  const {error} = await sbPatch('user_roles','user_id=eq.'+uid,{role:r});
+  if(error){
+    const msg = error.message||error.code||error.hint||JSON.stringify(error);
+    toast('⚠️ Rol niet gewijzigd: '+msg, true);
+    console.error('updateRole error:', error);
+    // Dropdown terugzetten naar vorige waarde
+    if(sel && prev) sel.value = prev;
+    return;
+  }
+  toast('Rol bijgewerkt naar "'+r+'" ✓');
+  setTimeout(loadBeheerUsers, 800);
+}
 async function linkSpeler(uid,spelerId){await sbPatch('user_roles','user_id=eq.'+uid,{speler_id:spelerId?parseInt(spelerId):null});toast('Speler gekoppeld ✓');}
 
 // WEDSTRIJDEN
@@ -1322,14 +1348,24 @@ function fmtDate(ds){if(!ds)return'';const d=new Date(ds+'T00:00:00');return d.g
 async function addWedstrijd(){
   const datum=$('nm-datum')?.value,opp=$('nm-opp')?.value.trim();
   if(!datum||!opp){toast('Vul datum en tegenstander in',true);return;}
+  const btn=document.querySelector('#add-match-form .b-btn');
+  const orig=btn?.textContent||'Toevoegen';
+  btnLoad(btn,'Bezig…');
   const {error}=await sbInsert('wedstrijden',{datum,tegenstander:opp,thuis_uit:nmLocatie,seizoen:'2026-27'});
-  if(error){toast('Fout: '+error.message,true);return;}
+  if(error){toast('Fout: '+error.message,true);btnReset(btn,orig);return;}
   if($('nm-datum'))$('nm-datum').value='';if($('nm-opp'))$('nm-opp').value='';
-  setDisp('add-match-form','none');toast('Wedstrijd toegevoegd ✓');loadWedstrijden();
+  btnOk(btn,1500);
+  toast('✓ Wedstrijd vs '+opp+' toegevoegd');
+  setTimeout(()=>{setDisp('add-match-form','none');loadWedstrijden();},1200);
 }
-async function saveWedstrijd(id){
+async function saveWedstrijd(id, btn){
+  const origTxt=btn?.textContent||'Opslaan';
+  if(btn)btnLoad(btn,'Bezig…');
   const {error}=await sbPatch('wedstrijden','id=eq.'+id,{blauw_score:$('ms-blauw-'+id)?.value||'',blauw_notities:$('mn-blauw-'+id)?.value||'',geel_score:$('ms-geel-'+id)?.value||'',geel_notities:$('mn-geel-'+id)?.value||'',updated_at:new Date().toISOString()});
-  if(error){toast('Fout: '+error.message,true);return;}toast('Opgeslagen ✓');loadWedstrijden();
+  if(error){toast('Fout: '+error.message,true);if(btn)btnReset(btn,origTxt);return;}
+  if(btn)btnOk(btn,2000);
+  toast('✓ Wedstrijd opgeslagen');
+  loadWedstrijden();
 }
 async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;await sbDelete('wedstrijden','id=eq.'+id);toast('Verwijderd');loadWedstrijden();}
 
@@ -1562,7 +1598,11 @@ function setDisp(id,v){const el=$(id);if(el)el.style.display=v;}
 function show(id){const el=$(id);if(el)el.style.display='block';}
 function showFlex(id){const el=$(id);if(el)el.style.display='flex';}
 function hide(id){const el=$(id);if(el)el.style.display='none';}
-function toast(msg,isErr){const t=$('toast');if(!t)return;t.textContent=msg;t.className='on'+(isErr?' err':'');setTimeout(()=>t.className='',2500);}
+function toast(msg,isErr){const t=$('toast');if(!t)return;t.textContent=msg;t.className='on'+(isErr?' err':'');clearTimeout(t._to);t._to=setTimeout(()=>t.className='',3000);}
+// Knop visuele bevestiging: groen + ✓ dan herstel originele tekst
+function btnOk(btn,ms){if(!btn)return;const orig=btn.textContent,origCls=btn.className;btn.textContent='✓ Opgeslagen';btn.classList.add('success');btn.disabled=true;setTimeout(()=>{btn.textContent=orig;btn.className=origCls;btn.disabled=false;},ms||2000);}
+function btnLoad(btn,txt){if(!btn)return;btn.textContent=txt||'Bezig…';btn.classList.add('loading');btn.disabled=true;}
+function btnReset(btn,orig){if(!btn)return;btn.textContent=orig;btn.classList.remove('loading','success');btn.disabled=false;}
 
 
 
@@ -1672,26 +1712,11 @@ function renderBeheerMatchList(data) {
           <div class="lineup-section-title">Opstelling — klik Blauw of Geel per speler</div>
           ${mkLineupList(PLAYERS, bSpelers, gSpelers, w.id)}
         </div>
-        <!-- MOTM + Weak Link -->
-        <div class="motm-grid">
-          <div class="field">
-            <label>⭐ Man of the Match</label>
-            <select id="motm-${w.id}" class="role-select" style="width:100%;padding:7px 10px;font-size:12px;border-radius:7px">
-              <option value="">Selecteer speler...</option>${playerOpts}
-            </select>
-          </div>
-          <div class="field">
-            <label>🔴 Weak Link</label>
-            <select id="wl-${w.id}" class="role-select" style="width:100%;padding:7px 10px;font-size:12px;border-radius:7px">
-              <option value="">Selecteer speler...</option>${wlOpts}
-            </select>
-          </div>
-        </div>
         <!-- Actions -->
         <div class="match-save-row">
           <button class="btn-red" onclick="deleteBWedstrijd(${w.id})">Verwijder</button>
           <button class="btn-grey" onclick="bekijkEvaluaties(${w.id})">📊 Evaluaties</button>
-          <button class="btn-green" onclick="saveBWedstrijd(${w.id})">💾 Opslaan</button>
+          <button class="btn-green" onclick="saveBWedstrijd(${w.id},this)">💾 Opslaan</button>
         </div>
         <div id="eval-overzicht-${w.id}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);background:#f8fafc"></div>
       </div>
@@ -1728,10 +1753,10 @@ async function addWedstrijdBeheer() {
   loadWedstrijden();
 }
 
-async function saveBWedstrijd(id) {
+async function saveBWedstrijd(id, btn) {
   const lu=getLineup(id);
-  const motm=parseInt($('motm-'+id)?.value)||null;
-  const wl=parseInt($('wl-'+id)?.value)||null;
+  const origTxt=btn?.textContent||'💾 Opslaan';
+  if(btn)btnLoad(btn,'Bezig…');
   const {error}=await sbPatch('wedstrijden','id=eq.'+id,{
     blauw_score:$('bms-blauw-'+id)?.value||'',
     blauw_notities:$('bmn-blauw-'+id)?.value||'',
@@ -1739,15 +1764,14 @@ async function saveBWedstrijd(id) {
     geel_notities:$('bmn-geel-'+id)?.value||'',
     blauw_spelers:lu.blauw,
     geel_spelers:lu.geel,
-    man_of_match:motm,
-    weak_link:wl,
     updated_at:new Date().toISOString()
   });
-  if(error){toast('Fout: '+(error.message||'onbekend'),true);return;}
+  if(error){toast('Fout: '+(error.message||'onbekend'),true);if(btn)btnReset(btn,origTxt);return;}
   // Update local cache
   const w=wedstrijdenData.find(x=>x.id===id);
-  if(w){w.blauw_spelers=lu.blauw;w.geel_spelers=lu.geel;w.man_of_match=motm;w.weak_link=wl;}
-  toast('Opgeslagen ✓');
+  if(w){w.blauw_spelers=lu.blauw;w.geel_spelers=lu.geel;}
+  if(btn)btnOk(btn,2000);
+  toast('✓ Wedstrijd opgeslagen');
   loadWedstrijden();
 }
 
