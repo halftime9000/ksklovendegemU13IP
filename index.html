@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v147</title>
+<title>KSK Lovendegem U13 IP v149</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -424,8 +424,7 @@ textarea{resize:vertical;min-height:70px}
       <div class="sb-foot">
         <div id="foot-txt" style="font-size:10px;color:rgba(255,255,255,.35);margin-bottom:8px">0/25 ingevuld</div>
         <div style="display:flex;gap:6px">
-          <button class="btn-grey" onclick="exportData()">⬇ Export</button>
-          <label class="btn-grey" style="cursor:pointer">⬆ Import<input type="file" accept=".json" style="display:none" onchange="importData(event)"></label>
+          
         </div>
         <button onclick="doLogout()" style="margin-top:6px;width:100%;padding:7px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:7px;color:rgba(255,255,255,.5);font-size:11px;cursor:pointer">Uitloggen</button>
       </div>
@@ -475,7 +474,9 @@ textarea{resize:vertical;min-height:70px}
           <div><span id="es-complete">0</span> volledig</div>
         </div>
         <button class="mob-list-btn" onclick="openMobileList()">👥 Spelers bekijken →</button>
+        <button onclick="doLogout()" style="display:block;margin:8px auto 0;padding:8px 20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:rgba(255,255,255,.7);font-size:12px;cursor:pointer">Uitloggen</button>
 
+        <div id="admin-select-hint" style="display:none;width:100%;max-width:560px;margin:10px auto 0;padding:0 12px;text-align:center;font-size:13px;color:#64748b;font-weight:500"></div>
         <!-- Admin navigation cards -->
         <div id="admin-nav-cards" style="display:none;width:100%;max-width:560px;margin:14px auto 0;padding:0 12px">
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
@@ -2218,15 +2219,22 @@ function selectPlayerAdmin(id) {
     const d = row?.data || {};
     loadAdminProfielPane(d, p);
   });
-  switchAdminTab('profiel');
+  switchAdminTab(window._adminDefaultTab || 'profiel');
+  window._adminDefaultTab = null;
 }
 
 // Show full player list modal for profiel or voetbal
 function showSpelersList(type) {
-  // Redirect: click first player to preview, or just switch to player list
-  // For now: highlight the type in the sidebar and show first player
-  if(PLAYERS.length > 0) selectPlayerAdmin(PLAYERS[0].id);
-  switchAdminTab(type === 'voetbal' ? 'voetbal' : 'profiel');
+  // Highlight which tab to show - user picks player from left list
+  window._adminDefaultTab = type === 'voetbal' ? 'voetbal' : 'profiel';
+  // Show hint in empty-state
+  const hint = document.getElementById('admin-select-hint');
+  if(hint) {
+    hint.textContent = type === 'voetbal'
+      ? '⚽ Kies een speler uit de lijst om de voetbalfiche te bekijken'
+      : '👤 Kies een speler uit de lijst om het profiel te bekijken';
+    hint.style.display = 'block';
+  }
 }
 // START
 init();
