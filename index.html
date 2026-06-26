@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v178</title>
+<title>KSK Lovendegem U13 IP v183</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -250,7 +250,7 @@ textarea{resize:vertical;min-height:70px}
     gap:20px!important;
     justify-content:center!important;
     align-items:center!important;
-    background:#0a1628!important;
+    background:#f0f4f8!important;
     overflow-y:auto!important
   }
   #s-login>div:first-child{
@@ -264,18 +264,18 @@ textarea{resize:vertical;min-height:70px}
     width:100%!important;
     text-align:center!important
   }
-  #s-login>div:first-child img{width:64px!important;height:64px!important}
+  #s-login>div:first-child img{width:96px!important;height:96px!important}
   #s-login>div:first-child>div{
-    display:flex!important;flex-direction:column!important;align-items:center!important;gap:4px!important
+    display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important
   }
-  #s-login>div:first-child>div>div:nth-child(1){font-size:20px!important;letter-spacing:-1px!important;line-height:1!important}
-  #s-login>div:first-child>div>div:nth-child(2){font-size:9px!important;letter-spacing:.15em!important}
-  #s-login>div:first-child>div>div:nth-child(3){font-size:11px!important;padding-left:0!important;border-left:none!important;padding-top:4px!important;border-top:2px solid rgba(224,208,64,.4)!important;margin-top:4px!important}
+  #s-login>div:first-child>div>div:nth-child(1){font-size:30px!important;letter-spacing:-1px!important;line-height:1!important}
+  #s-login>div:first-child>div>div:nth-child(2){font-size:13px!important;letter-spacing:.15em!important}
+  #s-login>div:first-child>div>div:nth-child(3){font-size:16px!important;padding-left:0!important;border-left:none!important;padding-top:6px!important;border-top:2px solid rgba(224,208,64,.4)!important;margin-top:6px!important}
   #s-login>div:last-child{
     background:#182448!important;
     border-radius:16px!important;
     border:1px solid rgba(224,208,64,.2)!important;
-    box-shadow:0 8px 32px rgba(0,0,0,.4)!important;
+    box-shadow:0 8px 32px rgba(0,0,0,.2)!important;
     width:100%!important;
     max-width:360px!important;
     padding:24px 20px!important;
@@ -678,7 +678,14 @@ textarea{resize:vertical;min-height:70px}
           <button class="b-btn" onclick="berekenSvdM()" style="flex:2;background:#203060;color:#e0d040">🏆 Bereken</button>
           <button class="b-btn" onclick="document.querySelectorAll('.svm-match-cb').forEach(cb=>cb.checked=true)" style="flex:1;background:#f1f5f9;color:#374151;font-size:11px">Alles ✓</button>
 
-// CONFIG
+</div>
+</div>
+</div>
+</div>
+
+</div><!-- /s-beheer -->
+
+<script>// CONFIG
 const SUPABASE_URL      = 'https://gfjqujhtligypbvrdnug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmanF1amh0bGlneXBidnJkbnVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNjgwNzQsImV4cCI6MjA5NzY0NDA3NH0.J_wkKkKMMsWRC2HFh6rYdOyv-WUERJ2hBypNSog9-RE';
 const DEMO = SUPABASE_URL.includes('JOUW');
@@ -2387,17 +2394,6 @@ async function resetEenEvaluatie(btn) {
 // START
 init();
 
-
-
-
-
-
-tn.parentElement.parentElement;
-    if(card) card.remove();
-  } else {
-    toast('Fout bij verwijderen', true);
-  }
-}
 
 
 async function syncNewPlayers() {
