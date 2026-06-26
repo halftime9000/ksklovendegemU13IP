@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v166</title>
+<title>KSK Lovendegem U13 IP v169</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -639,12 +639,7 @@ textarea{resize:vertical;min-height:70px}
 
     <!-- Wedstrijden -->
     <div id="bp-wedstrijden" class="beheer-pane">
-      <div class="section-card" style="background:#fff8f8;border:1px solid #fecaca;margin-bottom:12px">
-        <div class="section-card-title" style="color:#dc2626">🗑 Evaluaties resetten</div>
-        <div style="font-size:12px;color:#64748b;margin-bottom:10px">Verwijder alle evaluaties van een speler.</div>
-        <div id="beheer-eval-reset-list"></div>
-      </div>
-      <div class="section-card">
+<div class="section-card">
         <div class="section-card-title">Wedstrijd toevoegen</div>
         <div class="match-add-grid" style="margin-bottom:10px">
           <div class="field"><label>Datum</label><input type="date" id="w-datum"></div>
@@ -802,7 +797,11 @@ async function sbPatch(table, filter, body) {
 }
 async function sbDelete(table, filter) {
   await ensureToken();
-  await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+filter,{method:'DELETE',headers:sbH()});
+  const r = await fetch(SUPABASE_URL+'/rest/v1/'+table+'?'+filter, {
+    method:'DELETE', headers:Object.assign({},sbH(),{'Prefer':'return=minimal'})
+  });
+  if(!r.ok){const e=await r.json().catch(()=>({}));return{error:e};}
+  return{error:null};
 }
 async function sbRpc(fn, params) {
   await ensureToken();
@@ -1165,7 +1164,7 @@ function switchBeheerTab(id,btn){
     b.style.color = isActive ? '#203060' : '#64748b';
     b.style.fontWeight = isActive ? '700' : '600';
   });
-  if(id==='wedstrijden'){loadBeheerWedstrijden();loadEvalResetList();}
+  if(id==='wedstrijden') loadBeheerWedstrijden();
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
   else if(id==='users') loadBeheerUsers();
@@ -1935,7 +1934,11 @@ async function bekijkEvaluaties(matchId) {
     ].filter(x=>x.v).map(x=>'<span style="font-size:11px"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
 
     return '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">'+
-      '<div style="font-size:12px;font-weight:700;color:#0f172a;margin-bottom:8px">'+sp.voornaam+' '+sp.naam+(ev.vergrendeld?' 🔒':'')+'</div>'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
+      '<span style="font-size:12px;font-weight:700;color:#0f172a">'+sp.voornaam+' '+sp.naam+(ev.vergrendeld?' 🔒':'')+'</span>'+
+      '<button data-mid="'+matchId+'" data-bid="'+ev.beoordelaar+'" data-bnm="'+(sp.voornaam||'')+'" onclick="resetEenEvaluatie(this)" '+
+      'style="padding:4px 10px;background:#fee2e2;color:#dc2626;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer">🗑 Reset</button>'+
+      '</div>'+
       (ev.tegenstander_systeem?'<div style="font-size:11px;color:#475569;margin-bottom:4px">⚽ Systeem tegenstander: <b>'+ev.tegenstander_systeem+'</b>'+(ev.tegenstander_systeem_extra?' — '+ev.tegenstander_systeem_extra:'')+'</div>':'')+
       (ev.tegenstander_beste?'<div style="font-size:11px;color:#475569;margin-bottom:6px">⭐ Beste teg.: '+ev.tegenstander_beste+'</div>':'')+
       (rHtml?'<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">'+rHtml+'</div>':'')+
@@ -2317,8 +2320,8 @@ async function resetSpelerData(spelerId, naam) {
 
 async function resetSpelerEvaluaties(spelerId, naam) {
   if(!confirm('Alle evaluaties van ' + naam + ' verwijderen?')) return;
-  // Delete all evaluations for this player
-  const {error} = await sbDelete('evaluaties', 'speler_id=eq.'+spelerId);
+  // Delete all evaluations for this player (table: match_evaluaties, col: beoordelaar)
+  const {error} = await sbDelete('match_evaluaties', 'beoordelaar=eq.'+spelerId);
   if(!error) toast('✓ Evaluaties van '+naam+' verwijderd');
   else toast('Fout bij verwijderen','err');
 }
@@ -2331,18 +2334,21 @@ function resetSpelerProfiel(spelerId, naam) {
   });
 }
 
-function loadEvalResetList() {
-  const el = document.getElementById('beheer-eval-reset-list');
-  if(!el) return;
-  el.innerHTML = PLAYERS.map(p=>
-    '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #fee2e2">' +
-    '<span style="font-size:13px;font-weight:500;color:#374151">' + (p.voornaam||'') + ' ' + (p.naam||'') + '</span>' +
-    '<button data-spid="' + p.id + '" data-spnm="' + (p.voornaam||'').replace(/"/g,'') + '" data-reset="evaluaties" style="padding:5px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">Reset</button>' +
-    '</div>'
-  ).join('') || '<div style="font-size:12px;color:#94a3b8">Geen spelers</div>';
-  el.querySelectorAll('[data-reset]').forEach(btn=>{
-    btn.onclick=()=>adminReset(btn.dataset.reset, parseInt(btn.dataset.spid), btn.dataset.spnm);
-  });
+
+
+
+async function resetEenEvaluatie(btn) {
+  const matchId = btn.dataset.mid;
+  const beoordelaar = btn.dataset.bid;
+  const naam = btn.dataset.bnm || 'speler';
+  if(!confirm('Evaluatie van '+naam+' verwijderen? De speler kan opnieuw invullen.')) return;
+  const {error} = await sbDelete('match_evaluaties', 'match_id=eq.'+matchId+'&beoordelaar=eq.'+beoordelaar);
+  if(!error) {
+    toast('✓ Evaluatie van '+naam+' verwijderd');
+    btn.closest('div[style*="display:flex"]').remove();
+  } else {
+    toast('Fout bij verwijderen', true);
+  }
 }
 
 // START
