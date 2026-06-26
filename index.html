@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v198</title>
+<title>KSK Lovendegem U13 IP v199</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1346,17 +1346,22 @@ function renderMatchList(containerId,data,editable){
 function toggleMatch(id){const mb=$('mb-'+id),ch=$('chev-'+id);if(!mb)return;const o=mb.classList.toggle('open');if(ch)ch.classList.toggle('open',o);}
 function fmtDate(ds){if(!ds)return'';const d=new Date(ds+'T00:00:00');return d.getDate()+' '+MON_SHORT[d.getMonth()]+' '+d.getFullYear();}
 async function addWedstrijd(){
-  const datum=$('nm-datum')?.value,opp=$('nm-opp')?.value.trim();
+  // Beheer form gebruikt w-datum, w-teg, w-tu, w-seizoen
+  const datum=$('w-datum')?.value || $('nm-datum')?.value || '';
+  const opp=($('w-teg')?.value || $('nm-opp')?.value || '').trim();
+  const tu=$('w-tu')?.value || 'thuis';
+  const seizoen=$('w-seizoen')?.value || '2026-27';
   if(!datum||!opp){toast('Vul datum en tegenstander in',true);return;}
-  const btn=document.querySelector('#add-match-form .b-btn');
-  const orig=btn?.textContent||'Toevoegen';
-  btnLoad(btn,'Bezig…');
-  const {error}=await sbInsert('wedstrijden',{datum,tegenstander:opp,thuis_uit:nmLocatie,seizoen:'2026-27'});
-  if(error){toast('Fout: '+error.message,true);btnReset(btn,orig);return;}
-  if($('nm-datum'))$('nm-datum').value='';if($('nm-opp'))$('nm-opp').value='';
-  btnOk(btn,1500);
+  const btn=document.querySelector('#bp-wedstrijden .b-btn');
+  const orig=btn?.textContent||'+ Wedstrijd toevoegen';
+  if(btn)btnLoad(btn,'Bezig…');
+  const {error}=await sbInsert('wedstrijden',{datum,tegenstander:opp,thuis_uit:tu,seizoen,blauw_spelers:[],geel_spelers:[]});
+  if(error){toast('Fout: '+(error.message||'onbekend'),true);if(btn)btnReset(btn,orig);return;}
+  if($('w-datum'))$('w-datum').value='';
+  if($('w-teg'))$('w-teg').value='';
+  if(btn)btnOk(btn,1800);
   toast('✓ Wedstrijd vs '+opp+' toegevoegd');
-  setTimeout(()=>{setDisp('add-match-form','none');loadWedstrijden();},1200);
+  setTimeout(()=>{loadBeheerWedstrijden();loadWedstrijden();},1000);
 }
 async function saveWedstrijd(id, btn){
   const origTxt=btn?.textContent||'Opslaan';
@@ -1742,15 +1747,8 @@ function getLineup(mid) {
 
 
 async function addWedstrijdBeheer() {
-  const datum=$('nm-datum')?.value, opp=$('nm-opp')?.value.trim();
-  if(!datum||!opp){toast('Vul datum en tegenstander in',true);return;}
-  const {error}=await sbInsert('wedstrijden',{datum,tegenstander:opp,thuis_uit:nmLocatie,seizoen:'2026-27',blauw_spelers:[],geel_spelers:[]});
-  if(error){toast('Fout: '+(error.message||'onbekend'),true);return;}
-  if($('nm-datum'))$('nm-datum').value='';
-  if($('nm-opp'))$('nm-opp').value='';
-  toast('Wedstrijd toegevoegd ✓');
-  loadBeheerWedstrijden();
-  loadWedstrijden();
+  // delegate naar addWedstrijd
+  return addWedstrijd();
 }
 
 async function saveBWedstrijd(id, btn) {
