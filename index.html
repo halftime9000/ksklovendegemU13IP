@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v172</title>
+<title>KSK Lovendegem U13 IP v174</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -246,38 +246,42 @@ textarea{resize:vertical;min-height:70px}
 @media(max-width:860px){
   #s-login{
     flex-direction:column!important;
-    padding:0!important;
-    gap:0!important;
-    justify-content:flex-start!important;
-    align-items:stretch!important;
+    padding:24px 20px!important;
+    gap:20px!important;
+    justify-content:center!important;
+    align-items:center!important;
+    background:#0a1628!important;
     overflow-y:auto!important
   }
   #s-login>div:first-child{
-    flex-direction:row!important;
+    flex-direction:column!important;
     align-items:center!important;
-    gap:10px!important;
-    padding:10px 16px!important;
-    background:#f0f4f8!important;
-    border-bottom:2px solid #e0d040!important;
-    flex-shrink:0!important
-  }
-  #s-login>div:first-child img{width:44px!important;height:44px!important}
-  #s-login>div:first-child>div{
-    display:flex!important;align-items:center!important;gap:8px!important
-  }
-  #s-login>div:first-child>div>div:nth-child(1){font-size:22px!important;letter-spacing:-1px!important;line-height:1!important}
-  #s-login>div:first-child>div>div:nth-child(2){font-size:10px!important;letter-spacing:.15em!important}
-  #s-login>div:first-child>div>div:nth-child(3){font-size:13px!important;padding-left:8px!important;border-left-width:3px!important}
-  #s-login>div:last-child{
-    flex:1!important;
-    padding:20px 18px!important;
-    border-radius:0!important;
-    box-shadow:none!important;
+    gap:8px!important;
+    padding:0!important;
+    background:transparent!important;
+    border:none!important;
+    flex-shrink:0!important;
     width:100%!important;
-    max-width:100%!important;
-    min-height:0!important
+    text-align:center!important
   }
-  .form-header>div:nth-child(2){font-size:28px!important;margin-bottom:8px!important}
+  #s-login>div:first-child img{width:64px!important;height:64px!important}
+  #s-login>div:first-child>div{
+    display:flex!important;flex-direction:column!important;align-items:center!important;gap:4px!important
+  }
+  #s-login>div:first-child>div>div:nth-child(1){font-size:20px!important;letter-spacing:-1px!important;line-height:1!important}
+  #s-login>div:first-child>div>div:nth-child(2){font-size:9px!important;letter-spacing:.15em!important}
+  #s-login>div:first-child>div>div:nth-child(3){font-size:11px!important;padding-left:0!important;border-left:none!important;padding-top:4px!important;border-top:2px solid rgba(224,208,64,.4)!important;margin-top:4px!important}
+  #s-login>div:last-child{
+    background:#182448!important;
+    border-radius:16px!important;
+    border:1px solid rgba(224,208,64,.2)!important;
+    box-shadow:0 8px 32px rgba(0,0,0,.4)!important;
+    width:100%!important;
+    max-width:360px!important;
+    padding:24px 20px!important;
+    flex:none!important
+  }
+  .form-header>div:nth-child(2){font-size:24px!important;margin-bottom:6px!important}
 }
 
 /* ── MULTI-SECTIONS (Sterke/Werkpunten) ── */
@@ -1430,29 +1434,38 @@ async function savePvVoetbal() {
 
 async function loadPlayerView(){
   const pp=$('pvp-profiel');
-  if(pp) pp.innerHTML='<div class="card" style="text-align:center;padding:24px"><div style="font-size:13px;color:#64748b">Laden...</div></div>';
-  try{const {data:wdata}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wdata||[];}catch(e){}
-  if(!userSpelerId){
-    const t=$('pv-title');if(t)t.textContent='Mijn profiel';
-    if(pp)pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b;margin-top:8px">Vraag de coach om je account te koppelen.</p></div>';
-    return;
+  if(pp) pp.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">Laden...</div>';
+  try {
+    // Load wedstrijden
+    try{const {data:wd}=await sbGet('wedstrijden','select=*&order=datum.asc');wedstrijdenData=wd||[];}catch(e){}
+    // Load player list if empty
+    if(!PLAYERS.length){
+      try{const {data:pls}=await sbGet('spelers','select=id,voornaam,naam,seizoen&order=voornaam.asc');PLAYERS=pls||[];}catch(e){}
+    }
+    if(!userSpelerId){
+      if(pp) pp.innerHTML='<div class="card"><div class="card-t">Geen speler gekoppeld</div><p style="font-size:13px;color:#64748b;margin-top:8px">Vraag de coach om je account te koppelen.</p></div>';
+      return;
+    }
+    const sp=PLAYERS.find(p=>p.id===parseInt(userSpelerId))||PLAYERS.find(p=>p.id==userSpelerId)||{voornaam:'Speler',naam:''};
+    const t=$('pv-title');if(t)t.textContent='Welkom, '+sp.voornaam+'!';
+    // Load player data
+    const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
+    const d=row?.data||{};
+    if(!pp)return;
+    pp.innerHTML=
+      '<div class="card"><div class="card-t">👤 Persoonlijke gegevens</div><div class="fields">'+
+      '<div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly style="color:#374151"></div>'+
+      '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly style="color:#374151"></div></div>'+
+      '<div class="frow"><div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="'+(d.geboortedatum||'')+'" oninput="pvDirty()" style="color:#374151"></div>'+
+      '<div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="'+(d.gsm_speler||'')+'" placeholder="+32 4xx xx xx xx" oninput="pvDirty()" style="color:#374151"></div></div>'+
+      '<div class="frow"><div class="field"><label>Favoriete ploeg</label><input id="pv-ploeg" value="'+(d.fav_ploeg||'')+'" placeholder="bv. Club Brugge" oninput="pvDirty()" style="color:#374151"></div>'+
+      '<div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="bv. Ten Doorn" oninput="pvDirty()" style="color:#374151"></div></div>'+
+      '</div></div>'+
+      '<button id="pv-save" onclick="savePlayerView()" style="background:#203060;color:#fff;border:none;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:12px">💾 Opslaan</button>';
+  } catch(e) {
+    console.error('loadPlayerView error:', e);
+    if(pp) pp.innerHTML='<div class="card"><div class="card-t" style="color:#dc2626">Fout bij laden</div><p style="font-size:12px;color:#64748b;margin-top:8px">'+e.message+'</p></div>';
   }
-  const sp=PLAYERS.find(p=>p.id===userSpelerId)||{voornaam:'Speler',naam:''};
-  const t=$('pv-title');if(t)t.textContent='Welkom, '+sp.voornaam+'!';
-  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
-  const d=row?.data||{};
-  if(!pp)return;
-  pp.innerHTML=
-    '<div class="card"><div class="card-t">👤 Persoonlijke gegevens</div><div class="fields">'+
-    '<div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly></div>'+
-    '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly></div></div>'+
-    '<div class="frow"><div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="'+(d.geboortedatum||'')+'" oninput="pvDirty()"></div>'+
-    '<div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="'+(d.gsm_speler||'')+'" placeholder="+32 4xx xx xx xx" oninput="pvDirty()"></div></div>'+
-    '<div class="frow"><div class="field"><label>Favoriete ploeg</label><input id="pv-ploeg" value="'+(d.fav_ploeg||'')+'" placeholder="bv. Club Brugge" oninput="pvDirty()"></div>'+
-    '<div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="bv. Ten Doorn" oninput="pvDirty()"></div></div>'+
-    '</div></div>'+
-    '<div style="font-size:9px;color:#cbd5e1;text-align:right;margin-bottom:4px">v103</div>'+
-    '<button id="pv-save" onclick="savePlayerView()" style="background:#203060;color:#fff;border:none;border-radius:8px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%">💾 Opslaan</button>';
 }
 
 
