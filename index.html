@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v140</title>
+<title>KSK Lovendegem U13 IP v141</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -333,6 +333,7 @@ textarea{resize:vertical;min-height:70px}
   border-bottom: 1px solid #fcd34d;
   letter-spacing: .01em;
 }
+.zb-btn.on{background:#203060!important;color:#e0d040!important;border-color:#203060!important}
 </style>
 <script>
 // Mobile login fix
@@ -665,14 +666,7 @@ textarea{resize:vertical;min-height:70px}
         <div id="svm-wedstrijd-list"></div>
         <div class="field" style="margin-top:12px"><label>Periode (bv. Oktober 2026)</label><input id="svm-periode" placeholder="Oktober 2026"></div>
         <button class="b-btn" onclick="loadSvdMAdmin()">Herberekenen</button>
-        <div id="svm-result" style="margin-top:14px"></div>
-      </div>
-    </div>
-
-      </div>
-    </div>
-
-<script>
+        <div id="svm-r
 // CONFIG
 const SUPABASE_URL      = 'https://gfjqujhtligypbvrdnug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmanF1amh0bGlneXBidnJkbnVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNjgwNzQsImV4cCI6MjA5NzY0NDA3NH0.J_wkKkKMMsWRC2HFh6rYdOyv-WUERJ2hBypNSog9-RE';
@@ -1271,10 +1265,10 @@ function selectZbBtn(btn) {
   const id = btn.dataset.zbid;
   const container = document.getElementById(id);
   if(container) container.querySelectorAll('.zb-btn').forEach(b=>{
-    b.dataset.selected = '';
+    b.classList.remove('on');
     b.style.background='#f8fafc'; b.style.color='#374151'; b.style.borderColor='#e2e8f0';
   });
-  btn.dataset.selected = '1';
+  btn.classList.add('on');
   btn.style.background='#203060'; btn.style.color='#e0d040'; btn.style.borderColor='#203060';
   pvDirty();
 }
@@ -1387,7 +1381,7 @@ async function savePvVoetbal() {
   // Zelfbeoordeling
   ['inzet','gedrag','coach'].forEach(k=>{
     const el=document.getElementById('zb-'+k);
-    if(el){const sel=el.querySelector('.zb-btn[data-selected="1"]');if(sel)d2['zb_'+k]=parseInt(sel.dataset.val);}
+    if(el){const sel=el.querySelector('.zb-btn.on');if(sel)d2['zb_'+k]=parseInt(sel.dataset.val);}
   });
   // Pills
   ['sterke','werk'].forEach(type=>{
@@ -2226,6 +2220,17 @@ function showSpelersList(type) {
   // Redirect: click first player to preview, or just switch to player list
   // For now: highlight the type in the sidebar and show first player
   if(PLAYERS.length > 0) selectPlayerAdmin(PLAYERS[0].id);
+  switchAdminTab(type === 'voetbal' ? 'voetbal' : 'profiel');
+}
+// START
+init();
+
+
+
+
+
+
+[0].id);
   switchAdminTab(type === 'voetbal' ? 'voetbal' : 'profiel');
 }
 // START
