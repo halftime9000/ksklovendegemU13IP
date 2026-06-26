@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v200</title>
+<title>KSK Lovendegem U13 IP v205</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -331,9 +331,12 @@ textarea{resize:vertical;min-height:70px}
     box-shadow:none!important;
     width:100%!important;
     max-width:none!important;
-    padding:24px 20px 20px!important;
+    padding:0 20px!important;
     flex:1!important;
-    overflow-y:auto!important
+    overflow-y:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    justify-content:center!important;
   }
   .form-header>div:nth-child(2){font-size:24px!important;margin-bottom:6px!important}
 }
@@ -1312,25 +1315,58 @@ async function loadBeheerUsers(){
     ['admin','coach','player','pending'].forEach(r=>{html+='<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';});
     html+='</select>';
     html+='<select class="speler-link-select" style="max-width:160px" onchange="linkSpeler(this.dataset.uid,this.value)" data-uid="'+uid+'">'+spOptHtml+'</select>';
+    html+='<button class="del-user-btn" data-uid="'+uid+'" data-naam="'+(u.naam||u.email||'deze gebruiker').replace(/"/g,'&quot;')+'" style="padding:5px 9px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;min-height:32px" title="Verwijder gebruiker">🗑</button>';
     html+='</div></div>';
   });
   el.innerHTML=html;
+  // Event delegation voor delete knoppen (vermijdt inline onclick met speciale tekens)
+  el.querySelectorAll('.del-user-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      deleteUser(this.dataset.uid, this.dataset.naam);
+    });
+  });
+}
+async function deleteUser(uid, naam){
+  if(!confirm('Gebruiker "'+naam+'" verwijderen?\n\nDit verwijdert de toegang en rol uit de app.\nDe Supabase auth-account blijft bestaan.')) return;
+  const {error}=await sbDelete('user_roles','user_id=eq.'+uid);
+  if(error){toast('⚠️ Fout: '+(error.message||'onbekend'),true);return;}
+  toast('✓ "'+naam+'" verwijderd');
+  loadBeheerUsers();
 }
 async function updateRole(uid,r){
-  // Huidige waarde bewaren voor herstel bij fout
   const sel = document.querySelector('.role-select[data-uid="'+uid+'"]');
   const prev = sel ? sel.value : null;
-  const {error} = await sbPatch('user_roles','user_id=eq.'+uid,{role:r});
+
+  // Waarschuw als admin zijn eigen rol wijzigt
+  if(uid === SB_USER?.id && r !== 'admin'){
+    if(!confirm('⚠️ Je wijzigt je EIGEN rol naar "'+r+'".\nJe verliest dan admin-toegang en kunt dit niet ongedaan maken via de app.\n\nDoorgaan?')){
+      if(sel && prev) sel.value = prev;
+      return;
+    }
+  }
+
+  const {data,error} = await sbPatch('user_roles','user_id=eq.'+uid,{role:r});
+
   if(error){
-    const msg = error.message||error.code||error.hint||JSON.stringify(error);
-    toast('⚠️ Rol niet gewijzigd: '+msg, true);
-    console.error('updateRole error:', error);
-    // Dropdown terugzetten naar vorige waarde
+    toast('⚠️ Fout: '+(error.message||JSON.stringify(error)), true);
     if(sel && prev) sel.value = prev;
     return;
   }
-  toast('Rol bijgewerkt naar "'+r+'" ✓');
-  setTimeout(loadBeheerUsers, 800);
+
+  // Lege array = Supabase RLS blokkeerde de update (0 rijen gewijzigd)
+  if(!data || (Array.isArray(data) && data.length===0)){
+    if(r==='admin'){
+      toast('⚠️ "admin" geblokkeerd door Supabase RLS — fix dit in het dashboard', true);
+      alert('Supabase blokkeert het instellen van "admin" via de app.\n\nOplossing:\n1. Ga naar supabase.com → jouw project\n2. Table Editor → user_roles\n3. Zoek de rij van deze gebruiker\n4. Wijzig "role" handmatig naar "admin"\n5. Klik Save');
+    } else {
+      toast('⚠️ Rol niet gewijzigd (RLS-beleid)', true);
+    }
+    if(sel && prev) sel.value = prev;
+    return;
+  }
+
+  toast('✓ Rol gewijzigd naar "'+r+'"');
+  setTimeout(loadBeheerUsers, 600);
 }
 async function linkSpeler(uid,spelerId){await sbPatch('user_roles','user_id=eq.'+uid,{speler_id:spelerId?parseInt(spelerId):null});toast('Speler gekoppeld ✓');}
 
