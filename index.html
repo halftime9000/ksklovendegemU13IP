@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v161</title>
+<title>KSK Lovendegem U13 IP v163</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -1261,12 +1261,13 @@ async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;
 function switchPvTab(tab, btn) {
   document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.player-view-tab').forEach(b=>{
-    b.style.color='rgba(255,255,255,.5)';
+    b.style.color='#94a3b8';
     b.style.borderBottomColor='transparent';
+    b.style.fontWeight='600';
   });
   const pane=$('pvp-'+tab);
   if(pane) pane.classList.add('on');
-  if(btn){btn.style.color='#fff';btn.style.borderBottomColor='#1d4ed8';}
+  if(btn){btn.style.color='#203060';btn.style.borderBottomColor='#203060';btn.style.fontWeight='700';}
   if(tab==='wedstrijden') renderPvMatchListIn('pvp-wedstrijden');
   if(tab==='voetbal') loadPvVoetbal();
 }
@@ -2219,7 +2220,16 @@ function loadAdminVoetbalPane() {
         </div>`
       ) +
       sectionHtml('🌟 Sterke punten', pillSection('sterke') || '<span style="font-size:12px;color:#94a3b8">Nog niet ingevuld</span>') +
-      sectionHtml('📈 Werkpunten', pillSection('werk') || '<span style="font-size:12px;color:#94a3b8">Nog niet ingevuld</span>');
+      sectionHtml('📈 Werkpunten', pillSection('werk') || '<span style="font-size:12px;color:#94a3b8">Nog niet ingevuld</span>') +
+      '<div style="display:flex;gap:6px;margin-top:8px">' +
+      '<button data-reset="basisfiche" style="flex:1;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer">🗑 Basisfiche resetten</button>' +
+      '<button data-reset="evaluaties" style="flex:1;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer">🗑 Evaluaties resetten</button>' +
+      '</div>';
+    // Wire reset buttons
+    document.querySelectorAll('#admin-pane-voetbal [data-reset]').forEach(btn=>{
+      const spelerNaam = PLAYERS.find(x=>x.id===selId)?.voornaam||'';
+      btn.onclick = ()=>adminReset(btn.dataset.reset, selId, spelerNaam);
+    });
   });
 }
 
