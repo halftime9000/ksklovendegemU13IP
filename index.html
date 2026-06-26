@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v174</title>
+<title>KSK Lovendegem U13 IP v178</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -126,8 +126,8 @@ textarea{resize:vertical;min-height:70px}
 #s-player{background:var(--bg)}
 .pv-pane{display:none}
 .pv-pane.on{display:block}
-.player-view-tab{border-bottom:2px solid transparent!important;transition:all .15s}
-.player-view-tab.on{border-bottom-color:#1d4ed8!important;color:#fff!important}
+.player-view-tab{border-bottom:2px solid transparent!important;transition:all .15s;color:#94a3b8}
+.player-view-tab.on{border-bottom-color:#203060!important;color:#203060!important;font-weight:700!important}
 
 /* ── CALENDAR ── */
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
@@ -416,7 +416,10 @@ textarea{resize:vertical;min-height:70px}
     <div class="sb">
       <div class="sb-head">
         <div style="display:flex;align-items:flex-start;justify-content:space-between">
-          <div class="sb-label">KSK Lovendegem</div>
+          <div>
+            <div class="sb-label">KSK Lovendegem</div>
+            <div id="sb-user-name" style="font-size:11px;color:rgba(255,255,255,.5);margin-top:2px"></div>
+          </div>
           <button onclick="closeMobileList()" class="sb-close-btn" style="display:none;background:rgba(255,255,255,.15);border:none;border-radius:6px;width:28px;height:28px;color:#fff;font-size:16px;cursor:pointer;flex-shrink:0;line-height:1">×</button>
         </div>
         <div class="sb-team">U13 IP · 2026–27 <span id="demo-badge" class="demo-badge" style="display:none">DEMO</span></div>
@@ -617,7 +620,10 @@ textarea{resize:vertical;min-height:70px}
       <div class="section-card">
         <div class="section-card-title">Spelerslijst</div>
         <div id="beheer-speler-list"></div>
-        <button class="b-btn" onclick="showAddSpeler()" style="margin-top:10px">+ Speler toevoegen</button>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="b-btn" onclick="showAddSpeler()" style="flex:1">+ Speler toevoegen</button>
+          <button class="b-btn" onclick="syncNewPlayers()" style="flex:1;background:#f1f5f9;color:#374151">🔄 Synchroniseer</button>
+        </div>
       </div>
       <div id="add-speler-form" style="display:none" class="section-card">
         <div class="section-card-title">Nieuwe speler</div>
@@ -671,14 +677,7 @@ textarea{resize:vertical;min-height:70px}
         <div style="display:flex;gap:8px;margin-top:4px">
           <button class="b-btn" onclick="berekenSvdM()" style="flex:2;background:#203060;color:#e0d040">🏆 Bereken</button>
           <button class="b-btn" onclick="document.querySelectorAll('.svm-match-cb').forEach(cb=>cb.checked=true)" style="flex:1;background:#f1f5f9;color:#374151;font-size:11px">Alles ✓</button>
-        </div>
-        <div id="svm-result" style="margin-top:14px"></div>
-      </div>
-    </div>
-  </div>
-</div><!-- /s-beheer -->
 
-<script>
 // CONFIG
 const SUPABASE_URL      = 'https://gfjqujhtligypbvrdnug.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdmanF1amh0bGlneXBidnJkbnVnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwNjgwNzQsImV4cCI6MjA5NzY0NDA3NH0.J_wkKkKMMsWRC2HFh6rYdOyv-WUERJ2hBypNSog9-RE';
@@ -852,6 +851,8 @@ const PLAYERS = [
   {id:23, naam:'Vanderkelen',     voornaam:'Jacques'},
   {id:24, naam:'Vankeerberghen',  voornaam:'Len'},
   {id:25, naam:'Vereecke',        voornaam:'Liam'},
+  {id:26, naam:'Agar',            voornaam:'Hasan'},
+  {id:27, naam:'Pauwels',         voornaam:'Kristof'},
 ];
 const MULTI_KEYS = ['sterke_technisch','sterke_taktisch','sterke_fysiek','sterke_mentaal','werk_technisch','werk_taktisch','werk_fysiek','werk_mentaal'];
 const MONTHS = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
@@ -954,6 +955,14 @@ async function handleLogin() {
     } else {
       try { await loadAll(); } catch(e){ console.warn(e); }
       showFlex('s-app');
+      // Show name in sidebar
+      try {
+        const {data:nrd}=await sbGetOne('user_roles','user_id=eq.'+SB_USER.id+'&select=naam,role');
+        const displayNaam = (nrd?.naam) || SB_USER.email?.split('@')[0] || '';
+        const roleLabel = userRole==='coach' ? '🏫 Coach' : '⚙️ Admin';
+        const el=document.getElementById('sb-user-name');
+        if(el) el.textContent = roleLabel + (displayNaam ? ': '+displayNaam : '');
+      } catch(e){}
       setTimeout(()=>{
         const cards=document.getElementById('admin-nav-cards');
         if(cards) cards.style.display='block';
@@ -2373,6 +2382,37 @@ async function resetEenEvaluatie(btn) {
   } else {
     toast('Fout bij verwijderen', true);
   }
+}
+
+// START
+init();
+
+
+
+
+
+
+tn.parentElement.parentElement;
+    if(card) card.remove();
+  } else {
+    toast('Fout bij verwijderen', true);
+  }
+}
+
+
+async function syncNewPlayers() {
+  // Insert any PLAYERS not yet in Supabase
+  const {data:existing} = await sbGet('spelers','select=id');
+  if(!existing) return;
+  const existingIds = new Set(existing.map(r=>r.id));
+  const missing = PLAYERS.filter(p=>!existingIds.has(p.id));
+  if(!missing.length){ toast('Lijst is up-to-date'); return; }
+  for(const p of missing){
+    await sbInsert('spelers',{id:p.id, naam:p.naam, voornaam:p.voornaam, seizoen:'2026-27', data:{}});
+  }
+  toast('✓ '+missing.length+' speler(s) toegevoegd: '+missing.map(p=>p.voornaam).join(', '));
+  await loadAll();
+  loadBeheerSpelers();
 }
 
 // START
