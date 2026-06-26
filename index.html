@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v193</title>
+<title>KSK Lovendegem U13 IP v194</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -265,7 +265,9 @@ textarea{resize:vertical;min-height:70px}
     background:#fff!important;
     border:none!important;
     border-bottom:3px solid #e0d040!important;
-    flex-shrink:0!important;
+    flex:0 0 90px!important;
+    height:90px!important;
+    max-height:90px!important;
     width:100%!important;
     text-align:left!important;
     box-sizing:border-box!important;
@@ -415,9 +417,10 @@ textarea{resize:vertical;min-height:70px}
     // Logo hoogte vast op 90px — kaar past dan zonder scrollen
     var logoH = 90;
     if(logo){
+      logo.style.flex = '0 0 ' + logoH + 'px';
       logo.style.height = logoH + 'px';
-      logo.style.minHeight = logoH + 'px';
-      logo.style.flexShrink = '0';
+      logo.style.maxHeight = logoH + 'px';
+      logo.style.overflow = 'hidden';
     }
   }
   if(document.readyState==='loading'){
