@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v160</title>
+<title>KSK Lovendegem U13 IP v161</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -2109,6 +2109,17 @@ async function doRegister() {
 // ═══ ADMIN READ-ONLY VIEW ════════════════════════════════════════════════════
 
 function switchAdminTab(tab) {
+  // If wedstrijden tab, show reset option
+  if(tab==='wedstrijden') {
+    const wp = document.getElementById('admin-pane-wedstrijden');
+    if(wp && !wp.querySelector('[data-reset="evaluaties"]')) {
+      const resetDiv = document.createElement('div');
+      resetDiv.style.cssText = 'padding:12px 0 0';
+      resetDiv.innerHTML = '<button data-reset="evaluaties" style="width:100%;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🗑 Evaluaties resetten</button>';
+      resetDiv.querySelector('[data-reset]').onclick = ()=>adminReset('evaluaties',selId,PLAYERS.find(x=>x.id===selId)?.voornaam||'');
+      wp.appendChild(resetDiv);
+    }
+  }
   ['profiel','voetbal'].forEach(t => {
     const btn = document.getElementById('atab-'+t);
     const pane = document.getElementById('admin-pane-'+t);
@@ -2231,6 +2242,13 @@ function selectPlayerAdmin(id) {
   sbGetOne('spelers','id=eq.'+id+'&select=*').then(({data:row}) => {
     const d = row?.data || {};
     loadAdminProfielPane(d, p);
+    // Wire reset buttons
+    setTimeout(()=>{
+      const panel = document.getElementById('admin-pane-profiel');
+      if(panel) panel.querySelectorAll('[data-reset]').forEach(btn=>{
+        btn.onclick = ()=>adminReset(btn.dataset.reset, selId, p.voornaam||'');
+      });
+    }, 100);
   });
   switchAdminTab(window._adminDefaultTab || 'profiel');
   }
@@ -2247,6 +2265,19 @@ function showSpelersList(type) {
       : '👤 Kies een speler uit de lijst om het profiel te bekijken';
     hint.style.display = 'block';
   }
+}
+
+
+function adminReset(type, id, naam) {
+  const msgs = {
+    profiel: 'Profiel van ' + naam + ' resetten?',
+    basisfiche: 'Alle voetbaldata van ' + naam + ' resetten?',
+    evaluaties: 'Alle evaluaties van ' + naam + ' verwijderen?'
+  };
+  if(!confirm(msgs[type] || 'Resetten?')) return;
+  if(type==='profiel') resetSpelerProfiel(id, naam);
+  else if(type==='basisfiche') resetSpelerData(id, naam);
+  else if(type==='evaluaties') resetSpelerEvaluaties(id, naam);
 }
 
 // ═══ ADMIN: RESET SPELER DATA ════════════════════════════════════════════════
