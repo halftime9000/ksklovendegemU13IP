@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v183</title>
+<title>KSK Lovendegem U13 IP v191</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -256,7 +258,7 @@ textarea{resize:vertical;min-height:70px}
   #s-login>div:first-child{
     flex-direction:column!important;
     align-items:center!important;
-    gap:8px!important;
+    gap:2px!important;
     padding:0!important;
     background:transparent!important;
     border:none!important;
@@ -362,18 +364,18 @@ textarea{resize:vertical;min-height:70px}
     var cardNatural = card ? card.scrollHeight : 0;
     var headerH = Math.max(60, vh - cardNatural - 40); // -40px = 1cm omhoog
     if(logo){
-      logo.style.cssText = 'display:flex;flex-direction:row;align-items:center;gap:16px;padding:0 20px;background:#fff;border-bottom:3px solid #e0d040;flex-shrink:0;height:'+headerH+'px;box-sizing:border-box';
-      var imgS = Math.min(Math.round(headerH*0.65), 130);
+      logo.style.cssText = 'display:flex;flex-direction:row;align-items:center;gap:14px;padding:0 16px;background:#fff;border-bottom:3px solid #e0d040;flex-shrink:0;height:'+headerH+'px;box-sizing:border-box;overflow:hidden';
+      var imgS = Math.min(Math.round(headerH*0.60), 110);
       var img = logo.querySelector('img');
       if(img) img.style.cssText = 'width:'+imgS+'px;height:'+imgS+'px;object-fit:contain;flex-shrink:0;mix-blend-mode:multiply';
       var txt = logo.querySelector('div');
       if(txt){
-        txt.style.cssText = 'display:flex;align-items:center;gap:10px';
+        txt.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;overflow:hidden;min-width:0;flex:1';
         var divs = txt.querySelectorAll('div');
-        var fs1=Math.round(headerH*0.50), fs2=Math.round(headerH*0.16), fs3=Math.round(headerH*0.26);
-        if(divs[0]) divs[0].style.cssText = 'font-size:'+fs1+'px;font-weight:900;letter-spacing:-2px;line-height:1;color:#203060';
-        if(divs[1]) divs[1].style.cssText = 'font-size:'+fs2+'px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#203060';
-        if(divs[2]) divs[2].style.cssText = 'font-size:'+fs3+'px;font-weight:900;letter-spacing:.04em;text-transform:uppercase;border-left:4px solid #e0d040;padding-left:8px;color:#203060';
+        var fs1=Math.round(headerH*0.32), fs2=Math.round(headerH*0.11), fs3=Math.round(headerH*0.20);
+        if(divs[0]) divs[0].style.cssText = 'font-size:'+fs1+'px;font-weight:900;letter-spacing:-1px;line-height:1;color:#203060;white-space:nowrap';
+        if(divs[1]) divs[1].style.cssText = 'font-size:'+fs2+'px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#203060;white-space:nowrap';
+        if(divs[2]) divs[2].style.cssText = 'font-size:'+fs3+'px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;border-left:3px solid #e0d040;padding-left:6px;color:#203060;white-space:nowrap';
       }
     }
     sl.style.background = '#182448';
@@ -545,12 +547,11 @@ textarea{resize:vertical;min-height:70px}
       <div style="color:#203060;font-size:26px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;border-left:4px solid #e0d040;padding-left:10px">Lovendegem</div>
     </div>
   </div>
-  <div style="flex:0 0 380px;width:380px;background:#182448;border-radius:20px;padding:40px 36px;box-shadow:0 24px 60px rgba(32,48,96,.3);border:1px solid rgba(224,208,64,.15)">
+  <div style="flex:0 0 380px;width:380px;background:#182448;border-radius:20px;padding:40px 36px 26px;box-shadow:0 24px 60px rgba(32,48,96,.3);border:1px solid rgba(224,208,64,.15)">
     <div id="form-login">
       <div class="form-header" style="margin-bottom:28px">
-        <div style="font-size:11px;font-weight:700;color:#e0d040;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">· Inloggen ·</div>
-        <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.05;margin-bottom:10px">Spelers<br><span style="color:#e0d040">Platform</span></div>
-        <div style="font-size:13px;color:rgba(255,255,255,.4)">Log in om verder te gaan</div>
+        <div style="font-size:34px;font-weight:900;color:#fff;letter-spacing:-1px;line-height:1.05;margin-bottom:10px">Player<br><span style="color:#e0d040">Platform</span></div>
+        <div style="font-size:0.65em;color:rgba(255,255,255,.3)">Log in om verder te gaan</div>
       </div>
       <div style="position:relative;margin-bottom:14px"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">✉️</span><input id="inp-email" type="email" placeholder="E-mailadres" autocomplete="username" style="background:rgba(255,255,255,.07);border:none;border-bottom:2px solid rgba(224,208,64,.4);border-radius:8px 8px 0 0;padding:12px 12px 10px 36px;font-size:14px;color:#fff;outline:none;font-family:inherit;width:100%;box-sizing:border-box"></div>
       <div style="position:relative;margin-bottom:10px"><span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none">🔒</span><input id="inp-pwd" type="password" placeholder="Wachtwoord" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()" style="background:rgba(255,255,255,.07);border:none;border-bottom:2px solid rgba(224,208,64,.4);border-radius:8px 8px 0 0;padding:12px 12px 10px 36px;font-size:14px;color:#fff;outline:none;font-family:inherit;width:100%;box-sizing:border-box"></div>
@@ -559,6 +560,7 @@ textarea{resize:vertical;min-height:70px}
       <button id="login-btn" onclick="doLogin()" style="width:100%;padding:13px;background:#e0d040;color:#182448;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer">Inloggen</button>
       <div style="display:flex;align-items:center;gap:10px;margin:18px 0"><div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div><span style="font-size:11px;color:rgba(255,255,255,.3)">of</span><div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div></div>
       <button onclick="showLoginTab('register')" style="width:100%;padding:12px;border:1.5px solid rgba(255,255,255,.15);border-radius:10px;background:transparent;font-size:13px;font-weight:600;color:rgba(255,255,255,.6);cursor:pointer">Nieuw account aanmaken →</button>
+      <div style="margin-top:14px;text-align:center"><span style="font-family:'Nunito',sans-serif;font-style:italic;font-weight:300;font-size:11px;color:rgba(255,255,255,.3);letter-spacing:.04em">built by Hasan Agar</span></div>
     </div>
     <div id="form-register" style="display:none">
       <div style="font-size:26px;font-weight:900;color:#fff;letter-spacing:-.8px;margin-bottom:4px">Nieuw account</div>
@@ -570,6 +572,9 @@ textarea{resize:vertical;min-height:70px}
       <input id="reg-email" type="email" placeholder="E-mailadres" style="background:rgba(255,255,255,.07);border:none;border-bottom:2px solid rgba(224,208,64,.4);border-radius:8px 8px 0 0;padding:10px 12px;font-size:13px;color:#fff;outline:none;font-family:inherit;width:100%;box-sizing:border-box;display:block;margin-bottom:12px">
       <input id="reg-pwd" type="password" placeholder="Wachtwoord (min. 6)" style="background:rgba(255,255,255,.07);border:none;border-bottom:2px solid rgba(224,208,64,.4);border-radius:8px 8px 0 0;padding:10px 12px;font-size:13px;color:#fff;outline:none;font-family:inherit;width:100%;box-sizing:border-box;display:block;margin-bottom:12px">
       <input id="reg-pwd2" type="password" placeholder="Herhaal wachtwoord" style="background:rgba(255,255,255,.12);border:none;border-bottom:1px solid rgba(255,255,255,.3);border-radius:8px 8px 0 0;padding:10px 12px;font-size:13px;color:#fff;outline:none;font-family:inherit;width:100%;box-sizing:border-box;display:block;margin-bottom:12px">
+      <div id="reg-err" style="font-size:12px;color:#f87171;margin-bottom:10px;min-height:16px"></div>
+      <button id="reg-btn" onclick="doRegister()" style="width:100%;padding:13px;background:#e0d040;color:#182448;border:none;border-radius:10px;font-size:14px;font-weight:800;cursor:pointer;margin-bottom:12px">Account aanmaken</button>
+      <button onclick="showLoginTab('login')" style="width:100%;padding:10px;border:1px solid rgba(255,255,255,.15);border-radius:10px;background:transparent;font-size:13px;color:rgba(255,255,255,.5);cursor:pointer">← Terug naar inloggen</button>
     </div>
     </div>
     </div>
