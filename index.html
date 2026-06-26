@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v191</title>
+<title>KSK Lovendegem U13 IP v192</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -248,40 +248,85 @@ textarea{resize:vertical;min-height:70px}
 @media(max-width:860px){
   #s-login{
     flex-direction:column!important;
-    padding:24px 20px!important;
-    gap:20px!important;
-    justify-content:center!important;
-    align-items:center!important;
-    background:#f0f4f8!important;
-    overflow-y:auto!important
-  }
-  #s-login>div:first-child{
-    flex-direction:column!important;
-    align-items:center!important;
-    gap:2px!important;
     padding:0!important;
-    background:transparent!important;
+    gap:0!important;
+    justify-content:flex-start!important;
+    align-items:stretch!important;
+    background:#182448!important;
+    overflow:hidden!important
+  }
+  /* Logo alan: afbeelding LINKS, 3 regels tekst RECHTS */
+  #s-login>div:first-child{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:14px!important;
+    padding:0 16px!important;
+    background:#fff!important;
     border:none!important;
+    border-bottom:3px solid #e0d040!important;
     flex-shrink:0!important;
     width:100%!important;
-    text-align:center!important
+    text-align:left!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important
   }
-  #s-login>div:first-child img{width:96px!important;height:96px!important}
+  #s-login>div:first-child img{
+    width:60px!important;
+    height:60px!important;
+    object-fit:contain!important;
+    flex-shrink:0!important;
+    mix-blend-mode:multiply!important
+  }
   #s-login>div:first-child>div{
-    display:flex!important;flex-direction:column!important;align-items:center!important;gap:6px!important
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:flex-start!important;
+    gap:2px!important;
+    overflow:hidden!important;
+    min-width:0!important;
+    flex:1!important
   }
-  #s-login>div:first-child>div>div:nth-child(1){font-size:30px!important;letter-spacing:-1px!important;line-height:1!important}
-  #s-login>div:first-child>div>div:nth-child(2){font-size:13px!important;letter-spacing:.15em!important}
-  #s-login>div:first-child>div>div:nth-child(3){font-size:16px!important;padding-left:0!important;border-left:none!important;padding-top:6px!important;border-top:2px solid rgba(224,208,64,.4)!important;margin-top:6px!important}
+  #s-login>div:first-child>div>div:nth-child(1){
+    font-size:28px!important;
+    font-weight:900!important;
+    letter-spacing:-1px!important;
+    line-height:1!important;
+    color:#203060!important;
+    white-space:nowrap!important
+  }
+  #s-login>div:first-child>div>div:nth-child(2){
+    font-size:9px!important;
+    font-weight:600!important;
+    letter-spacing:.2em!important;
+    text-transform:uppercase!important;
+    color:#203060!important;
+    margin:1px 0!important;
+    white-space:nowrap!important
+  }
+  #s-login>div:first-child>div>div:nth-child(3){
+    font-size:15px!important;
+    font-weight:900!important;
+    letter-spacing:.05em!important;
+    text-transform:uppercase!important;
+    color:#203060!important;
+    border-left:3px solid #e0d040!important;
+    border-top:none!important;
+    padding-left:7px!important;
+    padding-top:0!important;
+    margin-top:2px!important;
+    white-space:nowrap!important
+  }
   #s-login>div:last-child{
     background:#182448!important;
-    border-radius:16px!important;
-    border:1px solid rgba(224,208,64,.2)!important;
-    box-shadow:0 8px 32px rgba(0,0,0,.2)!important;
+    border-radius:0!important;
+    border:none!important;
+    box-shadow:none!important;
     width:100%!important;
-    max-width:360px!important;
-    padding:24px 20px!important;
-    flex:none!important
+    max-width:none!important;
+    padding:24px 20px 20px!important;
+    flex:1!important;
+    overflow-y:auto!important
   }
   .form-header>div:nth-child(2){font-size:24px!important;margin-bottom:6px!important}
 }
@@ -350,35 +395,31 @@ textarea{resize:vertical;min-height:70px}
     if(window.innerWidth > 860) return;
     var sl = document.getElementById('s-login');
     if(!sl) return;
-    // GUARD: only apply if s-login is the active screen
     var computedDisplay = window.getComputedStyle(sl).display;
     if(computedDisplay === 'none') return;
-    // Full screen column layout
-    sl.style.cssText = 'display:flex!important;flex-direction:column;padding:0;gap:0;justify-content:flex-start;align-items:stretch;background:#fff;position:fixed;inset:0;z-index:10;overflow:hidden';
+    // Vollbild fixed layout — CSS @media regelt de stijl
+    sl.style.cssText = 'display:flex;flex-direction:column;position:fixed;inset:0;z-index:10;overflow:hidden;background:#182448';
     var logo = sl.children[0];
     var card = sl.children[1];
     var vh = window.innerHeight;
     if(card){
-      card.style.cssText = 'padding:22px 18px;border-radius:0;box-shadow:none;width:100%;background:#182448;flex-shrink:0';
+      card.style.padding = '24px 20px 20px';
+      card.style.borderRadius = '0';
+      card.style.boxShadow = 'none';
+      card.style.width = '100%';
+      card.style.background = '#182448';
+      card.style.flex = '1';
+      card.style.overflowY = 'auto';
+      card.style.boxSizing = 'border-box';
     }
-    var cardNatural = card ? card.scrollHeight : 0;
-    var headerH = Math.max(60, vh - cardNatural - 40); // -40px = 1cm omhoog
+    // Logo hoogte = schermhoogte minus kaarthoogte (min 80px)
+    var cardH = card ? Math.min(card.scrollHeight, vh * 0.85) : 0;
+    var logoH = Math.max(80, vh - cardH);
     if(logo){
-      logo.style.cssText = 'display:flex;flex-direction:row;align-items:center;gap:14px;padding:0 16px;background:#fff;border-bottom:3px solid #e0d040;flex-shrink:0;height:'+headerH+'px;box-sizing:border-box;overflow:hidden';
-      var imgS = Math.min(Math.round(headerH*0.60), 110);
-      var img = logo.querySelector('img');
-      if(img) img.style.cssText = 'width:'+imgS+'px;height:'+imgS+'px;object-fit:contain;flex-shrink:0;mix-blend-mode:multiply';
-      var txt = logo.querySelector('div');
-      if(txt){
-        txt.style.cssText = 'display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;overflow:hidden;min-width:0;flex:1';
-        var divs = txt.querySelectorAll('div');
-        var fs1=Math.round(headerH*0.32), fs2=Math.round(headerH*0.11), fs3=Math.round(headerH*0.20);
-        if(divs[0]) divs[0].style.cssText = 'font-size:'+fs1+'px;font-weight:900;letter-spacing:-1px;line-height:1;color:#203060;white-space:nowrap';
-        if(divs[1]) divs[1].style.cssText = 'font-size:'+fs2+'px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#203060;white-space:nowrap';
-        if(divs[2]) divs[2].style.cssText = 'font-size:'+fs3+'px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;border-left:3px solid #e0d040;padding-left:6px;color:#203060;white-space:nowrap';
-      }
+      logo.style.height = logoH + 'px';
+      logo.style.minHeight = '80px';
+      logo.style.flexShrink = '0';
     }
-    sl.style.background = '#182448';
   }
   if(document.readyState==='loading'){
     document.addEventListener('DOMContentLoaded', applyMobileLogin);
