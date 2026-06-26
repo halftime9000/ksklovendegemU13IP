@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v154</title>
+<title>KSK Lovendegem U13 IP v160</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -578,9 +578,9 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <!-- Tabs -->
   <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
-    <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:11px 6px;border:none;border-bottom:3px solid #203060;background:none;font-size:12px;font-weight:700;color:#203060;cursor:pointer">👤 Profiel</button>
-    <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:11px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;color:#94a3b8;cursor:pointer">⚽ Voetbal</button>
-    <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:11px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:12px;font-weight:600;color:#94a3b8;cursor:pointer">🏟️ Wedstrijden</button>
+    <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;border-bottom:3px solid #203060;background:none;font-size:13px;font-weight:700;color:#203060;cursor:pointer;letter-spacing:.01em">Profiel</button>
+    <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer;letter-spacing:.01em">Voetbal</button>
+    <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
   </div>
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
@@ -600,10 +600,10 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <!-- Beheer tabs -->
   <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;flex-shrink:0">
-    <button class="beheer-tab on" onclick="switchBeheerTab('spelers',this)">👥 Spelers</button>
-    <button class="beheer-tab" onclick="switchBeheerTab('users',this)">🔑 Gebruikers</button>
-    <button class="beheer-tab" onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
-    <button class="beheer-tab" onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
+    <button class="beheer-tab on" data-tab="spelers" onclick="switchBeheerTab('spelers',this)">👥 Spelers</button>
+    <button class="beheer-tab" data-tab="users" onclick="switchBeheerTab('users',this)">🔑 Gebruikers</button>
+    <button class="beheer-tab" data-tab="wedstrijden" onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
+    <button class="beheer-tab" data-tab="maandprijs" onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
   </div>
   <!-- Beheer panes -->
   <div style="flex:1;overflow-y:auto;padding:16px">
@@ -1144,14 +1144,27 @@ function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toe
 
 function openBeheerTab(tab) {
   showFlex('s-beheer');
-  loadBeheerSpelers();
-  loadBeheerUsers();
-  const btn = document.querySelector('.beheer-tab[onclick*="\'" + tab + "\'"]');
-  switchBeheerTab(tab, btn);
+  switchBeheerTab(tab, null);
 }
 
 
-function switchBeheerTab(id,btn){document.querySelectorAll('.beheer-pane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.beheer-tab').forEach(b=>b.classList.remove('on'));document.getElementById('bp-'+id)?.classList.add('on');btn?.classList.add('on');if(id==='wedstrijden')loadBeheerWedstrijden();else if(id==='maandprijs')loadSvdMAdmin();}
+function switchBeheerTab(id,btn){
+  // Use direct style instead of classes
+  ['spelers','users','wedstrijden','maandprijs'].forEach(t=>{
+    const p=document.getElementById('bp-'+t);
+    if(p) p.style.display = t===id ? 'block' : 'none';
+  });
+  document.querySelectorAll('.beheer-tab').forEach(b=>{
+    const isActive = b.dataset.tab === id;
+    b.style.borderBottomColor = isActive ? '#203060' : 'transparent';
+    b.style.color = isActive ? '#203060' : '#64748b';
+    b.style.fontWeight = isActive ? '700' : '600';
+  });
+  if(id==='wedstrijden') loadBeheerWedstrijden();
+  else if(id==='maandprijs') loadSvdMAdmin();
+  else if(id==='spelers') loadBeheerSpelers();
+  else if(id==='users') loadBeheerUsers();
+}
 async function loadBeheerSpelers(){
   const {data}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
   const {data:urs}=await sbGet('user_roles','select=speler_id&role=eq.player');
@@ -2115,6 +2128,7 @@ function loadAdminProfielPane(d, speler) {
   const rowHtml = (label, val) => val
     ? `<div style="margin-bottom:12px"><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px">${label}</div><div style="font-size:14px;color:#0a1628;font-weight:500">${val}</div></div>`
     : '';
+  const resetBtns = buildAdminResetBtns(selId, speler.voornaam);
   el.innerHTML =
     '<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:12px">' +
     '<div style="font-size:12px;font-weight:700;color:#203060;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">👤 Persoonlijke gegevens</div>' +
@@ -2124,6 +2138,7 @@ function loadAdminProfielPane(d, speler) {
     rowHtml('GSM', d.gsm_speler || '—') +
     rowHtml('Favoriete ploeg', d.fav_ploeg || '—') +
     rowHtml('Naam school', d.school_naam || '—') +
+    resetBtns +
     '</div>';
 }
 
@@ -2232,6 +2247,54 @@ function showSpelersList(type) {
       : '👤 Kies een speler uit de lijst om het profiel te bekijken';
     hint.style.display = 'block';
   }
+}
+
+// ═══ ADMIN: RESET SPELER DATA ════════════════════════════════════════════════
+function buildAdminResetBtns(id, naam) {
+  const n = (naam||'').replace(/"/g,'');
+  const s = 'flex:1;padding:8px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer';
+  return '<div style="display:flex;gap:6px;margin-top:14px;padding-top:12px;border-top:1px solid #e2e8f0">'
+    + '<button style="'+s+'" onclick="resetSpelerProfiel('+id+',\"'+n+'\")">🗑 Profiel</button>'
+    + '<button style="'+s+'" onclick="resetSpelerData('+id+',\"'+n+'\")">🗑 Alles</button>'
+    + '<button style="'+s+'" onclick="resetSpelerEvaluaties('+id+',\"'+n+'\")">🗑 Evaluaties</button>'
+    + '</div>';
+}
+
+async function resetSpelerData(spelerId, naam) {
+  if(!confirm('Weet je zeker dat je ALLE data van ' + naam + ' wilt resetten? Dit kan niet ongedaan worden gemaakt.')) return;
+  const leeg = {
+    geboortedatum:'', gsm_speler:'', fav_ploeg:'', school_naam:'',
+    voorkeurspoot:'', vorige_clubs:'', rolmodel:'', waarom_voetbal:'',
+    droomscenario:'', bf_niveau:'', bf_doel:'', werkpunt:'', verw_trainer:'',
+    'pv-fav-pos':[], 'pv-ges-pos':[],
+    zb_inzet:null, zb_gedrag:null, zb_coach:null,
+    sterke_technisch:[], sterke_taktisch:[], sterke_fysiek:[], sterke_mentaal:[],
+    werk_technisch:[], werk_taktisch:[], werk_fysiek:[], werk_mentaal:[]
+  };
+  const {error} = await sbPatch('spelers','id=eq.'+spelerId,{data:leeg});
+  if(!error){
+    toast('✓ Data van '+naam+' gereset');
+    // Reload current view
+    if(selId===spelerId) loadAdminVoetbalPane();
+  } else {
+    toast('Fout bij resetten','err');
+  }
+}
+
+async function resetSpelerEvaluaties(spelerId, naam) {
+  if(!confirm('Alle evaluaties van ' + naam + ' verwijderen?')) return;
+  // Delete all evaluations for this player
+  const {error} = await sbDelete('evaluaties', 'speler_id=eq.'+spelerId);
+  if(!error) toast('✓ Evaluaties van '+naam+' verwijderd');
+  else toast('Fout bij verwijderen','err');
+}
+
+function resetSpelerProfiel(spelerId, naam) {
+  if(!confirm('Profiel van ' + naam + ' resetten?')) return;
+  sbPatch('spelers','id=eq.'+spelerId,{data:{geboortedatum:'',gsm_speler:'',fav_ploeg:'',school_naam:''}}).then(({error})=>{
+    if(!error) toast('✓ Profiel gereset');
+    else toast('Fout','err');
+  });
 }
 // START
 init();
