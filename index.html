@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v163</title>
+<title>KSK Lovendegem U13 IP v166</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -639,6 +639,11 @@ textarea{resize:vertical;min-height:70px}
 
     <!-- Wedstrijden -->
     <div id="bp-wedstrijden" class="beheer-pane">
+      <div class="section-card" style="background:#fff8f8;border:1px solid #fecaca;margin-bottom:12px">
+        <div class="section-card-title" style="color:#dc2626">🗑 Evaluaties resetten</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:10px">Verwijder alle evaluaties van een speler.</div>
+        <div id="beheer-eval-reset-list"></div>
+      </div>
       <div class="section-card">
         <div class="section-card-title">Wedstrijd toevoegen</div>
         <div class="match-add-grid" style="margin-bottom:10px">
@@ -1160,7 +1165,7 @@ function switchBeheerTab(id,btn){
     b.style.color = isActive ? '#203060' : '#64748b';
     b.style.fontWeight = isActive ? '700' : '600';
   });
-  if(id==='wedstrijden') loadBeheerWedstrijden();
+  if(id==='wedstrijden'){loadBeheerWedstrijden();loadEvalResetList();}
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
   else if(id==='users') loadBeheerUsers();
@@ -2110,17 +2115,6 @@ async function doRegister() {
 // ═══ ADMIN READ-ONLY VIEW ════════════════════════════════════════════════════
 
 function switchAdminTab(tab) {
-  // If wedstrijden tab, show reset option
-  if(tab==='wedstrijden') {
-    const wp = document.getElementById('admin-pane-wedstrijden');
-    if(wp && !wp.querySelector('[data-reset="evaluaties"]')) {
-      const resetDiv = document.createElement('div');
-      resetDiv.style.cssText = 'padding:12px 0 0';
-      resetDiv.innerHTML = '<button data-reset="evaluaties" style="width:100%;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🗑 Evaluaties resetten</button>';
-      resetDiv.querySelector('[data-reset]').onclick = ()=>adminReset('evaluaties',selId,PLAYERS.find(x=>x.id===selId)?.voornaam||'');
-      wp.appendChild(resetDiv);
-    }
-  }
   ['profiel','voetbal'].forEach(t => {
     const btn = document.getElementById('atab-'+t);
     const pane = document.getElementById('admin-pane-'+t);
@@ -2221,9 +2215,8 @@ function loadAdminVoetbalPane() {
       ) +
       sectionHtml('🌟 Sterke punten', pillSection('sterke') || '<span style="font-size:12px;color:#94a3b8">Nog niet ingevuld</span>') +
       sectionHtml('📈 Werkpunten', pillSection('werk') || '<span style="font-size:12px;color:#94a3b8">Nog niet ingevuld</span>') +
-      '<div style="display:flex;gap:6px;margin-top:8px">' +
-      '<button data-reset="basisfiche" style="flex:1;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer">🗑 Basisfiche resetten</button>' +
-      '<button data-reset="evaluaties" style="flex:1;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer">🗑 Evaluaties resetten</button>' +
+      '<div style="margin-top:8px">' +
+      '<button data-reset="basisfiche" style="width:100%;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🗑 Basisfiche / info resetten</button>' +
       '</div>';
     // Wire reset buttons
     document.querySelectorAll('#admin-pane-voetbal [data-reset]').forEach(btn=>{
@@ -2337,6 +2330,21 @@ function resetSpelerProfiel(spelerId, naam) {
     else toast('Fout','err');
   });
 }
+
+function loadEvalResetList() {
+  const el = document.getElementById('beheer-eval-reset-list');
+  if(!el) return;
+  el.innerHTML = PLAYERS.map(p=>
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid #fee2e2">' +
+    '<span style="font-size:13px;font-weight:500;color:#374151">' + (p.voornaam||'') + ' ' + (p.naam||'') + '</span>' +
+    '<button data-spid="' + p.id + '" data-spnm="' + (p.voornaam||'').replace(/"/g,'') + '" data-reset="evaluaties" style="padding:5px 12px;background:#dc2626;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer">Reset</button>' +
+    '</div>'
+  ).join('') || '<div style="font-size:12px;color:#94a3b8">Geen spelers</div>';
+  el.querySelectorAll('[data-reset]').forEach(btn=>{
+    btn.onclick=()=>adminReset(btn.dataset.reset, parseInt(btn.dataset.spid), btn.dataset.spnm);
+  });
+}
+
 // START
 init();
 
