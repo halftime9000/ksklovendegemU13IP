@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v170</title>
+<title>KSK Lovendegem U13 IP v172</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -664,7 +664,10 @@ textarea{resize:vertical;min-height:70px}
         <div style="font-size:12px;color:#64748b;margin-bottom:12px">Selecteer de wedstrijden die mee tellen voor de berekening.</div>
         <div id="svm-wedstrijd-list"></div>
         <div class="field" style="margin-top:12px"><label>Periode (bv. Oktober 2026)</label><input id="svm-periode" placeholder="Oktober 2026"></div>
-        <button class="b-btn" onclick="loadSvdMAdmin()">Herberekenen</button>
+        <div style="display:flex;gap:8px;margin-top:4px">
+          <button class="b-btn" onclick="berekenSvdM()" style="flex:2;background:#203060;color:#e0d040">🏆 Bereken</button>
+          <button class="b-btn" onclick="document.querySelectorAll('.svm-match-cb').forEach(cb=>cb.checked=true)" style="flex:1;background:#f1f5f9;color:#374151;font-size:11px">Alles ✓</button>
+        </div>
         <div id="svm-result" style="margin-top:14px"></div>
       </div>
     </div>
@@ -1956,15 +1959,18 @@ let svdmSelectedId = null;
 let svdmMatchIds   = [];
 
 async function loadSvdMAdmin() {
-  // Load matches for selection
-  const {data}=await sbGet('wedstrijden','select=id,datum,tegenstander&order=datum.desc');
-  const el=$('svm-match-select');if(!el)return;
-  if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen wedstrijden beschikbaar.</div>';return;}
-  el.innerHTML=data.map(w=>'<label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer">'+
-    '<input type="checkbox" class="svm-match-cb" value="'+w.id+'" style="width:14px;height:14px;accent-color:#1d4ed8">'+
-    '<span>'+fmtDate(w.datum)+' — vs '+w.tegenstander+'</span>'+
-  '</label>').join('');
-  loadSvdMHuidig();
+  // Load matches for selection checkboxes
+  const {data}=await sbGet('wedstrijden','select=id,datum,tegenstander&order=datum.asc');
+  const el=$('svm-wedstrijd-list');if(!el)return;
+  if(!data||!data.length){
+    el.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px 0">Geen wedstrijden beschikbaar.</div>';
+    return;
+  }
+  el.innerHTML='<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Selecteer wedstrijden</div>'+
+  data.map(w=>`<label style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:#f8fafc;border:1px solid #e2e8f0">
+    <input type="checkbox" class="svm-match-cb" value="${w.id}" style="width:16px;height:16px;accent-color:#203060;flex-shrink:0">
+    <span style="font-size:13px;color:#374151;font-weight:500">${fmtDate(w.datum)} — vs ${w.tegenstander}</span>
+  </label>`).join('');
 }
 
 async function berekenSvdM() {
