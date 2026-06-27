@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v214</title>
+<title>KSK Lovendegem U13 IP v216</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -583,11 +583,13 @@ textarea{resize:vertical;min-height:70px}
         <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
           <button id="atab-profiel" onclick="switchAdminTab('profiel')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid #203060;background:none;font-size:13px;font-weight:700;color:#203060;cursor:pointer">👤 Profiel</button>
           <button id="atab-voetbal" onclick="switchAdminTab('voetbal')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">⚽ Voetbal</button>
+          <button id="atab-seizoen" onclick="switchAdminTab('seizoen')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">📈 Seizoen</button>
         </div>
         <!-- Content -->
         <div style="flex:1;overflow-y:auto;padding:16px">
           <div id="admin-pane-profiel"></div>
           <div id="admin-pane-voetbal" style="display:none"></div>
+          <div id="admin-pane-seizoen" style="display:none"></div>
         </div>
       </div>
     </div><!-- /layout -->
@@ -671,12 +673,18 @@ textarea{resize:vertical;min-height:70px}
   <!-- Beheer tabs -->
   <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;flex-shrink:0">
     <button class="beheer-tab on" data-tab="spelers" onclick="switchBeheerTab('spelers',this)">👥 Spelers</button>
+    <button class="beheer-tab" data-tab="overzicht" onclick="switchBeheerTab('overzicht',this)">📊 Overzicht</button>
     <button class="beheer-tab" data-tab="users" onclick="switchBeheerTab('users',this)">🔑 Gebruikers</button>
     <button class="beheer-tab" data-tab="wedstrijden" onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
     <button class="beheer-tab" data-tab="maandprijs" onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
   </div>
   <!-- Beheer panes -->
   <div style="flex:1;overflow-y:auto;padding:16px">
+
+    <!-- Overzicht -->
+    <div id="bp-overzicht" class="beheer-pane">
+      <div id="overzicht-content"><div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px">Laden...</div></div>
+    </div>
 
     <!-- Spelers -->
     <div id="bp-spelers" class="beheer-pane on">
@@ -1024,7 +1032,7 @@ async function handleLogin() {
     // Hide all screens first
     ['s-login','s-pending','s-app','s-player','s-beheer'].forEach(hide);
 
-    if(userRole==='player'){
+    if(userRole==='player'||userRole==='keeper'){
       try { await loadPlayerView(); } catch(e){ console.warn(e); }
       showFlex('s-player');
     } else if(userRole==='pending'){
@@ -1036,7 +1044,7 @@ async function handleLogin() {
       try {
         const {data:nrd}=await sbGetOne('user_roles','user_id=eq.'+SB_USER.id+'&select=naam,role');
         const displayNaam = (nrd?.naam) || SB_USER.email?.split('@')[0] || '';
-        const roleLabel = userRole==='coach' ? '🏫 Coach' : '⚙️ Admin';
+        const roleLabel = userRole==='coach' ? '🏫 Coach' : userRole==='keeper' ? '🧤 Keeper' : '⚙️ Admin';
         const el=document.getElementById('sb-user-name');
         if(el) el.textContent = roleLabel + (displayNaam ? ': '+displayNaam : '');
       } catch(e){}
@@ -1251,8 +1259,7 @@ function openBeheerTab(tab) {
 
 
 function switchBeheerTab(id,btn){
-  // Use direct style instead of classes
-  ['spelers','users','wedstrijden','maandprijs'].forEach(t=>{
+  ['spelers','overzicht','users','wedstrijden','maandprijs'].forEach(t=>{
     const p=document.getElementById('bp-'+t);
     if(p) p.style.display = t===id ? 'block' : 'none';
   });
@@ -1266,6 +1273,7 @@ function switchBeheerTab(id,btn){
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
   else if(id==='users') loadBeheerUsers();
+  else if(id==='overzicht') loadBeheerOverzicht();
 }
 async function loadBeheerSpelers(){
   const {data}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
@@ -1331,13 +1339,9 @@ async function loadBeheerUsers(){
     html+='</div>';
     html+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
     html+='<select class="role-select" data-uid="'+uid+'">';
-    ['admin','coach','player','pending'].forEach(r=>{html+='<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';});
+    ['admin','coach','player','keeper','pending'].forEach(r=>{html+='<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';});
     html+='</select>';
     html+='<select class="speler-link-select" style="max-width:160px" data-uid="'+uid+'">'+spOptHtml+'</select>';
-    // Keeper toggle — alleen zichtbaar als speler gekoppeld is
-    if(u.speler_id){
-      html+='<button class="keeper-toggle-btn" data-speler-id="'+u.speler_id+'" data-is-keeper="'+(isKeeper?'1':'0')+'" title="Keeper aan/uit" style="padding:5px 10px;background:'+(isKeeper?'#fef3c7':'#f8fafc')+';color:'+(isKeeper?'#92400e':'#94a3b8')+';border:1px solid '+(isKeeper?'#fcd34d':'#e2e8f0')+';border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;min-height:32px;-webkit-tap-highlight-color:transparent">🧤</button>';
-    }
     html+='<button class="save-user-btn b-btn" data-uid="'+uid+'" data-speler-id="'+(u.speler_id||'')+'" style="padding:5px 12px;background:#203060;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;min-height:32px;-webkit-tap-highlight-color:transparent;width:auto;margin-bottom:0">Opslaan</button>';
     html+='<button class="del-user-btn" data-uid="'+uid+'" data-naam="'+(u.naam||u.email||'deze gebruiker').replace(/"/g,'&quot;')+'" style="padding:5px 9px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;min-height:32px" title="Verwijder gebruiker">🗑</button>';
     html+='</div></div>';
@@ -1364,27 +1368,26 @@ async function loadBeheerUsers(){
       const row = this.closest('.user-row');
       const roleEl = row?.querySelector('.role-select');
       const linkEl = row?.querySelector('.speler-link-select');
-      const keeperEl = row?.querySelector('.keeper-toggle-btn');
       const origTxt = this.textContent;
+      const selectedRole = roleEl?.value;
+      const linkedSpelerId = linkEl?.value || spelerId;
       btnLoad(this, 'Bezig…');
       const promises = [];
-      // Save role
-      if(roleEl) promises.push(sbPatch('user_roles','user_id=eq.'+uid,{role:roleEl.value}));
-      // Save speler link
+      if(roleEl) promises.push(sbPatch('user_roles','user_id=eq.'+uid,{role:selectedRole}));
       if(linkEl) promises.push(sbPatch('user_roles','user_id=eq.'+uid,{speler_id:linkEl.value||null}));
-      // Save keeper status
-      if(keeperEl && spelerId){
-        const isKeeper = keeperEl.dataset.isKeeper === '1';
-        const {data:sRow}=await sbGetOne('spelers','id=eq.'+spelerId+'&select=id,data');
+      // Keeper rol → is_keeper automatisch bijwerken in spelers tabel
+      if(linkedSpelerId && (selectedRole==='keeper'||selectedRole==='player')){
+        const isKeeper = selectedRole==='keeper';
+        const {data:sRow}=await sbGetOne('spelers','id=eq.'+linkedSpelerId+'&select=id,data');
         const d=sRow?.data||{};
         d.is_keeper=isKeeper;
-        promises.push(sbPatch('spelers','id=eq.'+spelerId,{data:d}));
+        promises.push(sbPatch('spelers','id=eq.'+linkedSpelerId,{data:d}));
       }
       const results = await Promise.all(promises);
       const hasError = results.some(r=>r?.error);
       if(hasError){ toast('⚠️ Fout bij opslaan',true); btnReset(this,origTxt); return; }
       btnOk(this, 2000, origTxt);
-      toast('✓ Opgeslagen');
+      toast(selectedRole==='keeper'?'🧤 Keeper opgeslagen & basisfiche bijgewerkt':'✓ Opgeslagen');
       setTimeout(loadBeheerUsers, 1800);
     });
   });
@@ -1952,7 +1955,10 @@ async function openEvalForm(matchId) {
   let html='';
 
   // Locked banner
-  if(locked){html+='<div class="locked-banner">🔒 Evaluatie ingediend — alleen lezen</div>';}
+  if(locked){html+='<div class="locked-banner" style="display:flex;align-items:center;justify-content:space-between">'+
+    '<span>✅ Evaluatie ingediend</span>'+
+    '<button onclick="editEvaluatie('+matchId+')" style="padding:4px 12px;background:#203060;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✏️ Bewerken</button>'+
+    '</div>';}
 
   // ── BLOK 1: Tegenstander ──
   const sys=ev?.tegenstander_systeem||'';
@@ -2021,7 +2027,7 @@ async function openEvalForm(matchId) {
   '</div>';
 
   if(!locked){
-    html+='<button onclick="saveEvaluatie('+matchId+',['+teammates.join(',')+'])" class="btn-green" style="width:100%;padding:11px;font-size:13px;font-weight:600">💾 Indienen & vergrendelen</button>';
+    html+='<button onclick="saveEvaluatie('+matchId+',['+teammates.join(',')+'])" class="btn-green" style="width:100%;padding:11px;font-size:13px;font-weight:600">💾 Verzenden</button>';
   }
 
   evalDiv.innerHTML=html;
@@ -2099,7 +2105,7 @@ async function saveEvaluatie(matchId, teamIds) {
   const payload={
     match_id:matchId, beoordelaar:uid,
     ratings, motm, weak_link:wl,
-    vergrendeld:true,
+    vergrendeld:false,
     tegenstander_systeem:sysSel?sysSel.textContent.trim():'',
     tegenstander_systeem_extra:document.getElementById('sys-extra-'+matchId)?.value||'',
     tegenstander_beste:document.getElementById('beste-teg-'+matchId)?.value||'',
@@ -2116,8 +2122,15 @@ async function saveEvaluatie(matchId, teamIds) {
 
   const {error}=await sbUpsert('match_evaluaties', payload);
   if(error){toast('Fout: '+(error.message||'onbekend'),true);return;}
-  toast('✓ Evaluatie ingediend en vergrendeld!');
-  // Reload form in locked state
+  toast('✓ Evaluatie verzonden!');
+  const div=$('eval-body-'+matchId);
+  if(div){div.classList.remove('open');setTimeout(()=>{div.classList.add('open');openEvalForm(matchId);},100);}
+}
+
+async function editEvaluatie(matchId) {
+  // Unlock: set vergrendeld=false en herlaad form
+  const uid=userSpelerId?parseInt(userSpelerId):null;
+  await sbPatch('match_evaluaties','match_id=eq.'+matchId+'&beoordelaar=eq.'+uid,{vergrendeld:false});
   const div=$('eval-body-'+matchId);
   if(div){div.classList.remove('open');setTimeout(()=>{div.classList.add('open');openEvalForm(matchId);},100);}
 }
@@ -2339,7 +2352,7 @@ async function doRegister() {
 // ═══ ADMIN READ-ONLY VIEW ════════════════════════════════════════════════════
 
 function switchAdminTab(tab) {
-  ['profiel','voetbal'].forEach(t => {
+  ['profiel','voetbal','seizoen'].forEach(t => {
     const btn = document.getElementById('atab-'+t);
     const pane = document.getElementById('admin-pane-'+t);
     if(btn) {
@@ -2350,6 +2363,7 @@ function switchAdminTab(tab) {
     if(pane) pane.style.display = t===tab ? '' : 'none';
   });
   if(tab==='voetbal') loadAdminVoetbalPane();
+  if(tab==='seizoen') loadAdminSeizoenPane();
 }
 
 function loadAdminProfielPane(d, speler) {
@@ -2450,6 +2464,151 @@ function loadAdminVoetbalPane() {
     });
   });
 }
+
+// ── SEIZOEN OVERZICHT PER SPELER ────────────────────────────────
+async function loadAdminSeizoenPane() {
+  const el = document.getElementById('admin-pane-seizoen');
+  if(!el || !selId) return;
+  el.innerHTML = '<div style="text-align:center;padding:20px;color:#94a3b8;font-size:13px">Laden...</div>';
+  const {data:evals} = await sbGet('match_evaluaties','beoordelaar=eq.'+selId+'&select=*&order=match_id.asc');
+  const {data:matches} = await sbGet('wedstrijden','select=id,datum,tegenstander&order=datum.asc');
+  if(!evals||!evals.length){
+    el.innerHTML='<div style="padding:20px;text-align:center;color:#94a3b8;font-size:13px">Nog geen wedstrijdevaluaties ingediend.</div>';
+    return;
+  }
+  const matchMap={};(matches||[]).forEach(m=>matchMap[m.id]=m);
+
+  const sc=(v)=>v?`<span style="display:inline-block;width:30px;height:30px;border-radius:6px;background:#203060;color:#e0d040;font-size:13px;font-weight:800;text-align:center;line-height:30px">${v}</span>`:'<span style="color:#cbd5e1">—</span>';
+
+  // Averages
+  const vals=(k)=>evals.filter(e=>e[k]).map(e=>e[k]);
+  const avg=(k)=>{const v=vals(k);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—';};
+
+  let html='<div style="overflow-x:auto">';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+='<thead><tr style="background:#f1f5f9;text-align:center">';
+  html+='<th style="text-align:left;padding:8px 10px;font-weight:700;color:#203060">Wedstrijd</th>';
+  html+='<th style="padding:8px 6px;color:#203060">B+</th>';
+  html+='<th style="padding:8px 6px;color:#203060">B-</th>';
+  html+='<th style="padding:8px 6px;color:#203060">T B+→B-</th>';
+  html+='<th style="padding:8px 6px;color:#203060">T B-→B+</th>';
+  html+='<th style="padding:8px 6px;color:#203060">MOTM</th>';
+  html+='</tr></thead><tbody>';
+
+  evals.forEach((ev,i)=>{
+    const m=matchMap[ev.match_id]||{};
+    const datum=m.datum?new Date(m.datum).toLocaleDateString('nl-BE',{day:'numeric',month:'short'}):'—';
+    const isMotm=ev.motm===selId;
+    const bg=i%2===0?'#fff':'#f8fafc';
+    html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9">`;
+    html+=`<td style="padding:8px 10px;font-weight:600;color:#0a1628">${datum} vs ${m.tegenstander||'?'}</td>`;
+    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_plus)}</td>`;
+    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_min)}</td>`;
+    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bp_bm)}</td>`;
+    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bm_bp)}</td>`;
+    html+=`<td style="text-align:center;padding:6px">${isMotm?'⭐':'—'}</td>`;
+    html+='</tr>';
+  });
+
+  // Gemiddelde rij
+  html+=`<tr style="background:#e0d040;font-weight:800">`;
+  html+=`<td style="padding:8px 10px;color:#182448">Gemiddelde (${evals.length} wedstrijden)</td>`;
+  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_b_plus')}</td>`;
+  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_b_min')}</td>`;
+  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_trans_bp_bm')}</td>`;
+  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_trans_bm_bp')}</td>`;
+  const motmCount=evals.filter(e=>e.motm===selId).length;
+  html+=`<td style="text-align:center;padding:6px;color:#182448">⭐${motmCount}x</td>`;
+  html+='</tr>';
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
+// ── BEHEER OVERZICHT (alle spelers in één oogopslag) ─────────────
+async function loadBeheerOverzicht() {
+  const el=document.getElementById('overzicht-content');
+  if(!el)return;
+  el.innerHTML='<div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px">Laden...</div>';
+
+  const [{data:spelers},{data:evals},{data:urs}]=await Promise.all([
+    sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc'),
+    sbGet('match_evaluaties','select=beoordelaar,eigen_b_plus,eigen_b_min,eigen_trans_bp_bm,eigen_trans_bm_bp,vergrendeld'),
+    sbGet('user_roles','select=speler_id,role')
+  ]);
+
+  if(!spelers||!spelers.length){el.innerHTML='<div style="padding:20px;color:#94a3b8;font-size:13px">Geen spelers gevonden.</div>';return;}
+
+  const evalsBySpeler={};
+  (evals||[]).forEach(e=>{
+    if(!evalsBySpeler[e.beoordelaar])evalsBySpeler[e.beoordelaar]=[];
+    evalsBySpeler[e.beoordelaar].push(e);
+  });
+
+  const linkedIds=new Set((urs||[]).filter(u=>u.role==='player').map(u=>u.speler_id));
+
+  const avgVal=(arr,key)=>{const v=arr.filter(e=>e[key]).map(e=>e[key]);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—';};
+  const badge=(v,good,warn)=>{
+    if(v==='—')return '<span style="color:#cbd5e1">—</span>';
+    const n=parseFloat(v);
+    const col=n>=good?'#15803d':n>=warn?'#d97706':'#dc2626';
+    return `<span style="font-weight:700;color:${col}">${v}</span>`;
+  };
+
+  let html='<div style="overflow-x:auto">';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+='<thead><tr style="background:#203060;color:#fff;text-align:center">';
+  html+='<th style="text-align:left;padding:10px 12px;font-weight:700">Speler</th>';
+  html+='<th style="padding:8px 6px" title="Basisfiche ingevuld?">Fiche</th>';
+  html+='<th style="padding:8px 6px" title="Account gekoppeld?">Account</th>';
+  html+='<th style="padding:8px 6px">Evals</th>';
+  html+='<th style="padding:8px 6px">Ø B+</th>';
+  html+='<th style="padding:8px 6px">Ø B-</th>';
+  html+='<th style="padding:8px 6px">Ø Trans.</th>';
+  html+='</tr></thead><tbody>';
+
+  spelers.forEach((s,i)=>{
+    const d=s.data||{};
+    const ev=evalsBySpeler[s.id]||[];
+    const bg=i%2===0?'#fff':'#f8fafc';
+
+    // Fiche completeness: check a few key fields
+    const ficheFields=['pv-fav-pos','pv-droom','pv-niv','pv-doel','pv-verw-trainer','sterke_technisch','werk_technisch'];
+    const ficheScore=ficheFields.filter(f=>d[f]&&(Array.isArray(d[f])?d[f].length>0:d[f]!=='')).length;
+    const ficheIcon=ficheScore>=5?'✅':ficheScore>=2?'🟡':'❌';
+
+    const accountIcon=linkedIds.has(s.id)?'✅':'❌';
+    const keeper=d.is_keeper?'🧤 ':'' ;
+
+    const avgBplus=avgVal(ev,'eigen_b_plus');
+    const avgBmin=avgVal(ev,'eigen_b_min');
+    const avgTrans=(()=>{
+      const vals=ev.filter(e=>e.eigen_trans_bp_bm&&e.eigen_trans_bm_bp).map(e=>((e.eigen_trans_bp_bm+e.eigen_trans_bm_bp)/2));
+      return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):'—';
+    })();
+
+    html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="selectPlayer(${s.id})" title="Klik om te openen">`;
+    html+=`<td style="padding:9px 12px;font-weight:600;color:#0a1628">${keeper}${s.voornaam} ${s.naam}</td>`;
+    html+=`<td style="text-align:center;padding:8px">${ficheIcon}</td>`;
+    html+=`<td style="text-align:center;padding:8px">${accountIcon}</td>`;
+    html+=`<td style="text-align:center;padding:8px;font-weight:700;color:#203060">${ev.length}</td>`;
+    html+=`<td style="text-align:center;padding:8px">${badge(avgBplus,7,5)}</td>`;
+    html+=`<td style="text-align:center;padding:8px">${badge(avgBmin,7,5)}</td>`;
+    html+=`<td style="text-align:center;padding:8px">${badge(avgTrans,7,5)}</td>`;
+    html+='</tr>';
+  });
+
+  html+='</tbody></table></div>';
+
+  // Legenda
+  html+='<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:11px;color:#64748b">';
+  html+='<span>✅ Volledig/Aanwezig</span><span>🟡 Gedeeltelijk</span><span>❌ Niet ingevuld/Geen account</span>';
+  html+='<span style="margin-left:8px">Scores: <span style="color:#15803d">groen ≥7</span> · <span style="color:#d97706">oranje ≥5</span> · <span style="color:#dc2626">rood &lt;5</span></span>';
+  html+='</div>';
+
+  el.innerHTML=html;
+}
+
+// ── END NEW FUNCTIONS ─────────────────────────────────────────────
 
 // When admin selects player: show read-only 2-tab panel
 function selectPlayerAdmin(id) {
