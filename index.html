@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v210</title>
+<title>KSK Lovendegem U13 IP v214</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -890,10 +890,16 @@ async function sbRpc(fn, params) {
 
 // APP CONSTANTS
 const CATEGORIES = {
-  technisch: ['Dribbelen','Passing / aanspelen','Eerste aanname','Balcontrole','Schieten','Koppen','Één-op-één','Overzicht','Vrij komen / aanlopen'],
-  taktisch:  ['Positiespel','Omschakeling','Pressing','Ruimte creëren','Ruimte dichtlopen','Anticiperen','Communicatie op het veld'],
-  fysiek:    ['Snelheid','Uithoudingsvermogen','Kracht','Wendbaarheid / agility','Explosiviteit','Coördinatie','Balans'],
-  mentaal:   ['Doorzettingsvermogen','Focus / concentratie','Leiderschap','Teamspeler','Zelfvertrouwen','Vechtlust / inzet','Weerbaarheid'],
+  technisch: ['Dribbelen','Passen','Eerste aanname','Balcontrole','Schieten','Koppen','1 tegen 1','Overzicht','Vrijlopen'],
+  taktisch:  ['Positiespel','Omschakeling','Pressing','Ruimte maken','Ruimte dichtlopen','Spel lezen','Communiceren / roepen','Coachen'],
+  fysiek:    ['Snelheid','Conditie','Kracht','Wendbaarheid','Explosiviteit','Coördinatie','Balans'],
+  mentaal:   ['Doorzetten','Concentratie','Leiderschap','Teamspeler','Zelfvertrouwen','Inzet','Omgaan met tegenslagen'],
+};
+const KEEPER_CATEGORIES = {
+  technisch: ['Vangen','Wegslaan','Uittrap','Gooien','Positie in doel','Duiken','Reflexen','Hoge ballen vangen'],
+  taktisch:  ['Uitkomen op de bal','Coachen','Spel lezen','Communiceren / roepen','Hoge ballen','1v1\'s'],
+  fysiek:    ['Reactiesnelheid','Explosiviteit','Wendbaarheid','Kracht','Balans','Coördinatie','Snelheid'],
+  mentaal:   ['Concentratie','Leiderschap','Zelfvertrouwen','Omgaan met tegenslagen','Inzet','Doorzetten','Teamspeler'],
 };
 const CAT_LABELS = {technisch:'Technisch', taktisch:'Taktisch', fysiek:'Fysiek', mentaal:'Mentaal'};
 const PLAYERS = [
@@ -1080,10 +1086,15 @@ async function loadAll() {
 // MULTI-SELECT
 function buildMultiSections() {
   console.log('buildMultiSections running');
+  const isKeeper = DB[selId]?.data?.is_keeper === true;
+  const cats = isKeeper ? KEEPER_CATEGORIES : CATEGORIES;
+  const catLabels = isKeeper
+    ? {technisch:'⚙️ Technisch (Keeper)',taktisch:'🧠 Taktisch (Keeper)',fysiek:'💪 Fysiek (Keeper)',mentaal:'❤️ Mentaal (Keeper)'}
+    : {technisch:'⚙️ Technisch',taktisch:'🧠 Taktisch',fysiek:'💪 Fysiek',mentaal:'❤️ Mentaal'};
   ['sterke','werk'].forEach(type=>{
     const c=$('ms-container-'+type); if(!c)return;
-    c.innerHTML=Object.entries(CATEGORIES).map(([cat,opts])=>
-      '<div class="ms-section cat-'+cat+'"><div class="ms-cat">'+CAT_LABELS[cat]+'</div><div class="ms-pills" id="ms-'+type+'_'+cat+'">'+
+    c.innerHTML=Object.entries(cats).map(([cat,opts])=>
+      '<div class="ms-section cat-'+cat+'"><div class="ms-cat">'+catLabels[cat]+'</div><div class="ms-pills" id="ms-'+type+'_'+cat+'">'+
       opts.map(o=>'<button class="pill" onclick="togglePill(this,\''+type+'_'+cat+'\')">'+o+'</button>').join('')+
       '</div></div>').join('');
   });
@@ -1300,7 +1311,7 @@ async function deleteSpeler(id,naam){
 }
 async function loadBeheerUsers(){
   const {data}=await sbGet('user_roles','select=*');
-  const {data:sps}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
+  const {data:sps}=await sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc');
   const el=$('beheer-user-list');if(!el)return;
   if(!data||!data.length){
     el.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px">Nog geen gebruikers. Laat spelers registreren via "Nieuw account".</div>';
@@ -1309,24 +1320,76 @@ async function loadBeheerUsers(){
   let html='';
   data.forEach(u=>{
     const linked=sps?.find(s=>s.id===u.speler_id);
+    const isKeeper=linked?.data?.is_keeper===true;
     const uid=u.user_id;
     const spOptHtml='<option value="">— koppel speler —</option>'+(sps||[]).map(s=>'<option value="'+s.id+'"'+(s.id===u.speler_id?' selected':'')+'>'+s.voornaam+' '+s.naam+'</option>').join('');
     html+='<div class="user-row" style="flex-wrap:wrap;gap:6px;padding:10px 0">';
     html+='<div class="user-info" style="min-width:130px">';
     html+='<div class="user-name">'+(u.naam||'Gebruiker')+'</div>';
     html+='<div class="user-email">'+(u.email||'')+'</div>';
-    html+=linked?'<div style="font-size:10px;color:#15803d;font-weight:600;margin-top:2px">✓ '+linked.voornaam+' '+linked.naam+'</div>':'<div style="font-size:10px;color:#f59e0b;margin-top:2px">Niet gekoppeld</div>';
+    html+=linked?'<div style="font-size:10px;color:#15803d;font-weight:600;margin-top:2px">✓ '+linked.voornaam+' '+linked.naam+(isKeeper?' · 🧤':'')+'</div>':'<div style="font-size:10px;color:#f59e0b;margin-top:2px">Niet gekoppeld</div>';
     html+='</div>';
     html+='<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">';
-    html+='<select class="role-select" onchange="updateRole(this.dataset.uid,this.value)" data-uid="'+uid+'">';
+    html+='<select class="role-select" data-uid="'+uid+'">';
     ['admin','coach','player','pending'].forEach(r=>{html+='<option value="'+r+'"'+(u.role===r?' selected':'')+'>'+r+'</option>';});
     html+='</select>';
-    html+='<select class="speler-link-select" style="max-width:160px" onchange="linkSpeler(this.dataset.uid,this.value)" data-uid="'+uid+'">'+spOptHtml+'</select>';
+    html+='<select class="speler-link-select" style="max-width:160px" data-uid="'+uid+'">'+spOptHtml+'</select>';
+    // Keeper toggle — alleen zichtbaar als speler gekoppeld is
+    if(u.speler_id){
+      html+='<button class="keeper-toggle-btn" data-speler-id="'+u.speler_id+'" data-is-keeper="'+(isKeeper?'1':'0')+'" title="Keeper aan/uit" style="padding:5px 10px;background:'+(isKeeper?'#fef3c7':'#f8fafc')+';color:'+(isKeeper?'#92400e':'#94a3b8')+';border:1px solid '+(isKeeper?'#fcd34d':'#e2e8f0')+';border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;min-height:32px;-webkit-tap-highlight-color:transparent">🧤</button>';
+    }
+    html+='<button class="save-user-btn b-btn" data-uid="'+uid+'" data-speler-id="'+(u.speler_id||'')+'" style="padding:5px 12px;background:#203060;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;min-height:32px;-webkit-tap-highlight-color:transparent;width:auto;margin-bottom:0">Opslaan</button>';
     html+='<button class="del-user-btn" data-uid="'+uid+'" data-naam="'+(u.naam||u.email||'deze gebruiker').replace(/"/g,'&quot;')+'" style="padding:5px 9px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;min-height:32px" title="Verwijder gebruiker">🗑</button>';
     html+='</div></div>';
   });
   el.innerHTML=html;
-  // Event delegation voor delete knoppen (vermijdt inline onclick met speciale tekens)
+
+  // Keeper toggle
+  el.querySelectorAll('.keeper-toggle-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      const isNowKeeper = this.dataset.isKeeper === '1';
+      const newState = !isNowKeeper;
+      this.dataset.isKeeper = newState ? '1' : '0';
+      this.style.background = newState ? '#fef3c7' : '#f8fafc';
+      this.style.borderColor = newState ? '#fcd34d' : '#e2e8f0';
+      this.style.color = newState ? '#92400e' : '#94a3b8';
+    });
+  });
+
+  // Opslaan button
+  el.querySelectorAll('.save-user-btn').forEach(btn=>{
+    btn.addEventListener('click', async function(){
+      const uid = this.dataset.uid;
+      const spelerId = this.dataset.spelerId;
+      const row = this.closest('.user-row');
+      const roleEl = row?.querySelector('.role-select');
+      const linkEl = row?.querySelector('.speler-link-select');
+      const keeperEl = row?.querySelector('.keeper-toggle-btn');
+      const origTxt = this.textContent;
+      btnLoad(this, 'Bezig…');
+      const promises = [];
+      // Save role
+      if(roleEl) promises.push(sbPatch('user_roles','user_id=eq.'+uid,{role:roleEl.value}));
+      // Save speler link
+      if(linkEl) promises.push(sbPatch('user_roles','user_id=eq.'+uid,{speler_id:linkEl.value||null}));
+      // Save keeper status
+      if(keeperEl && spelerId){
+        const isKeeper = keeperEl.dataset.isKeeper === '1';
+        const {data:sRow}=await sbGetOne('spelers','id=eq.'+spelerId+'&select=id,data');
+        const d=sRow?.data||{};
+        d.is_keeper=isKeeper;
+        promises.push(sbPatch('spelers','id=eq.'+spelerId,{data:d}));
+      }
+      const results = await Promise.all(promises);
+      const hasError = results.some(r=>r?.error);
+      if(hasError){ toast('⚠️ Fout bij opslaan',true); btnReset(this,origTxt); return; }
+      btnOk(this, 2000, origTxt);
+      toast('✓ Opgeslagen');
+      setTimeout(loadBeheerUsers, 1800);
+    });
+  });
+
+  // Delete
   el.querySelectorAll('.del-user-btn').forEach(btn=>{
     btn.addEventListener('click', function(){
       deleteUser(this.dataset.uid, this.dataset.naam);
