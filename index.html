@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v205</title>
+<title>KSK Lovendegem U13 IP v209</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -132,7 +132,7 @@ textarea{resize:vertical;min-height:70px}
 #s-player{background:var(--bg)}
 .pv-pane{display:none}
 .pv-pane.on{display:block}
-.player-view-tab{border-bottom:2px solid transparent!important;transition:all .15s;color:#94a3b8}
+.player-view-tab{border-bottom:2px solid transparent;transition:color .15s,border-color .15s;color:#94a3b8;font-weight:600}
 .player-view-tab.on{border-bottom-color:#203060!important;color:#203060!important;font-weight:700!important}
 
 /* ── CALENDAR ── */
@@ -363,10 +363,17 @@ textarea{resize:vertical;min-height:70px}
   cursor: default !important;
   border-color: #e2e8f0 !important;
 }
-#detail.admin-view button:not(.tab-btn):not(.back-btn):not(.match-head) {
+#detail.admin-view button:not(.tab-btn):not(.back-btn):not(.match-head):not([data-reset]) {
   pointer-events: none;
   opacity: 0.4 !important;
   cursor: default !important;
+}
+#detail.admin-view [data-reset] {
+  pointer-events: auto !important;
+  opacity: 1 !important;
+  cursor: pointer !important;
+  min-height: 44px !important;
+  -webkit-tap-highlight-color: transparent;
 }
 #detail.admin-view #detail.admin-view .pill,
 #detail.admin-view .pos-btn,
@@ -641,9 +648,9 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <!-- Tabs -->
   <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
-    <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;border-bottom:3px solid #203060;background:none;font-size:13px;font-weight:700;color:#203060;cursor:pointer;letter-spacing:.01em">Profiel</button>
-    <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer;letter-spacing:.01em">Voetbal</button>
-    <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
+    <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Profiel</button>
+    <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Voetbal</button>
+    <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
   </div>
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
@@ -1413,14 +1420,10 @@ async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;
 // PLAYER VIEW
 function switchPvTab(tab, btn) {
   document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.player-view-tab').forEach(b=>{
-    b.style.color='#94a3b8';
-    b.style.borderBottomColor='transparent';
-    b.style.fontWeight='600';
-  });
+  document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));
   const pane=$('pvp-'+tab);
   if(pane) pane.classList.add('on');
-  if(btn){btn.style.color='#203060';btn.style.borderBottomColor='#203060';btn.style.fontWeight='700';}
+  if(btn) btn.classList.add('on');
   if(tab==='wedstrijden') renderPvMatchListIn('pvp-wedstrijden');
   if(tab==='voetbal') loadPvVoetbal();
 }
@@ -1478,12 +1481,12 @@ function loadPvVoetbal() {
     '<div class="card"><div class="card-t">⭐ Motivatie & Identiteit</div><div class="fields">' +
     '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Messi, Ronaldo, Neuer" oninput="pvDirty()"></div>' +
     '<div class="field"><label>Wat vind je leuk bij voetballen?</label><textarea id="pv-waarom" rows="2" oninput="pvDirty()"></textarea></div>' +
-    '<div class="field"><label>Waar zie je jezelf over 5 jaar?</label><textarea id="pv-droom" rows="3" placeholder="Jouw droomscenario..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Wat is jouw voetbaldroom? ⚽</label><textarea id="pv-droom" rows="3" placeholder="bijv. profvoetballer worden, kapitein zijn, gewoon veel plezier hebben..." oninput="pvDirty()"></textarea></div>' +
     '</div></div>' +
-    '<div class="card"><div class="card-t">🎯 Doelen & Verwachtingen nieuw seizoen</div><div class="fields">' +
-    '<div class="field"><label>Hoe beoordeel je jouw huidig niveau en grootste werkpunt?</label><textarea id="pv-niv" rows="3" placeholder="Eerlijk en in eigen woorden..." oninput="pvDirty()"></textarea></div>' +
-    '<div class="field"><label>Waar wil je staan einde seizoen?</label><textarea id="pv-doel" rows="3" placeholder="Concreet doel..." oninput="pvDirty()"></textarea></div>' +
-    '<div class="field"><label>Wat verwacht je van je trainer?</label><textarea id="pv-verw-trainer" rows="3" placeholder="Eerlijk en open..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="card"><div class="card-t">🎯 Mijn doelen</div><div class="fields">' +
+    '<div class="field"><label>Wat gaat al goed bij jou als voetballer?</label><textarea id="pv-niv" rows="3" placeholder="bijv. ik ben snel, ik help mijn ploegmaats, ik ben altijd aanwezig..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Wat wil jij dit seizoen nog beter leren?</label><textarea id="pv-doel" rows="3" placeholder="bijv. meer goals maken, beter samenspelen, meer minuten spelen..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Wat verwacht je van je trainer?</label><textarea id="pv-verw-trainer" rows="3" placeholder="bijv. meer uitleg, vaker spelen, extra oefeningen..." oninput="pvDirty()"></textarea></div>' +
     '</div></div>' +
     '<div class="card"><div class="card-t">🔍 Zelfbeoordeling</div>' +
     '<p style="font-size:12px;color:#64748b;padding:0 16px 12px">Geef jezelf een eerlijk cijfer van 1 tot 10</p>' +
@@ -2360,12 +2363,12 @@ function loadAdminVoetbalPane() {
         rowHtml('Vorige club(s)', d.vorige_clubs || d['pv-clubs']) +
         rowHtml('Favoriete voetballer', d.rolmodel || d['pv-rolmodel'])
       ) +
-      sectionHtml('🎯 Doelen & Verwachtingen',
-        rowHtml('Huidig niveau & werkpunt', d.bf_niveau || d['pv-niv']) +
-        rowHtml('Doel einde seizoen', d.bf_doel || d['pv-doel']) +
+      sectionHtml('🎯 Mijn doelen',
+        rowHtml('Wat gaat al goed?', d.bf_niveau || d['pv-niv']) +
+        rowHtml('Doel dit seizoen', d.bf_doel || d['pv-doel']) +
         rowHtml('Wat vind je leuk bij voetballen?', d.waarom_voetbal || d['pv-waarom']) +
-        rowHtml('Droomscenario', d.droomscenario || d['pv-droom']) +
-        rowHtml('Verwachtingen van de trainer', d.verw_trainer || d['pv-verw-trainer'])
+        rowHtml('Voetbaldroom', d.droomscenario || d['pv-droom']) +
+        rowHtml('Wat verwacht de speler van de trainer?', d.verw_trainer || d['pv-verw-trainer'])
       ) +
       sectionHtml('🔍 Zelfbeoordeling',
         `<div style="display:flex;gap:16px;flex-wrap:wrap">
