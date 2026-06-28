@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v219</title>
+<title>KSK Lovendegem U13 IP v220</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1565,12 +1565,13 @@ function loadPvVoetbal() {
     '<div class="card"><div class="card-t">⭐ Motivatie & Identiteit</div><div class="fields">' +
     '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Messi, Ronaldo, Neuer" oninput="pvDirty()"></div>' +
     '<div class="field"><label>Wat vind je leuk bij voetballen?</label><textarea id="pv-waarom" rows="2" oninput="pvDirty()"></textarea></div>' +
-    '<div class="field"><label>Wat is jouw voetbaldroom? ⚽</label><textarea id="pv-droom" rows="3" placeholder="bijv. profvoetballer worden, kapitein zijn, gewoon veel plezier hebben..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Wat is jouw voetbaldroom? ⚽</label><textarea id="pv-droom" rows="3" placeholder="bijv. profvoetballer worden, in het eerste elftal spelen, gewoon veel plezier hebben..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Wat is jouw mooiste voetbalherinnering? 🌟</label><textarea id="pv-herinnering" rows="3" placeholder="bijv. een werelddoelpunt tegen Racing Gent, een wereldsave, of een omhaal..." oninput="pvDirty()"></textarea></div>' +
     '</div></div>' +
     '<div class="card"><div class="card-t">🎯 Mijn doelen</div><div class="fields">' +
     '<div class="field"><label>Wat gaat al goed bij jou als voetballer?</label><textarea id="pv-niv" rows="3" placeholder="bijv. ik ben snel, ik help mijn ploegmaats, ik ben altijd aanwezig..." oninput="pvDirty()"></textarea></div>' +
     '<div class="field"><label>Wat wil jij dit seizoen nog beter leren?</label><textarea id="pv-doel" rows="3" placeholder="bijv. meer goals maken, beter samenspelen, meer minuten spelen..." oninput="pvDirty()"></textarea></div>' +
-    '<div class="field"><label>Wat verwacht je van je trainer?</label><textarea id="pv-verw-trainer" rows="3" placeholder="bijv. meer uitleg, vaker spelen, extra oefeningen..." oninput="pvDirty()"></textarea></div>' +
+    '<div class="field"><label>Wat verwacht je van je trainer?</label><textarea id="pv-verw-trainer" rows="3" placeholder="bijv. eerlijke feedback, leuke oefeningen, meer uitleg..." oninput="pvDirty()"></textarea></div>' +
     '</div></div>' +
     '<div class="card"><div class="card-t">🔍 Zelfbeoordeling</div>' +
     '<p style="font-size:12px;color:#64748b;padding:0 16px 12px">Geef jezelf een eerlijk cijfer van 1 tot 10</p>' +
@@ -1587,7 +1588,7 @@ function loadPvVoetbal() {
     const d=row?.data||{};
     const flds = {'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
       'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
-      'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario',
+      'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario','pv-herinnering':'herinnering',
       'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-werkpunt':'werkpunt','pv-verw-trainer':'verw_trainer'};
     Object.entries(flds).forEach(([id,key])=>{const el=$(id);if(el)el.value=d[key]||''});
     // Zelfbeoordeling scores
@@ -1634,7 +1635,7 @@ async function savePvVoetbal() {
   });
   const flds={'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
     'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
-    'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario',
+    'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario','pv-herinnering':'herinnering',
     'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-werkpunt':'werkpunt','pv-verw-trainer':'verw_trainer'};
   Object.entries(flds).forEach(([id,key])=>{const el=$(id);if(el)d2[key]=el.value;});
   // Zelfbeoordeling
@@ -2484,6 +2485,7 @@ function loadAdminVoetbalPane() {
         rowHtml('Doel dit seizoen', d.bf_doel || d['pv-doel']) +
         rowHtml('Wat vind je leuk bij voetballen?', d.waarom_voetbal || d['pv-waarom']) +
         rowHtml('Voetbaldroom', d.droomscenario || d['pv-droom']) +
+        rowHtml('Mooiste herinnering', d.herinnering || d['pv-herinnering']) +
         rowHtml('Wat verwacht de speler van de trainer?', d.verw_trainer || d['pv-verw-trainer'])
       ) +
       sectionHtml('🔍 Zelfbeoordeling',
