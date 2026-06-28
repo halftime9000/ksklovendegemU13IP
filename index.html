@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v218</title>
+<title>KSK Lovendegem U13 IP v219</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2017,16 +2017,25 @@ async function openEvalForm(matchId) {
     (ratingRows||'<div style="font-size:12px;color:#94a3b8">Geen teamgenoten.</div>')+
   '</div>';
 
-  // ── BLOK 3: Eigen prestatie ──
+  // ── BLOK 3: Eigen prestatie (keeper of veldspeler) ──
+  const isKeeperEval = userRole === 'keeper';
   html+='<div class="eval-block">'+
-    '<div class="eval-block-title"><span>📊</span>Eigen prestatie</div>'+
-    '<div class="eigen-grid">'+
+    '<div class="eval-block-title"><span>'+(isKeeperEval?'🧤':'📊')+'</span>Eigen prestatie</div>'+
+    '<div class="eigen-grid">';
+  if(isKeeperEval){
+    html+=
+      mkScoreBlock('Op doellijn','ep-doellijn-'+matchId,ev?.keeper_doellijn,ev?.keeper_doellijn_opm,locked)+
+      mkScoreBlock('1v1 situaties','ep-1v1-'+matchId,ev?.keeper_1v1,ev?.keeper_1v1_opm,locked)+
+      mkScoreBlock('Communicatie / coaching','ep-comm-'+matchId,ev?.keeper_communicatie,ev?.keeper_communicatie_opm,locked)+
+      mkScoreBlock('Uitstraling / algemeen gevoel','ep-uitstr-'+matchId,ev?.keeper_uitstraling,ev?.keeper_uitstraling_opm,locked);
+  } else {
+    html+=
       mkScoreBlock('B+ (aanvallend)','ep-bplus-'+matchId,ev?.eigen_b_plus,ev?.eigen_b_plus_opmerking,locked)+
       mkScoreBlock('B- (verdedigend)','ep-bmin-'+matchId,ev?.eigen_b_min,ev?.eigen_b_min_opmerking,locked)+
       mkScoreBlock('Transitie B+ → B-','ep-tbpbm-'+matchId,ev?.eigen_trans_bp_bm,ev?.eigen_trans_bp_bm_opmerking,locked)+
-      mkScoreBlock('Transitie B- → B+','ep-tbmbp-'+matchId,ev?.eigen_trans_bm_bp,ev?.eigen_trans_bm_bp_opmerking,locked)+
-    '</div>'+
-  '</div>';
+      mkScoreBlock('Transitie B- → B+','ep-tbmbp-'+matchId,ev?.eigen_trans_bm_bp,ev?.eigen_trans_bm_bp_opmerking,locked);
+  }
+  html+='</div></div>';
 
   // ── BLOK 4: MOTM / Weak Link ──
   const selOpts=(selected)=>'<option value="">— kies —</option>'+allPlayers.map(id=>{
@@ -2127,6 +2136,7 @@ async function saveEvaluatie(matchId, teamIds) {
     tegenstander_systeem:sysSel?sysSel.textContent.trim():'',
     tegenstander_systeem_extra:document.getElementById('sys-extra-'+matchId)?.value||'',
     tegenstander_beste:document.getElementById('beste-teg-'+matchId)?.value||'',
+    // Veldspeler
     eigen_b_plus:parseInt(document.getElementById('ep-bplus-'+matchId+'-score')?.value)||null,
     eigen_b_plus_opmerking:document.getElementById('ep-bplus-'+matchId+'-opm')?.value||'',
     eigen_b_min:parseInt(document.getElementById('ep-bmin-'+matchId+'-score')?.value)||null,
@@ -2134,6 +2144,16 @@ async function saveEvaluatie(matchId, teamIds) {
     eigen_trans_bp_bm:parseInt(document.getElementById('ep-tbpbm-'+matchId+'-score')?.value)||null,
     eigen_trans_bp_bm_opmerking:document.getElementById('ep-tbpbm-'+matchId+'-opm')?.value||'',
     eigen_trans_bm_bp:parseInt(document.getElementById('ep-tbmbp-'+matchId+'-score')?.value)||null,
+    eigen_trans_bm_bp_opmerking:document.getElementById('ep-tbmbp-'+matchId+'-opm')?.value||'',
+    // Keeper
+    keeper_doellijn:parseInt(document.getElementById('ep-doellijn-'+matchId+'-score')?.value)||null,
+    keeper_doellijn_opm:document.getElementById('ep-doellijn-'+matchId+'-opm')?.value||'',
+    keeper_1v1:parseInt(document.getElementById('ep-1v1-'+matchId+'-score')?.value)||null,
+    keeper_1v1_opm:document.getElementById('ep-1v1-'+matchId+'-opm')?.value||'',
+    keeper_communicatie:parseInt(document.getElementById('ep-comm-'+matchId+'-score')?.value)||null,
+    keeper_communicatie_opm:document.getElementById('ep-comm-'+matchId+'-opm')?.value||'',
+    keeper_uitstraling:parseInt(document.getElementById('ep-uitstr-'+matchId+'-score')?.value)||null,
+    keeper_uitstraling_opm:document.getElementById('ep-uitstr-'+matchId+'-opm')?.value||'',
     eigen_trans_bm_bp_opmerking:document.getElementById('ep-tbmbp-'+matchId+'-opm')?.value||'',
     updated_at:new Date().toISOString()
   };
@@ -2496,20 +2516,25 @@ async function loadAdminSeizoenPane() {
   }
   const matchMap={};(matches||[]).forEach(m=>matchMap[m.id]=m);
 
+  const isKeeperSeizoen = DB[selId]?.data?.is_keeper === true;
   const sc=(v)=>v?`<span style="display:inline-block;width:30px;height:30px;border-radius:6px;background:#203060;color:#e0d040;font-size:13px;font-weight:800;text-align:center;line-height:30px">${v}</span>`:'<span style="color:#cbd5e1">—</span>';
-
-  // Averages
-  const vals=(k)=>evals.filter(e=>e[k]).map(e=>e[k]);
-  const avg=(k)=>{const v=vals(k);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—';};
 
   let html='<div style="overflow-x:auto">';
   html+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
   html+='<thead><tr style="background:#f1f5f9;text-align:center">';
   html+='<th style="text-align:left;padding:8px 10px;font-weight:700;color:#203060">Wedstrijd</th>';
-  html+='<th style="padding:8px 6px;color:#203060">B+</th>';
-  html+='<th style="padding:8px 6px;color:#203060">B-</th>';
-  html+='<th style="padding:8px 6px;color:#203060">T B+→B-</th>';
-  html+='<th style="padding:8px 6px;color:#203060">T B-→B+</th>';
+
+  if(isKeeperSeizoen){
+    html+='<th style="padding:8px 6px;color:#203060">Doellijn</th>';
+    html+='<th style="padding:8px 6px;color:#203060">1v1</th>';
+    html+='<th style="padding:8px 6px;color:#203060">Comm.</th>';
+    html+='<th style="padding:8px 6px;color:#203060">Uitstraling</th>';
+  } else {
+    html+='<th style="padding:8px 6px;color:#203060">B+</th>';
+    html+='<th style="padding:8px 6px;color:#203060">B-</th>';
+    html+='<th style="padding:8px 6px;color:#203060">T B+→B-</th>';
+    html+='<th style="padding:8px 6px;color:#203060">T B-→B+</th>';
+  }
   html+='<th style="padding:8px 6px;color:#203060">MOTM</th>';
   html+='</tr></thead><tbody>';
 
@@ -2520,25 +2545,38 @@ async function loadAdminSeizoenPane() {
     const bg=i%2===0?'#fff':'#f8fafc';
     html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9">`;
     html+=`<td style="padding:8px 10px;font-weight:600;color:#0a1628">${datum} vs ${m.tegenstander||'?'}</td>`;
-    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_plus)}</td>`;
-    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_min)}</td>`;
-    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bp_bm)}</td>`;
-    html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bm_bp)}</td>`;
+    if(isKeeperSeizoen){
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_doellijn)}</td>`;
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_1v1)}</td>`;
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_communicatie)}</td>`;
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_uitstraling)}</td>`;
+    } else {
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_plus)}</td>`;
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_min)}</td>`;
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bp_bm)}</td>`;
+      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bm_bp)}</td>`;
+    }
     html+=`<td style="text-align:center;padding:6px">${isMotm?'⭐':'—'}</td>`;
     html+='</tr>';
   });
 
   // Gemiddelde rij
+  const avgK=(k)=>{const v=evals.filter(e=>e[k]).map(e=>e[k]);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—';};
   html+=`<tr style="background:#e0d040;font-weight:800">`;
-  html+=`<td style="padding:8px 10px;color:#182448">Gemiddelde (${evals.length} wedstrijden)</td>`;
-  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_b_plus')}</td>`;
-  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_b_min')}</td>`;
-  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_trans_bp_bm')}</td>`;
-  html+=`<td style="text-align:center;padding:6px;color:#182448;font-size:14px">${avg('eigen_trans_bm_bp')}</td>`;
+  html+=`<td style="padding:8px 10px;color:#182448">Gemiddelde (${evals.length})</td>`;
+  if(isKeeperSeizoen){
+    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_doellijn')}</td>`;
+    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_1v1')}</td>`;
+    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_communicatie')}</td>`;
+    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_uitstraling')}</td>`;
+  } else {
+    ['eigen_b_plus','eigen_b_min','eigen_trans_bp_bm','eigen_trans_bm_bp'].forEach(k=>{
+      html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK(k)}</td>`;
+    });
+  }
   const motmCount=evals.filter(e=>e.motm===selId).length;
   html+=`<td style="text-align:center;padding:6px;color:#182448">⭐${motmCount}x</td>`;
-  html+='</tr>';
-  html+='</tbody></table></div>';
+  html+='</tr></tbody></table></div>';
   el.innerHTML=html;
 }
 
