@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v217</title>
+<title>KSK Lovendegem U13 IP v218</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1373,9 +1373,11 @@ async function loadBeheerUsers(){
       const linkedSpelerId = linkEl?.value || spelerId;
       btnLoad(this, 'Bezig…');
       const promises = [];
-      if(roleEl) promises.push(sbPatch('user_roles','user_id=eq.'+uid,{role:selectedRole}));
-      if(linkEl) promises.push(sbPatch('user_roles','user_id=eq.'+uid,{speler_id:linkEl.value||null}));
-      // Keeper rol → is_keeper automatisch bijwerken in spelers tabel
+      // Rol + speler_id in één PATCH om race conditions te vermijden
+      const rolePatch = {role: selectedRole};
+      if(linkEl) rolePatch.speler_id = linkEl.value || null;
+      promises.push(sbPatch('user_roles','user_id=eq.'+uid, rolePatch));
+      // Keeper → is_keeper bijwerken in spelers tabel
       if(linkedSpelerId && (selectedRole==='keeper'||selectedRole==='player')){
         const isKeeper = selectedRole==='keeper';
         const {data:sRow}=await sbGetOne('spelers','id=eq.'+linkedSpelerId+'&select=id,data');
@@ -1490,7 +1492,10 @@ function switchPvTab(tab, btn) {
   const pane=$('pvp-'+tab);
   if(pane) pane.classList.add('on');
   if(btn) btn.classList.add('on');
-  if(tab==='wedstrijden') renderPvMatchListIn('pvp-wedstrijden');
+  if(tab==='wedstrijden'){
+    // Altijd wedstrijden herladen voor rendering (fix voor keeper)
+    loadWedstrijden().then(()=>renderPvMatchListIn('pvp-wedstrijden'));
+  }
   if(tab==='voetbal') loadPvVoetbal();
 }
 
