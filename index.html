@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v223</title>
+<title>KSK Lovendegem U13 IP v225</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -904,13 +904,13 @@ const CATEGORIES = {
   technisch: ['Dribbelen','Passen','Eerste aanname','Balcontrole','Schieten','Koppen','1 tegen 1','Overzicht','Vrijlopen'],
   taktisch:  ['Positiespel','Omschakeling','Pressing','Ruimte maken','Ruimte dichtlopen','Spel lezen','Communiceren / roepen','Coachen'],
   fysiek:    ['Snelheid','Conditie','Kracht','Wendbaarheid','Explosiviteit','Coördinatie','Balans'],
-  mentaal:   ['Doorzetten','Concentratie','Leiderschap','Teamspeler','Zelfvertrouwen','Inzet','Omgaan met tegenslagen'],
+  mentaal:   ['Winnersmentaliteit','Doorzetten','Concentratie','Leiderschap','Teamspeler','Zelfvertrouwen','Inzet','Omgaan met tegenslagen'],
 };
 const KEEPER_CATEGORIES = {
   technisch: ['Vangen','Wegslaan','Uittrap','Gooien','Positie in doel','Duiken','Reflexen','Hoge ballen vangen'],
   taktisch:  ['Uitkomen op de bal','Coachen','Spel lezen','Communiceren / roepen','Hoge ballen','1v1\'s'],
   fysiek:    ['Reactiesnelheid','Explosiviteit','Wendbaarheid','Kracht','Balans','Coördinatie','Snelheid'],
-  mentaal:   ['Concentratie','Leiderschap','Zelfvertrouwen','Omgaan met tegenslagen','Inzet','Doorzetten','Teamspeler'],
+  mentaal:   ['Winnersmentaliteit','Concentratie','Leiderschap','Zelfvertrouwen','Omgaan met tegenslagen','Inzet','Doorzetten','Teamspeler'],
 };
 const CAT_LABELS = {technisch:'Technisch', taktisch:'Taktisch', fysiek:'Fysiek', mentaal:'Mentaal'};
 const PLAYERS = [
@@ -1998,6 +1998,31 @@ async function openEvalForm(matchId) {
     '<input id="beste-teg-'+matchId+'" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:6px 10px;font-size:12px;outline:none" placeholder="Naam + nummer..." value="'+(ev?.tegenstander_beste||'')+'"'+(locked?' disabled':'')+'>'+
   '</div>';
 
+  // ── BLOK 1b: Team beoordelen ──
+  const teamMentScores=[1,2,3,4,5,6,7,8,9,10].map(n=>{
+    const sel=(ev?.team_mentaliteit||null)===n;
+    const st=sel?'background:#203060;color:#e0d040;border-color:#203060;':'background:#f8fafc;color:#374151;border-color:#e2e8f0;';
+    return '<button class="score-btn" data-val="'+n+'" data-mid="'+matchId+'" data-fld="team_mentaliteit" onclick="setTeamScore(this,\'team_mentaliteit-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 5px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
+  }).join('');
+  const samenspelScores=[1,2,3,4,5,6,7,8,9,10].map(n=>{
+    const sel=(ev?.team_samenspel||null)===n;
+    const st=sel?'background:#203060;color:#e0d040;border-color:#203060;':'background:#f8fafc;color:#374151;border-color:#e2e8f0;';
+    return '<button class="score-btn" data-val="'+n+'" data-mid="'+matchId+'" data-fld="team_samenspel" onclick="setTeamScore(this,\'team_samenspel-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 5px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
+  }).join('');
+
+  html+='<div class="eval-block">'+
+    '<div class="eval-block-title"><span>🤝</span>Team beoordelen</div>'+
+    '<div class="field" style="margin-bottom:12px">'+
+      '<label style="font-size:11px;font-weight:700;color:#203060;display:block;margin-bottom:6px">Mentaliteit van de ploeg</label>'+
+      '<div id="team_mentaliteit-'+matchId+'" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+teamMentScores+'</div>'+
+      '<textarea id="team-ment-waarom-'+matchId+'" rows="2" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;outline:none;resize:none" placeholder="Waarom? Wat viel op..." '+(locked?'disabled':'')+'>'+( ev?.team_mentaliteit_waarom||'')+'</textarea>'+
+    '</div>'+
+    '<div class="field">'+
+      '<label style="font-size:11px;font-weight:700;color:#203060;display:block;margin-bottom:6px">Samenspel</label>'+
+      '<div id="team_samenspel-'+matchId+'" style="display:flex;gap:4px;flex-wrap:wrap">'+samenspelScores+'</div>'+
+    '</div>'+
+  '</div>';
+
   // ── BLOK 2: Teamgenoten beoordelen ──
   const teamColor=myTeam==='blauw'?'🔵 Blauw':'🟡 Geel';
   const ratingRows=teammates.map(id=>{
@@ -2081,8 +2106,15 @@ function selectSys(el, matchId, val) {
 }
 
 
+function setTeamScore(btn, containerId) {
+  const container = document.getElementById(containerId);
+  if(!container) return;
+  container.querySelectorAll('.score-btn').forEach(b=>{
+    b.style.background='#f8fafc';b.style.color='#374151';b.style.borderColor='#e2e8f0';
+  });
+  btn.style.background='#203060';btn.style.color='#e0d040';btn.style.borderColor='#203060';
+}
 function setRating(btn) {
-  if(btn.disabled) return;
   var mid = btn.dataset.mid, pid = btn.dataset.pid, val = parseInt(btn.dataset.val);
   var labels = {4:'Onvoldoende',5:'Onvoldoende',6:'Matig',7:'Gemiddeld',8:'Goed',9:'Zeer goed',10:'Uitstekend'};
   // Update visual
@@ -2159,6 +2191,10 @@ async function saveEvaluatie(matchId, teamIds) {
     keeper_communicatie_opm:document.getElementById('ep-comm-'+matchId+'-opm')?.value||'',
     keeper_uitstraling:parseInt(document.getElementById('ep-uitstr-'+matchId+'-score')?.value)||null,
     keeper_uitstraling_opm:document.getElementById('ep-uitstr-'+matchId+'-opm')?.value||'',
+    // Team beoordeling
+    team_mentaliteit:parseInt(document.querySelector('#team_mentaliteit-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null,
+    team_mentaliteit_waarom:document.getElementById('team-ment-waarom-'+matchId)?.value||'',
+    team_samenspel:parseInt(document.querySelector('#team_samenspel-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null,
     eigen_trans_bm_bp_opmerking:document.getElementById('ep-tbmbp-'+matchId+'-opm')?.value||'',
     updated_at:new Date().toISOString()
   };
