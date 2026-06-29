@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v240</title>
+<title>KSK Lovendegem U13 IP v241</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2193,10 +2193,8 @@ function doVerzenden() {
 }
 
 async function saveEvaluatie(matchId, teamIds) {
-  alert('saveEvaluatie v240! uid='+userSpelerId+' rol='+userRole);
-  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus',true);return;}
+  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk',true);return;}
   const uid=userSpelerId?parseInt(userSpelerId):null;
-  toast('Stap 2: uid='+uid);
   const ratings={};
   const evalContainer=document.getElementById('eval-body-'+matchId);
   if(evalContainer){
@@ -2235,7 +2233,6 @@ async function saveEvaluatie(matchId, teamIds) {
   };
 
   
-  toast('Stap 3: payload klaar, opslaan...');
   const {error}=await sbUpsert('match_evaluaties', payload);
   if(error){toast('❌ FOUT: '+(error.message||error.code||JSON.stringify(error).substring(0,80)),true);return;}
 
