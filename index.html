@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v244</title>
+<title>KSK Lovendegem U13 IP v245</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1711,8 +1711,8 @@ function pvPill(btn) {
 }
 function pvDirty(){if(userRole==='admin'||userRole==='coach')return;pvDirtyFlag=true;const b=$('pv-save');if(b){b.style.background='#15803d';b.style.color='#fff';b.style.cursor='pointer';}}
 async function savePlayerView(){
-  
-  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk','err');return;}
+  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk',true);return;}
+  if(!userSpelerId){toast('Geen speler gekoppeld',true);return;}
   const d2={};
   if($('pv-geb'))d2.geboortedatum=$('pv-geb').value;
   if($('pv-gsm'))d2.gsm_speler=$('pv-gsm').value;
@@ -1720,9 +1720,12 @@ async function savePlayerView(){
   if($('pv-school'))d2.school_naam=$('pv-school').value;
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
   const merged=Object.assign({},row?.data||{},d2);
-  const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
-  if(!error){toast('Opgeslagen!');const b=$('pv-save');if(b){b.textContent='✓ Opgeslagen';b.style.background='#15803d';b.style.color='#fff';setTimeout(()=>{b.textContent='💾 Opslaan';b.style.background='#182448';b.style.color='#E0D040';},2500);}}
-  else toast('Fout bij opslaan','err');
+  const {data:patchResult, error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
+  if(error){toast('Fout bij opslaan: '+(error.message||'onbekend'),true);return;}
+  if(Array.isArray(patchResult)&&patchResult.length===0){toast('Niet opgeslagen — controleer je account',true);return;}
+  const b=$('pv-save');
+  if(b){b.textContent='✓ Opgeslagen';b.style.background='#15803d';b.style.color='#fff';setTimeout(()=>{b.textContent='💾 Opslaan';b.style.background='#182448';b.style.color='#E0D040';},2500);}
+  toast('Opgeslagen!');
 }
 
 
