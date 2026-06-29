@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v237</title>
+<title>KSK Lovendegem U13 IP v238</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2188,6 +2188,7 @@ function selectScore(btn) {
   if(item){const lbl=item.querySelector('.eigen-label');if(lbl)lbl.innerHTML=lbl.textContent.split(' —')[0]+' — <b>'+scLabels[val]+'</b>';}
 }
 function doVerzenden() {
+  alert('doVerzenden aangeroepen! match=' + (window._evalMatch?.id||'null'));
   if(!window._evalMatch) { toast('Geen evaluatie actief', true); return; }
   saveEvaluatie(window._evalMatch.id, window._evalMatch.teammates);
 }
