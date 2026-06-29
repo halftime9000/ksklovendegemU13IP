@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v233</title>
+<title>KSK Lovendegem U13 IP v234</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2098,8 +2098,11 @@ async function openEvalForm(matchId) {
     '</div>'+
   '</div>';
 
+  // Match data globaal opslaan zodat simpele onclick werkt (zoals Profiel Opslaan)
+  window._evalMatch = {id: matchId, teammates: teammates};
+
   if(!locked){
-    html+='<button class="btn-green verzend-btn" data-match-id="'+matchId+'" data-teammates="'+encodeURIComponent(JSON.stringify(teammates))+'" style="width:100%;padding:13px;font-size:13px;font-weight:700;margin-top:8px;border-radius:9px;-webkit-tap-highlight-color:transparent;touch-action:manipulation">💾 Verzenden</button>';
+    html+='<button onclick="doVerzenden()" class="btn-green" style="width:100%;padding:13px;font-size:13px;font-weight:700;margin-top:8px;border-radius:9px;-webkit-tap-highlight-color:transparent;touch-action:manipulation">💾 Opslaan</button>';
     html+='<div style="height:80px"></div>';
   }
 
@@ -2179,6 +2182,11 @@ function selectScore(btn) {
   const item = btn.closest('.eigen-item');
   if(item){const lbl=item.querySelector('.eigen-label');if(lbl)lbl.innerHTML=lbl.textContent.split(' —')[0]+' — <b>'+scLabels[val]+'</b>';}
 }
+function doVerzenden() {
+  if(!window._evalMatch) { toast('Geen evaluatie actief', true); return; }
+  saveEvaluatie(window._evalMatch.id, window._evalMatch.teammates);
+}
+
 async function saveEvaluatie(matchId, teamIds) {
   toast('⏳ Verzenden gestart...'); // DEBUG stap 1
   if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk',true);return;}
