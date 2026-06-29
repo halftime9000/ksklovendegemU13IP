@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v238</title>
+<title>KSK Lovendegem U13 IP v239</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2188,13 +2188,15 @@ function selectScore(btn) {
   if(item){const lbl=item.querySelector('.eigen-label');if(lbl)lbl.innerHTML=lbl.textContent.split(' —')[0]+' — <b>'+scLabels[val]+'</b>';}
 }
 function doVerzenden() {
-  alert('doVerzenden aangeroepen! match=' + (window._evalMatch?.id||'null'));
   if(!window._evalMatch) { toast('Geen evaluatie actief', true); return; }
   saveEvaluatie(window._evalMatch.id, window._evalMatch.teammates);
 }
 
 async function saveEvaluatie(matchId, teamIds) {
-  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk',true);return;}
+  toast('Stap 1: gestart, rol='+userRole);
+  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus',true);return;}
+  const uid=userSpelerId?parseInt(userSpelerId):null;
+  toast('Stap 2: uid='+uid);
   const ratings={};
   const evalContainer=document.getElementById('eval-body-'+matchId);
   if(evalContainer){
@@ -2210,7 +2212,6 @@ async function saveEvaluatie(matchId, teamIds) {
   const motm=parseInt(document.getElementById('eval-motm-'+matchId)?.value)||null;
   const wl=parseInt(document.getElementById('eval-wl-'+matchId)?.value)||null;
   const sysSel=document.querySelector('#sys-group-'+matchId+' .radio-opt.selected');
-  const uid=userSpelerId?parseInt(userSpelerId):null;
   if(!uid){toast('Geen speler gekoppeld — kan niet opslaan',true);return;}
 
   
@@ -2234,8 +2235,9 @@ async function saveEvaluatie(matchId, teamIds) {
   };
 
   
+  toast('Stap 3: payload klaar, opslaan...');
   const {error}=await sbUpsert('match_evaluaties', payload);
-  if(error){toast('❌ DB Fout: '+(error.message||error.code||JSON.stringify(error)),true);console.error('saveEval error:',error);return;}
+  if(error){toast('❌ FOUT: '+(error.message||error.code||JSON.stringify(error).substring(0,80)),true);return;}
 
   // Extra velden apart (keeper + team) — stil falen als kolommen nog niet bestaan
   const uid2=userSpelerId?parseInt(userSpelerId):null;
