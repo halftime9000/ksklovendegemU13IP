@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v225</title>
+<title>KSK Lovendegem U13 IP v226</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -649,7 +649,8 @@ textarea{resize:vertical;min-height:70px}
       <div style="font-size:9px;color:rgba(255,255,255,.45);font-weight:600;letter-spacing:.08em;text-transform:uppercase">KSK Lovendegem U13 IP</div>
       <div id="pv-title" style="font-size:16px;font-weight:800;color:#fff;margin-top:2px">Mijn profiel</div>
     </div>
-    <div id="pv-avatar" style="width:36px;height:36px;border-radius:50%;background:#203060;border:2px solid #E0D040;font-size:12px;font-weight:800;color:#E0D040;display:flex;align-items:center;justify-content:center;flex-shrink:0">?</div>
+    <div id="pv-avatar" style="width:34px;height:34px;border-radius:50%;background:#203060;border:2px solid #E0D040;font-size:11px;font-weight:800;color:#E0D040;display:flex;align-items:center;justify-content:center;flex-shrink:0">?</div>
+    <button onclick="doLogout()" style="background:#E0D040;border:none;border-radius:7px;padding:6px 12px;color:#182448;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0">Uitloggen</button>
   </div>
   <!-- Tabs -->
   <div style="background:#fff;border-bottom:1.5px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
@@ -2191,16 +2192,26 @@ async function saveEvaluatie(matchId, teamIds) {
     keeper_communicatie_opm:document.getElementById('ep-comm-'+matchId+'-opm')?.value||'',
     keeper_uitstraling:parseInt(document.getElementById('ep-uitstr-'+matchId+'-score')?.value)||null,
     keeper_uitstraling_opm:document.getElementById('ep-uitstr-'+matchId+'-opm')?.value||'',
-    // Team beoordeling
-    team_mentaliteit:parseInt(document.querySelector('#team_mentaliteit-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null,
-    team_mentaliteit_waarom:document.getElementById('team-ment-waarom-'+matchId)?.value||'',
-    team_samenspel:parseInt(document.querySelector('#team_samenspel-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null,
     eigen_trans_bm_bp_opmerking:document.getElementById('ep-tbmbp-'+matchId+'-opm')?.value||'',
     updated_at:new Date().toISOString()
   };
 
   const {error}=await sbUpsert('match_evaluaties', payload);
   if(error){toast('Fout: '+(error.message||'onbekend'),true);return;}
+
+  // Team velden apart opslaan (vereist SQL migratie — stil falen als kolommen ontbreken)
+  const uid2=userSpelerId?parseInt(userSpelerId):null;
+  const teamMent=parseInt(document.querySelector('#team_mentaliteit-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null;
+  const teamSamen=parseInt(document.querySelector('#team_samenspel-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null;
+  const teamWaarom=document.getElementById('team-ment-waarom-'+matchId)?.value||'';
+  if(teamMent||teamSamen||teamWaarom){
+    await sbPatch('match_evaluaties','match_id=eq.'+matchId+'&beoordelaar=eq.'+uid2,{
+      team_mentaliteit:teamMent,
+      team_mentaliteit_waarom:teamWaarom,
+      team_samenspel:teamSamen
+    }).catch(()=>{});
+  }
+
   toast('✓ Evaluatie verzonden!');
   const div=$('eval-body-'+matchId);
   if(div){div.classList.remove('open');setTimeout(()=>{div.classList.add('open');openEvalForm(matchId);},100);}
