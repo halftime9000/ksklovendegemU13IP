@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v248</title>
+<title>KSK Lovendegem U13 IP v249</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2336,10 +2336,20 @@ async function bekijkEvaluaties(matchId) {
     }).join(' ');
 
     const eigenHTML=[
+      {l:'Mentaliteit',v:ev.eigen_mentaliteit,o:ev.eigen_mentaliteit_opm},
       {l:'B+',v:ev.eigen_b_plus,o:ev.eigen_b_plus_opmerking},
       {l:'B-',v:ev.eigen_b_min,o:ev.eigen_b_min_opmerking},
       {l:'Trans B+→B-',v:ev.eigen_trans_bp_bm,o:ev.eigen_trans_bp_bm_opmerking},
       {l:'Trans B-→B+',v:ev.eigen_trans_bm_bp,o:ev.eigen_trans_bm_bp_opmerking},
+      {l:'🧤 Op doellijn',v:ev.keeper_doellijn,o:ev.keeper_doellijn_opm},
+      {l:'🧤 1v1',v:ev.keeper_1v1,o:ev.keeper_1v1_opm},
+      {l:'🧤 Communicatie',v:ev.keeper_communicatie,o:ev.keeper_communicatie_opm},
+      {l:'🧤 Uitstraling',v:ev.keeper_uitstraling,o:ev.keeper_uitstraling_opm},
+    ].filter(x=>x.v).map(x=>'<span style="font-size:11px"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
+
+    const teamHTML=[
+      {l:'Mentaliteit ploeg',v:ev.team_mentaliteit,o:ev.team_mentaliteit_waarom},
+      {l:'Samenspel',v:ev.team_samenspel,o:null},
     ].filter(x=>x.v).map(x=>'<span style="font-size:11px"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
 
     return '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">'+
@@ -2353,7 +2363,8 @@ async function bekijkEvaluaties(matchId) {
       (rHtml?'<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">'+rHtml+'</div>':'')+
       (motmP?'<div style="font-size:11px;color:#1d4ed8;margin-bottom:3px">⭐ MOTM: <b>'+motmP.voornaam+'</b></div>':'')+
       (wlP?'<div style="font-size:11px;color:#dc2626;margin-bottom:6px">🔴 Weak Link: <b>'+wlP.voornaam+'</b></div>':'')+
-      (eigenHTML?'<div style="font-size:11px;line-height:1.8;color:#374151;border-top:1px solid #f1f5f9;padding-top:6px;margin-top:4px">'+eigenHTML+'</div>':'')+
+      (eigenHTML?'<div style="font-size:11px;line-height:1.8;color:#374151;border-top:1px solid #f1f5f9;padding-top:6px;margin-top:4px">📊 Eigen prestatie:<br>'+eigenHTML+'</div>':'')+
+      (teamHTML?'<div style="font-size:11px;line-height:1.8;color:#374151;border-top:1px solid #f1f5f9;padding-top:6px;margin-top:4px">🤝 Team:<br>'+teamHTML+'</div>':'')+
     '</div>';
   }).join('');
 }
