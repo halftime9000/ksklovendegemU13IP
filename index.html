@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v245</title>
+<title>KSK Lovendegem U13 IP v246</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2006,7 +2006,36 @@ async function openEvalForm(matchId) {
     '<button class="bewerk-btn" data-match-id="'+matchId+'" style="padding:4px 12px;background:#203060;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✏️ Bewerken</button>'+
     '</div>';}
 
-  // ── BLOK 1: Tegenstander ──
+  // ── BLOK 1: Eigen prestatie (bovenaan) ──
+  const isKeeperEval = userRole === 'keeper';
+  const mentBtns=[4,5,6,7,8,9,10].map(n=>{
+    const sel=(ev?.eigen_mentaliteit||null)===n;
+    const st=sel?'background:#203060;color:#e0d040;border-color:#203060;':'background:#f8fafc;color:#374151;border-color:#e2e8f0;';
+    return '<button class="score-btn" data-val="'+n+'" data-mid="'+matchId+'" data-fld="eigen_mentaliteit" onclick="setTeamScore(this,\'eigen_ment-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 6px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
+  }).join('');
+  html+='<div class="eval-block">'+
+    '<div class="eval-block-title"><span>'+(isKeeperEval?'🧤':'📊')+'</span>Eigen prestatie</div>'+
+    '<div class="field" style="margin-bottom:10px">'+
+      '<label style="font-size:11px;font-weight:700;color:#203060;display:block;margin-bottom:6px">Mentaliteit</label>'+
+      '<div id="eigen_ment-'+matchId+'" style="display:flex;gap:4px;flex-wrap:wrap">'+mentBtns+'</div>'+
+    '</div>'+
+    '<div class="eigen-grid">';
+  if(isKeeperEval){
+    html+=
+      mkScoreBlock('Op doellijn','ep-doellijn-'+matchId,ev?.keeper_doellijn,ev?.keeper_doellijn_opm,locked)+
+      mkScoreBlock('1v1 situaties','ep-1v1-'+matchId,ev?.keeper_1v1,ev?.keeper_1v1_opm,locked)+
+      mkScoreBlock('Communicatie / coaching','ep-comm-'+matchId,ev?.keeper_communicatie,ev?.keeper_communicatie_opm,locked)+
+      mkScoreBlock('Uitstraling / algemeen gevoel','ep-uitstr-'+matchId,ev?.keeper_uitstraling,ev?.keeper_uitstraling_opm,locked);
+  } else {
+    html+=
+      mkScoreBlock('B+ (aanvallend)','ep-bplus-'+matchId,ev?.eigen_b_plus,ev?.eigen_b_plus_opmerking,locked)+
+      mkScoreBlock('B- (verdedigend)','ep-bmin-'+matchId,ev?.eigen_b_min,ev?.eigen_b_min_opmerking,locked)+
+      mkScoreBlock('Transitie B+ → B-','ep-tbpbm-'+matchId,ev?.eigen_trans_bp_bm,ev?.eigen_trans_bp_bm_opmerking,locked)+
+      mkScoreBlock('Transitie B- → B+','ep-tbmbp-'+matchId,ev?.eigen_trans_bm_bp,ev?.eigen_trans_bm_bp_opmerking,locked);
+  }
+  html+='</div></div>';
+
+  // ── BLOK 2: Tegenstander ──
   const sys=ev?.tegenstander_systeem||'';
   html+='<div class="eval-block">'+
     '<div class="eval-block-title"><span>⚽</span>Tegenstander</div>'+
@@ -2069,26 +2098,6 @@ async function openEvalForm(matchId) {
     '<div class="eval-block-title"><span>👥</span>Teamgenoten beoordelen ('+teamColor+')</div>'+
     (ratingRows||'<div style="font-size:12px;color:#94a3b8">Geen teamgenoten.</div>')+
   '</div>';
-
-  // ── BLOK 3: Eigen prestatie (keeper of veldspeler) ──
-  const isKeeperEval = userRole === 'keeper';
-  html+='<div class="eval-block">'+
-    '<div class="eval-block-title"><span>'+(isKeeperEval?'🧤':'📊')+'</span>Eigen prestatie</div>'+
-    '<div class="eigen-grid">';
-  if(isKeeperEval){
-    html+=
-      mkScoreBlock('Op doellijn','ep-doellijn-'+matchId,ev?.keeper_doellijn,ev?.keeper_doellijn_opm,locked)+
-      mkScoreBlock('1v1 situaties','ep-1v1-'+matchId,ev?.keeper_1v1,ev?.keeper_1v1_opm,locked)+
-      mkScoreBlock('Communicatie / coaching','ep-comm-'+matchId,ev?.keeper_communicatie,ev?.keeper_communicatie_opm,locked)+
-      mkScoreBlock('Uitstraling / algemeen gevoel','ep-uitstr-'+matchId,ev?.keeper_uitstraling,ev?.keeper_uitstraling_opm,locked);
-  } else {
-    html+=
-      mkScoreBlock('B+ (aanvallend)','ep-bplus-'+matchId,ev?.eigen_b_plus,ev?.eigen_b_plus_opmerking,locked)+
-      mkScoreBlock('B- (verdedigend)','ep-bmin-'+matchId,ev?.eigen_b_min,ev?.eigen_b_min_opmerking,locked)+
-      mkScoreBlock('Transitie B+ → B-','ep-tbpbm-'+matchId,ev?.eigen_trans_bp_bm,ev?.eigen_trans_bp_bm_opmerking,locked)+
-      mkScoreBlock('Transitie B- → B+','ep-tbmbp-'+matchId,ev?.eigen_trans_bm_bp,ev?.eigen_trans_bm_bp_opmerking,locked);
-  }
-  html+='</div></div>';
 
   // ── BLOK 4: MOTM / Weak Link ──
   const selOpts=(selected)=>'<option value="">— kies —</option>'+allPlayers.map(id=>{
@@ -2223,7 +2232,7 @@ async function saveEvaluatie(matchId, teamIds) {
     tegenstander_systeem:sysSel?sysSel.textContent.trim():'',
     tegenstander_systeem_extra:document.getElementById('sys-extra-'+matchId)?.value||'',
     tegenstander_beste:document.getElementById('beste-teg-'+matchId)?.value||'',
-    // Veldspeler eigen prestatie
+    eigen_mentaliteit:parseInt(document.querySelector('#eigen_ment-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null,
     eigen_b_plus:parseInt(document.getElementById('ep-bplus-'+matchId+'-score')?.value)||null,
     eigen_b_plus_opmerking:document.getElementById('ep-bplus-'+matchId+'-opm')?.value||'',
     eigen_b_min:parseInt(document.getElementById('ep-bmin-'+matchId+'-score')?.value)||null,
