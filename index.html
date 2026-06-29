@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v227</title>
+<title>KSK Lovendegem U13 IP v228</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2147,9 +2147,9 @@ function selectScore(btn) {
   if(item){const lbl=item.querySelector('.eigen-label');if(lbl)lbl.innerHTML=lbl.textContent.split(' —')[0]+' — <b>'+scLabels[val]+'</b>';}
 }
 async function saveEvaluatie(matchId, teamIds) {
-  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk','err');return;}
+  toast('⏳ Verzenden gestart...'); // DEBUG stap 1
+  if(userRole==='admin'||userRole==='coach'){toast('Leesmodus — opslaan niet mogelijk',true);return;}
   const ratings={};
-  // Collect from button selections
   const evalContainer=document.getElementById('eval-body-'+matchId);
   if(evalContainer){
     evalContainer.querySelectorAll('.score-btn[data-mid="'+matchId+'"]').forEach(btn=>{
@@ -2158,7 +2158,6 @@ async function saveEvaluatie(matchId, teamIds) {
       }
     });
   }
-  // Fallback: window._evalRatings
   if(window._evalRatings&&window._evalRatings[matchId]){
     Object.assign(ratings, window._evalRatings[matchId]);
   }
@@ -2166,7 +2165,10 @@ async function saveEvaluatie(matchId, teamIds) {
   const wl=parseInt(document.getElementById('eval-wl-'+matchId)?.value)||null;
   const sysSel=document.querySelector('#sys-group-'+matchId+' .radio-opt.selected');
   const uid=userSpelerId?parseInt(userSpelerId):null;
+  toast('⏳ uid='+uid+' matchId='+matchId); // DEBUG stap 2
+  if(!uid){toast('Geen speler gekoppeld — kan niet opslaan',true);return;}
 
+  toast('⏳ Payload aanmaken...'); // DEBUG stap 3
   const payload={
     match_id:matchId, beoordelaar:uid,
     ratings, motm, weak_link:wl,
@@ -2186,8 +2188,9 @@ async function saveEvaluatie(matchId, teamIds) {
     updated_at:new Date().toISOString()
   };
 
+  toast('⏳ Opslaan naar DB...'); // DEBUG stap 4
   const {error}=await sbUpsert('match_evaluaties', payload);
-  if(error){toast('Fout: '+(error.message||'onbekend'),true);return;}
+  if(error){toast('❌ DB Fout: '+(error.message||error.code||JSON.stringify(error)),true);console.error('saveEval error:',error);return;}
 
   // Extra velden apart (keeper + team) — stil falen als kolommen nog niet bestaan
   const uid2=userSpelerId?parseInt(userSpelerId):null;
