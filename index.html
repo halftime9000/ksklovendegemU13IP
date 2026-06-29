@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v251</title>
+<title>KSK Lovendegem U13 IP v254</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1118,7 +1118,10 @@ function renderPills(){MULTI_KEYS.forEach(k=>{const c=document.getElementById('m
 function renderList() {
   const q=document.querySelector('.sb-search input')?.value.toLowerCase()||'';
   const ul=$('player-list'); if(!ul)return; ul.innerHTML='';
-  PLAYERS.filter(p=>(p.voornaam+' '+p.naam).toLowerCase().includes(q)).forEach(p=>{
+  PLAYERS.filter(p=>{
+    if(DB[p.id]?.data?.is_trainer===true) return false;
+    return (p.voornaam+' '+p.naam).toLowerCase().includes(q);
+  }).forEach(p=>{
     const d=DB[p.id]?.data||{},pc=calcPct(d),has=hasData(d);
     const isTrainer=d.is_trainer===true;
     const ini=(p.voornaam[0]+p.naam[0]).toUpperCase(),avc=pc===100?'c':has?'s':'';
@@ -2743,26 +2746,26 @@ async function loadBeheerOverzicht() {
 
   const [{data:spelers},{data:evals},{data:urs}]=await Promise.all([
     sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc'),
-    sbGet('match_evaluaties','select=beoordelaar,eigen_b_plus,eigen_b_min,eigen_trans_bp_bm,eigen_trans_bm_bp,vergrendeld'),
+    sbGet('match_evaluaties','select=beoordelaar,ratings,motm,weak_link'),
     sbGet('user_roles','select=speler_id,role')
   ]);
 
   if(!spelers||!spelers.length){el.innerHTML='<div style="padding:20px;color:#94a3b8;font-size:13px">Geen spelers gevonden.</div>';return;}
 
-  const evalsBySpeler={};
-  (evals||[]).forEach(e=>{
-    if(!evalsBySpeler[e.beoordelaar])evalsBySpeler[e.beoordelaar]=[];
-    evalsBySpeler[e.beoordelaar].push(e);
-  });
+  const linkedIds=new Set((urs||[]).filter(u=>['player','keeper'].includes(u.role)).map(u=>u.speler_id));
 
-  const linkedIds=new Set((urs||[]).filter(u=>u.role==='player').map(u=>u.speler_id));
-
-  const avgVal=(arr,key)=>{const v=arr.filter(e=>e[key]).map(e=>e[key]);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—';};
-  const badge=(v,good,warn)=>{
-    if(v==='—')return '<span style="color:#cbd5e1">—</span>';
-    const n=parseFloat(v);
-    const col=n>=good?'#15803d':n>=warn?'#d97706':'#dc2626';
-    return `<span style="font-weight:700;color:${col}">${v}</span>`;
+  // Kleur op basis van score
+  const scoreColor=(n)=>{
+    if(!n||n==='—') return '#cbd5e1';
+    const v=parseFloat(n);
+    if(v>=9) return '#15803d';
+    if(v>=7) return '#4ade80';
+    if(v>=6) return '#f97316';
+    return '#dc2626';
+  };
+  const scoreBadge=(v)=>{
+    if(!v||v==='—') return '<span style="color:#cbd5e1">—</span>';
+    return `<span style="font-weight:800;color:${scoreColor(v)}">${v}</span>`;
   };
 
   let html='<div style="overflow-x:auto">';
@@ -2771,49 +2774,53 @@ async function loadBeheerOverzicht() {
   html+='<th style="text-align:left;padding:10px 12px;font-weight:700">Speler</th>';
   html+='<th style="padding:8px 6px" title="Basisfiche ingevuld?">Fiche</th>';
   html+='<th style="padding:8px 6px" title="Account gekoppeld?">Account</th>';
-  html+='<th style="padding:8px 6px">Evals</th>';
-  html+='<th style="padding:8px 6px">Ø B+</th>';
-  html+='<th style="padding:8px 6px">Ø B-</th>';
-  html+='<th style="padding:8px 6px">Ø Trans.</th>';
+  html+='<th style="padding:8px 6px" title="Gemiddelde score van ploegmaats">Ø Score</th>';
+  html+='<th style="padding:8px 6px" title="Aantal keer MOTM gekozen">⭐ MOTM</th>';
+  html+='<th style="padding:8px 6px" title="Aantal keer Weak Link gekozen">🔴 W.Link</th>';
   html+='</tr></thead><tbody>';
 
-  spelers.forEach((s,i)=>{
+  spelers.filter(s=>!s.data?.is_trainer).forEach((s,i)=>{
     const d=s.data||{};
-    const ev=evalsBySpeler[s.id]||[];
     const bg=i%2===0?'#fff':'#f8fafc';
+    const keeper=d.is_keeper?'🧤 ':'';
 
-    // Fiche completeness: check a few key fields
+    // Fiche volledigheid
     const ficheFields=['pv-fav-pos','pv-droom','pv-niv','pv-doel','pv-verw-trainer','sterke_technisch','werk_technisch'];
     const ficheScore=ficheFields.filter(f=>d[f]&&(Array.isArray(d[f])?d[f].length>0:d[f]!=='')).length;
     const ficheIcon=ficheScore>=5?'✅':ficheScore>=2?'🟡':'❌';
-
     const accountIcon=linkedIds.has(s.id)?'✅':'❌';
-    const keeper=d.is_keeper?'🧤 ':'' ;
 
-    const avgBplus=avgVal(ev,'eigen_b_plus');
-    const avgBmin=avgVal(ev,'eigen_b_min');
-    const avgTrans=(()=>{
-      const vals=ev.filter(e=>e.eigen_trans_bp_bm&&e.eigen_trans_bm_bp).map(e=>((e.eigen_trans_bp_bm+e.eigen_trans_bm_bp)/2));
-      return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):'—';
-    })();
+    // Scores van ploegmaats (ratings[speler_id] uit andere evals)
+    const peerScores=[];
+    let motmCount=0, wlCount=0;
+    (evals||[]).forEach(ev=>{
+      if(ev.beoordelaar===s.id) return; // eigen evaluatie niet meetellen
+      const r=ev.ratings||{};
+      const sc=r[s.id]||r[String(s.id)];
+      if(sc) peerScores.push(parseInt(sc));
+      if(ev.motm===s.id||ev.motm===String(s.id)) motmCount++;
+      if(ev.weak_link===s.id||ev.weak_link===String(s.id)) wlCount++;
+    });
 
-    html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="selectPlayer(${s.id})" title="Klik om te openen">`;
+    const avgPeer=peerScores.length?(peerScores.reduce((a,b)=>a+b,0)/peerScores.length).toFixed(1):'—';
+
+    html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="selectPlayer(${s.id})">`;
     html+=`<td style="padding:9px 12px;font-weight:600;color:#0a1628">${keeper}${s.voornaam} ${s.naam}</td>`;
     html+=`<td style="text-align:center;padding:8px">${ficheIcon}</td>`;
     html+=`<td style="text-align:center;padding:8px">${accountIcon}</td>`;
-    html+=`<td style="text-align:center;padding:8px;font-weight:700;color:#203060">${ev.length}</td>`;
-    html+=`<td style="text-align:center;padding:8px">${badge(avgBplus,7,5)}</td>`;
-    html+=`<td style="text-align:center;padding:8px">${badge(avgBmin,7,5)}</td>`;
-    html+=`<td style="text-align:center;padding:8px">${badge(avgTrans,7,5)}</td>`;
+    html+=`<td style="text-align:center;padding:8px;font-size:14px">${scoreBadge(avgPeer)}${peerScores.length?'<div style="font-size:9px;color:#94a3b8">'+peerScores.length+' scores</div>':''}</td>`;
+    html+=`<td style="text-align:center;padding:8px;font-weight:800;color:${motmCount>0?'#15803d':'#cbd5e1'};font-size:14px">${motmCount>0?motmCount:'—'}</td>`;
+    html+=`<td style="text-align:center;padding:8px;font-weight:800;color:${wlCount>0?'#dc2626':'#cbd5e1'};font-size:14px">${wlCount>0?wlCount:'—'}</td>`;
     html+='</tr>';
   });
 
   html+='</tbody></table></div>';
-
-  // Legenda
-  html+='<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:11px;color:#64748b">';
-  html+='<span>✅ Volledig/Aanwezig</span><span>🟡 Gedeeltelijk</span><span>❌ Niet ingevuld/Geen account</span>';
-  html+='<span style="margin-left:8px">Scores: <span style="color:#15803d">groen ≥7</span> · <span style="color:#d97706">oranje ≥5</span> · <span style="color:#dc2626">rood &lt;5</span></span>';
+  html+='<div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:11px;color:#64748b">';
+  html+='<span>Ø Score van ploegmaats per wedstrijd:</span>';
+  html+='<span style="color:#dc2626">● 4-5</span>';
+  html+='<span style="color:#f97316">● 6</span>';
+  html+='<span style="color:#4ade80">● 7-8</span>';
+  html+='<span style="color:#15803d">● 9-10</span>';
   html+='</div>';
 
   el.innerHTML=html;
