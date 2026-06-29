@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v239</title>
+<title>KSK Lovendegem U13 IP v240</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2193,7 +2193,7 @@ function doVerzenden() {
 }
 
 async function saveEvaluatie(matchId, teamIds) {
-  toast('Stap 1: gestart, rol='+userRole);
+  alert('saveEvaluatie v240! uid='+userSpelerId+' rol='+userRole);
   if(userRole==='admin'||userRole==='coach'){toast('Leesmodus',true);return;}
   const uid=userSpelerId?parseInt(userSpelerId):null;
   toast('Stap 2: uid='+uid);
