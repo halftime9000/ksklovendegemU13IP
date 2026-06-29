@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v229</title>
+<title>KSK Lovendegem U13 IP v231</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1732,6 +1732,17 @@ function setDisp(id,v){const el=$(id);if(el)el.style.display=v;}
 function show(id){const el=$(id);if(el)el.style.display='block';}
 function showFlex(id){const el=$(id);if(el)el.style.display='flex';}
 function hide(id){const el=$(id);if(el)el.style.display='none';}
+// Globale fallback voor verzend-btn (capture phase — pakt voor andere handlers)
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.verzend-btn');
+  if(!btn) return;
+  e.preventDefault(); e.stopPropagation();
+  const mid = parseInt(btn.dataset.matchId);
+  let tm = [];
+  try { tm = JSON.parse(decodeURIComponent(btn.dataset.teammates||'[]')); } catch(err){}
+  saveEvaluatie(mid, tm);
+}, true);
+
 function toast(msg,isErr){const t=$('toast');if(!t)return;t.textContent=msg;t.className='on'+(isErr?' err':'');clearTimeout(t._to);t._to=setTimeout(()=>t.className='',3000);}
 // btn: knop element | ms: herstel na ms | origTxt: originele tekst | origCls: originele class
 function btnOk(btn,ms,origTxt,origCls){
@@ -1981,7 +1992,7 @@ async function openEvalForm(matchId) {
   // Locked banner
   if(locked){html+='<div class="locked-banner" style="display:flex;align-items:center;justify-content:space-between">'+
     '<span>✅ Evaluatie ingediend</span>'+
-    '<button onclick="editEvaluatie('+matchId+')" style="padding:4px 12px;background:#203060;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✏️ Bewerken</button>'+
+    '<button class="bewerk-btn" data-match-id="'+matchId+'" style="padding:4px 12px;background:#203060;color:#fff;border:none;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer">✏️ Bewerken</button>'+
     '</div>';}
 
   // ── BLOK 1: Tegenstander ──
@@ -2090,15 +2101,23 @@ async function openEvalForm(matchId) {
 
   evalDiv.innerHTML=html;
 
-  // Verzenden knop via event listener (vermijdt inline onclick parsing problemen)
-  const verzendBtn=evalDiv.querySelector('.verzend-btn');
-  if(verzendBtn){
-    verzendBtn.addEventListener('click', function(){
-      const mid=parseInt(this.dataset.matchId);
-      const tm=JSON.parse(decodeURIComponent(this.dataset.teammates||'[]'));
+  // Event delegation — evalDiv üzerinde dinle, butona değil
+  evalDiv.onclick = function(e) {
+    const btn = e.target.closest('.verzend-btn');
+    if(btn) {
+      e.stopPropagation();
+      const mid=parseInt(btn.dataset.matchId);
+      const tm=JSON.parse(decodeURIComponent(btn.dataset.teammates||'[]'));
       saveEvaluatie(mid,tm);
-    });
-  }
+      return;
+    }
+    // Bewerken knop
+    const bew = e.target.closest('.bewerk-btn');
+    if(bew){
+      e.stopPropagation();
+      editEvaluatie(parseInt(bew.dataset.matchId));
+    }
+  };
 
   // Restore radio selection
   if(sys){
