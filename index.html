@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v228</title>
+<title>KSK Lovendegem U13 IP v229</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2085,10 +2085,20 @@ async function openEvalForm(matchId) {
   '</div>';
 
   if(!locked){
-    html+='<button onclick="saveEvaluatie('+matchId+',['+teammates.join(',')+'])" class="btn-green" style="width:100%;padding:11px;font-size:13px;font-weight:600">💾 Verzenden</button>';
+    html+='<button class="btn-green verzend-btn" data-match-id="'+matchId+'" data-teammates="'+encodeURIComponent(JSON.stringify(teammates))+'" style="width:100%;padding:11px;font-size:13px;font-weight:600">💾 Verzenden</button>';
   }
 
   evalDiv.innerHTML=html;
+
+  // Verzenden knop via event listener (vermijdt inline onclick parsing problemen)
+  const verzendBtn=evalDiv.querySelector('.verzend-btn');
+  if(verzendBtn){
+    verzendBtn.addEventListener('click', function(){
+      const mid=parseInt(this.dataset.matchId);
+      const tm=JSON.parse(decodeURIComponent(this.dataset.teammates||'[]'));
+      saveEvaluatie(mid,tm);
+    });
+  }
 
   // Restore radio selection
   if(sys){
