@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v241</title>
+<title>KSK Lovendegem U13 IP v242</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2234,7 +2234,7 @@ async function saveEvaluatie(matchId, teamIds) {
 
   
   const {error}=await sbUpsert('match_evaluaties', payload);
-  if(error){toast('❌ FOUT: '+(error.message||error.code||JSON.stringify(error).substring(0,80)),true);return;}
+  if(error){toast('❌ Fout bij opslaan: '+(error.message||error.code||JSON.stringify(error).substring(0,60)),true);return;}
 
   // Extra velden apart (keeper + team) — stil falen als kolommen nog niet bestaan
   const uid2=userSpelerId?parseInt(userSpelerId):null;
@@ -2259,9 +2259,16 @@ async function saveEvaluatie(matchId, teamIds) {
     await sbPatch('match_evaluaties','match_id=eq.'+matchId+'&beoordelaar=eq.'+uid2,extraPatch).catch(()=>{});
   }
 
-  toast('✓ Evaluatie verzonden!');
-  const div=$('eval-body-'+matchId);
-  if(div){div.classList.remove('open');setTimeout(()=>{div.classList.add('open');openEvalForm(matchId);},100);}
+  toast('✓ Evaluatie opgeslagen!');
+  // Buton groen maken en formulier open laten (niet sluiten/heropenen)
+  const saveBtn = document.querySelector('#eval-body-'+matchId+' .do-verzenden');
+  if(saveBtn){
+    const orig=saveBtn.textContent;
+    saveBtn.textContent='✓ Opgeslagen';
+    saveBtn.style.background='#15803d';
+    saveBtn.style.color='#fff';
+    setTimeout(()=>{saveBtn.textContent=orig;saveBtn.style.background='';saveBtn.style.color='';},2500);
+  }
 }
 
 async function editEvaluatie(matchId) {
