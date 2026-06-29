@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v255</title>
+<title>KSK Lovendegem U13 IP v256</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1571,7 +1571,7 @@ function loadPvVoetbal() {
     '<div class="frow" style="margin-top:4px">' +
     '<div class="field"><label>Voorkeurspoot</label><select id="pv-poot" onchange="pvDirty()"><option value="">—</option><option>Links</option><option>Rechts</option><option>Beide</option></select></div>' +
     '</div></div>' +
-    '<div class="card"><div class="card-t">📅 Speelervaring</div><div class="fields">' +
+    '<div class="card"><div class="card-t">📅 Achtergrond</div><div class="fields">' +
     '<div class="frow">' +
     
     '<div class="field"><label>Vorige club(s)</label><input id="pv-clubs" placeholder="bv. Evergem 2020" oninput="pvDirty()"></div>' +
@@ -2636,15 +2636,18 @@ function loadAdminVoetbalPane() {
         (!isKeeper ? `<div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">FAVORIETE POSITIE</div>${posBtns(d['pv-fav-pos']||d.bf_favoriet,[2,3,5,7,8,9,11])}</div>
         <div style="margin-bottom:8px"><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-bottom:4px">MEEST GESPEELD</div>${posBtns(d['pv-ges-pos']||d.bf_meest,[2,3,5,7,8,9,11])}</div>` : '') +
         rowHtml('Voorkeurspoot', d.voorkeurspoot || d['pv-poot']) +
-        rowHtml('Vorige club(s)', d.vorige_clubs || d['pv-clubs']) +
-        rowHtml('Favoriete voetballer', d.rolmodel || d['pv-rolmodel'])
+        rowHtml('Vorige club(s)', d.vorige_clubs || d['pv-clubs'])
+      ) +
+      sectionHtml('⭐ Motivatie & Identiteit',
+        rowHtml('Favoriete ploeg', d.fav_ploeg || '—') +
+        rowHtml('Favoriete voetballer', d.rolmodel || d['pv-rolmodel']) +
+        rowHtml('Wat vind je leuk bij voetballen?', d.waarom_voetbal || d['pv-waarom']) +
+        rowHtml('Voetbaldroom', d.droomscenario || d['pv-droom']) +
+        rowHtml('Mooiste herinnering', d.herinnering || d['pv-herinnering'])
       ) +
       sectionHtml('🎯 Mijn doelen',
         rowHtml('Wat gaat al goed?', d.bf_niveau || d['pv-niv']) +
         rowHtml('Doel dit seizoen', d.bf_doel || d['pv-doel']) +
-        rowHtml('Wat vind je leuk bij voetballen?', d.waarom_voetbal || d['pv-waarom']) +
-        rowHtml('Voetbaldroom', d.droomscenario || d['pv-droom']) +
-        rowHtml('Mooiste herinnering', d.herinnering || d['pv-herinnering']) +
         rowHtml('Wat verwacht de speler van de trainer?', d.verw_trainer || d['pv-verw-trainer'])
       ) +
       sectionHtml('🔍 Zelfbeoordeling',
