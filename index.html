@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v231</title>
+<title>KSK Lovendegem U13 IP v232</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1734,6 +1734,9 @@ function showFlex(id){const el=$(id);if(el)el.style.display='flex';}
 function hide(id){const el=$(id);if(el)el.style.display='none';}
 // Globale fallback voor verzend-btn (capture phase — pakt voor andere handlers)
 document.addEventListener('click', function(e) {
+  // DEBUG: log elk klik
+  const tag=e.target.tagName+' class="'+e.target.className+'"';
+  toast('KLIK: '+tag.substring(0,60));
   const btn = e.target.closest('.verzend-btn');
   if(!btn) return;
   e.preventDefault(); e.stopPropagation();
