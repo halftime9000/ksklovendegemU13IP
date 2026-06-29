@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v249</title>
+<title>KSK Lovendegem U13 IP v250</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2019,7 +2019,7 @@ async function openEvalForm(matchId) {
   const mentBtns=[4,5,6,7,8,9,10].map(n=>{
     const sel=(ev?.eigen_mentaliteit||null)===n;
     const st=sel?'background:#203060;color:#e0d040;border-color:#203060;':'background:#f8fafc;color:#374151;border-color:#e2e8f0;';
-    return '<button class="score-btn" data-val="'+n+'" data-mid="'+matchId+'" data-fld="eigen_mentaliteit" onclick="setTeamScore(this,\'eigen_ment-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 6px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
+    return '<button class="score-btn'+(sel?' ts-selected':'')+'" data-val="'+n+'" data-mid="'+matchId+'" onclick="setTeamScore(this,\'eigen_ment-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 6px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
   }).join('');
   html+='<div class="eval-block">'+
     '<div class="eval-block-title"><span>'+(isKeeperEval?'🧤':'📊')+'</span>Eigen prestatie</div>'+
@@ -2063,12 +2063,12 @@ async function openEvalForm(matchId) {
   const teamMentScores=[1,2,3,4,5,6,7,8,9,10].map(n=>{
     const sel=(ev?.team_mentaliteit||null)===n;
     const st=sel?'background:#203060;color:#e0d040;border-color:#203060;':'background:#f8fafc;color:#374151;border-color:#e2e8f0;';
-    return '<button class="score-btn" data-val="'+n+'" data-mid="'+matchId+'" data-fld="team_mentaliteit" onclick="setTeamScore(this,\'team_mentaliteit-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 5px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
+    return '<button class="score-btn'+(sel?' ts-selected':'')+'" data-val="'+n+'" onclick="setTeamScore(this,\'team_mentaliteit-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 5px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
   }).join('');
   const samenspelScores=[1,2,3,4,5,6,7,8,9,10].map(n=>{
     const sel=(ev?.team_samenspel||null)===n;
     const st=sel?'background:#203060;color:#e0d040;border-color:#203060;':'background:#f8fafc;color:#374151;border-color:#e2e8f0;';
-    return '<button class="score-btn" data-val="'+n+'" data-mid="'+matchId+'" data-fld="team_samenspel" onclick="setTeamScore(this,\'team_samenspel-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 5px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
+    return '<button class="score-btn'+(sel?' ts-selected':'')+'" data-val="'+n+'" onclick="setTeamScore(this,\'team_samenspel-'+matchId+'\')" '+(locked?'disabled':'')+' style="'+st+'padding:4px 5px;border:1px solid;border-radius:5px;font-size:12px;font-weight:700;cursor:pointer;min-width:28px">'+n+'</button>';
   }).join('');
 
   html+='<div class="eval-block">'+
@@ -2174,8 +2174,10 @@ function setTeamScore(btn, containerId) {
   if(!container) return;
   container.querySelectorAll('.score-btn').forEach(b=>{
     b.style.background='#f8fafc';b.style.color='#374151';b.style.borderColor='#e2e8f0';
+    b.classList.remove('ts-selected');
   });
   btn.style.background='#203060';btn.style.color='#e0d040';btn.style.borderColor='#203060';
+  btn.classList.add('ts-selected');
 }
 function setRating(btn) {
   var mid = btn.dataset.mid, pid = btn.dataset.pid, val = parseInt(btn.dataset.val);
@@ -2241,7 +2243,7 @@ async function saveEvaluatie(matchId, teamIds) {
     tegenstander_systeem:sysSel?sysSel.textContent.trim():'',
     tegenstander_systeem_extra:document.getElementById('sys-extra-'+matchId)?.value||'',
     tegenstander_beste:document.getElementById('beste-teg-'+matchId)?.value||'',
-    eigen_mentaliteit:parseInt(document.querySelector('#eigen_ment-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null,
+    eigen_mentaliteit:parseInt(document.querySelector('#eigen_ment-'+matchId+' .score-btn.ts-selected')?.dataset?.val)||null,
     eigen_mentaliteit_opm:document.getElementById('eigen-ment-opm-'+matchId)?.value||'',
     eigen_b_plus:parseInt(document.getElementById('ep-bplus-'+matchId+'-score')?.value)||null,
     eigen_b_plus_opmerking:document.getElementById('ep-bplus-'+matchId+'-opm')?.value||'',
@@ -2283,8 +2285,8 @@ async function saveEvaluatie(matchId, teamIds) {
     extraPatch.keeper_uitstraling=parseInt(document.getElementById('ep-uitstr-'+matchId+'-score')?.value)||null;
     extraPatch.keeper_uitstraling_opm=document.getElementById('ep-uitstr-'+matchId+'-opm')?.value||'';
   }
-  const teamMent=parseInt(document.querySelector('#team_mentaliteit-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null;
-  const teamSamen=parseInt(document.querySelector('#team_samenspel-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null;
+  const teamMent=parseInt(document.querySelector('#team_mentaliteit-'+matchId+' .score-btn.ts-selected')?.dataset?.val)||null;
+  const teamSamen=parseInt(document.querySelector('#team_samenspel-'+matchId+' .score-btn.ts-selected')?.dataset?.val)||null;
   const teamWaarom=document.getElementById('team-ment-waarom-'+matchId)?.value||'';
   extraPatch.team_mentaliteit=teamMent;
   extraPatch.team_mentaliteit_waarom=teamWaarom;
