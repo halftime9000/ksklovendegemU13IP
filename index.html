@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v262</title>
+<title>KSK Lovendegem U13 IP v264</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1338,7 +1338,7 @@ async function loadBeheerSpelers(){
 
     // Opslaan + delete
     const acties=ur
-      ? '<div style="display:flex;gap:4px"><button class="comb-save-btn b-btn" data-uid="'+uid+'" data-speler-id="'+spelerId+'" style="padding:4px 8px;background:#203060;color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Opslaan</button>'
+      ? '<div style="display:flex;gap:4px"><button class="comb-save-btn" data-uid="'+uid+'" data-speler-id="'+spelerId+'" style="padding:4px 8px;background:#203060;color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent">Opslaan</button>'
         +'<button class="comb-del-user-btn" data-uid="'+uid+'" data-naam="'+(ur.naam||ur.email||s.voornaam).replace(/"/g,'&quot;')+'" style="padding:4px 7px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer">🗑</button></div>'
       : '<button class="comb-del-speler-btn" data-id="'+spelerId+'" data-naam="'+s.voornaam+' '+s.naam+'" style="padding:4px 7px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer">🗑</button>';
 
@@ -2842,15 +2842,24 @@ async function loadBeheerOverzicht() {
   if(!el)return;
   el.innerHTML='<div style="text-align:center;padding:30px;color:#94a3b8;font-size:13px">Laden...</div>';
 
-  const [{data:spelers},{data:evals},{data:urs}]=await Promise.all([
+  const [{data:spelers},{data:evals},{data:wedstrijden}]=await Promise.all([
     sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc'),
-    sbGet('match_evaluaties','select=beoordelaar,ratings,motm,weak_link'),
-    sbGet('user_roles','select=speler_id,role')
+    sbGet('match_evaluaties','select=beoordelaar,ratings,motm,weak_link,eigen_b_plus,eigen_b_min,eigen_mentaliteit'),
+    sbGet('wedstrijden','select=id,blauw_spelers,geel_spelers')
   ]);
 
   if(!spelers||!spelers.length){el.innerHTML='<div style="padding:20px;color:#94a3b8;font-size:13px">Geen spelers gevonden.</div>';return;}
 
-  const linkedIds=new Set((urs||[]).filter(u=>['player','keeper'].includes(u.role)).map(u=>u.speler_id));
+  let html='<div style="overflow-x:auto">';
+  html+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+='<thead><tr style="background:#203060;color:#fff;text-align:center">';
+  html+='<th style="text-align:left;padding:10px 12px;font-weight:700">Speler</th>';
+  html+='<th style="padding:8px 6px" title="Aantal wedstrijden in opstelling">🏟️ Gespeeld</th>';
+  html+='<th style="padding:8px 6px" title="Gemiddelde eigen scores">Ø Eigen</th>';
+  html+='<th style="padding:8px 6px" title="Gemiddelde score van ploegmaats">Ø Peers</th>';
+  html+='<th style="padding:8px 6px" title="Aantal keer MOTM gekozen">⭐ MOTM</th>';
+  html+='<th style="padding:8px 6px" title="Aantal keer Weak Link gekozen">🔴 W.Link</th>';
+  html+='</tr></thead><tbody>';
 
   // Kleur op basis van score
   const scoreColor=(n)=>{
@@ -2866,47 +2875,46 @@ async function loadBeheerOverzicht() {
     return `<span style="font-weight:800;color:${scoreColor(v)}">${v}</span>`;
   };
 
-  let html='<div style="overflow-x:auto">';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
-  html+='<thead><tr style="background:#203060;color:#fff;text-align:center">';
-  html+='<th style="text-align:left;padding:10px 12px;font-weight:700">Speler</th>';
-  html+='<th style="padding:8px 6px" title="Basisfiche ingevuld?">Fiche</th>';
-  html+='<th style="padding:8px 6px" title="Account gekoppeld?">Account</th>';
-  html+='<th style="padding:8px 6px" title="Gemiddelde score van ploegmaats">Ø Score</th>';
-  html+='<th style="padding:8px 6px" title="Aantal keer MOTM gekozen">⭐ MOTM</th>';
-  html+='<th style="padding:8px 6px" title="Aantal keer Weak Link gekozen">🔴 W.Link</th>';
-  html+='</tr></thead><tbody>';
-
   spelers.filter(s=>!s.data?.is_trainer).forEach((s,i)=>{
     const d=s.data||{};
     const bg=i%2===0?'#fff':'#f8fafc';
     const keeper=d.is_keeper?'🧤 ':'';
 
-    // Fiche volledigheid
-    const ficheFields=['pv-fav-pos','pv-droom','pv-niv','pv-doel','pv-verw-trainer','sterke_technisch','werk_technisch'];
-    const ficheScore=ficheFields.filter(f=>d[f]&&(Array.isArray(d[f])?d[f].length>0:d[f]!=='')).length;
-    const ficheIcon=ficheScore>=5?'✅':ficheScore>=2?'🟡':'❌';
-    const accountIcon=linkedIds.has(s.id)?'✅':'❌';
+    // Aantal wedstrijden in opstelling
+    const gespeeld=(wedstrijden||[]).filter(w=>{
+      const b=(w.blauw_spelers||[]).map(Number);
+      const g=(w.geel_spelers||[]).map(Number);
+      return b.includes(s.id)||g.includes(s.id);
+    }).length;
 
-    // Scores van ploegmaats (ratings[speler_id] uit andere evals)
+    // Eigen scores gemiddelde (eigen evaluaties)
+    const eigenEvals=(evals||[]).filter(ev=>ev.beoordelaar===s.id);
+    const eigenScores=[];
+    eigenEvals.forEach(ev=>{
+      if(ev.eigen_mentaliteit) eigenScores.push(ev.eigen_mentaliteit);
+      if(ev.eigen_b_plus) eigenScores.push(ev.eigen_b_plus);
+      if(ev.eigen_b_min) eigenScores.push(ev.eigen_b_min);
+    });
+    const avgEigen=eigenScores.length?(eigenScores.reduce((a,b)=>a+b,0)/eigenScores.length).toFixed(1):'—';
+
+    // Scores van ploegmaats
     const peerScores=[];
     let motmCount=0, wlCount=0;
     (evals||[]).forEach(ev=>{
-      if(ev.beoordelaar===s.id) return; // eigen evaluatie niet meetellen
+      if(ev.beoordelaar===s.id) return;
       const r=ev.ratings||{};
       const sc=r[s.id]||r[String(s.id)];
       if(sc) peerScores.push(parseInt(sc));
       if(ev.motm===s.id||ev.motm===String(s.id)) motmCount++;
       if(ev.weak_link===s.id||ev.weak_link===String(s.id)) wlCount++;
     });
-
     const avgPeer=peerScores.length?(peerScores.reduce((a,b)=>a+b,0)/peerScores.length).toFixed(1):'—';
 
     html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="selectPlayer(${s.id})">`;
     html+=`<td style="padding:9px 12px;font-weight:600;color:#0a1628">${keeper}${s.voornaam} ${s.naam}</td>`;
-    html+=`<td style="text-align:center;padding:8px">${ficheIcon}</td>`;
-    html+=`<td style="text-align:center;padding:8px">${accountIcon}</td>`;
-    html+=`<td style="text-align:center;padding:8px;font-size:14px">${scoreBadge(avgPeer)}${peerScores.length?'<div style="font-size:9px;color:#94a3b8">'+peerScores.length+' scores</div>':''}</td>`;
+    html+=`<td style="text-align:center;padding:8px;font-weight:700;color:#203060">${gespeeld>0?gespeeld:'—'}</td>`;
+    html+=`<td style="text-align:center;padding:8px">${scoreBadge(avgEigen)}</td>`;
+    html+=`<td style="text-align:center;padding:8px;font-size:14px">${scoreBadge(avgPeer)}${peerScores.length?'<div style="font-size:9px;color:#94a3b8">'+peerScores.length+'x</div>':''}</td>`;
     html+=`<td style="text-align:center;padding:8px;font-weight:800;color:${motmCount>0?'#15803d':'#cbd5e1'};font-size:14px">${motmCount>0?motmCount:'—'}</td>`;
     html+=`<td style="text-align:center;padding:8px;font-weight:800;color:${wlCount>0?'#dc2626':'#cbd5e1'};font-size:14px">${wlCount>0?wlCount:'—'}</td>`;
     html+='</tr>';
