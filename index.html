@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v254</title>
+<title>KSK Lovendegem U13 IP v255</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1578,6 +1578,7 @@ function loadPvVoetbal() {
     '</div>' +
     '</div></div>' +
     '<div class="card"><div class="card-t">⭐ Motivatie & Identiteit</div><div class="fields">' +
+    '<div class="field"><label>Favoriete ploeg</label><input id="pv-ploeg" placeholder="bv. Club Brugge, Man City..." oninput="pvDirty()"></div>' +
     '<div class="field"><label>Favoriete voetballer</label><input id="pv-rolmodel" placeholder="bv. Messi, Ronaldo, Neuer" oninput="pvDirty()"></div>' +
     '<div class="field"><label>Wat vind je leuk bij voetballen?</label><textarea id="pv-waarom" rows="2" placeholder="bijv. goals maken, trainen met vrienden, een mooie actie, winnen..." oninput="pvDirty()"></textarea></div>' +
     '<div class="field"><label>Wat is jouw voetbaldroom? ⚽</label><textarea id="pv-droom" rows="3" placeholder="bijv. profvoetballer worden, in het eerste elftal spelen, gewoon veel plezier hebben..." oninput="pvDirty()"></textarea></div>' +
@@ -1602,6 +1603,7 @@ function loadPvVoetbal() {
     
     const d=row?.data||{};
     const flds = {'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
+      'pv-ploeg':'fav_ploeg',
       'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
       'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario','pv-herinnering':'herinnering',
       'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-werkpunt':'werkpunt','pv-verw-trainer':'verw_trainer'};
@@ -1649,6 +1651,7 @@ async function savePvVoetbal() {
     if(el)d2[id]=[...el.querySelectorAll('.pos-btn')].filter(b=>b.dataset.selected==='1').map(b=>b.dataset.val);
   });
   const flds={'pv-poot':'voorkeurspoot','pv-stijl':'speelstijl',
+    'pv-ploeg':'fav_ploeg',
     'pv-jaren':'jaren_actief','pv-clubs':'vorige_clubs','pv-rolmodel':'rolmodel',
     'pv-waarom':'waarom_voetbal','pv-droom':'droomscenario','pv-herinnering':'herinnering',
     'pv-niv':'bf_niveau','pv-doel':'bf_doel','pv-werkpunt':'werkpunt','pv-verw-trainer':'verw_trainer'};
@@ -1704,8 +1707,8 @@ async function loadPlayerView(){
       '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly style="color:#374151"></div></div>'+
       '<div class="frow"><div class="field"><label>Geboortedatum</label><input id="pv-geb" type="date" value="'+(d.geboortedatum||'')+'" oninput="pvDirty()" style="color:#374151"></div>'+
       '<div class="field"><label>GSM nr</label><input id="pv-gsm" type="tel" value="'+(d.gsm_speler||'')+'" placeholder="+32 4xx xx xx xx" oninput="pvDirty()" style="color:#374151"></div></div>'+
-      '<div class="frow"><div class="field"><label>Favoriete ploeg</label><input id="pv-ploeg" value="'+(d.fav_ploeg||'')+'" placeholder="bv. Club Brugge" oninput="pvDirty()" style="color:#374151"></div>'+
-      '<div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="bv. Ten Doorn" oninput="pvDirty()" style="color:#374151"></div></div>'+
+      '<div class="frow"><div class="field"><label>Naam school</label><input id="pv-school" value="'+(d.school_naam||'')+'" placeholder="bv. Ten Doorn" oninput="pvDirty()" style="color:#374151"></div>'+
+      '<div class="field"><label>Jaren bij KSK Lovendegem</label><input id="pv-jaren" type="number" min="1" max="15" value="'+(d.jaren_actief||'')+'" placeholder="bv. 3" oninput="pvDirty()" style="color:#374151"></div></div>'+
       '</div></div>'+
       '<button id="pv-save" onclick="savePlayerView()" style="background:#182448;color:#E0D040;border:none;border-radius:8px;padding:12px 20px;font-size:13px;font-weight:700;cursor:pointer;width:100%;margin-top:12px">💾 Opslaan</button>';
   } catch(e) {
@@ -1727,8 +1730,8 @@ async function savePlayerView(){
   const d2={};
   if($('pv-geb'))d2.geboortedatum=$('pv-geb').value;
   if($('pv-gsm'))d2.gsm_speler=$('pv-gsm').value;
-  if($('pv-ploeg'))d2.fav_ploeg=$('pv-ploeg').value;
   if($('pv-school'))d2.school_naam=$('pv-school').value;
+  if($('pv-jaren'))d2.jaren_actief=$('pv-jaren').value;
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
   const merged=Object.assign({},row?.data||{},d2);
   const {data:patchResult, error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
@@ -2574,8 +2577,8 @@ function loadAdminProfielPane(d, speler) {
     rowHtml('Naam', speler.naam) +
     rowHtml('Geboortedatum', d.geboortedatum || '—') +
     rowHtml('GSM', d.gsm_speler || '—') +
-    rowHtml('Favoriete ploeg', d.fav_ploeg || '—') +
     rowHtml('Naam school', d.school_naam || '—') +
+    rowHtml('Jaren bij KSK', d.jaren_actief ? d.jaren_actief+' jaar' : '—') +
     '</div>' +
     '<button data-reset="profiel" style="width:100%;padding:9px;background:#fff1f2;color:#dc2626;border:1px solid #fecaca;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer">🗑 Profiel resetten</button>';
   // Wire reset button
