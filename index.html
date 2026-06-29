@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v259</title>
+<title>KSK Lovendegem U13 IP v262</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -553,11 +553,11 @@ textarea{resize:vertical;min-height:70px}
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div onclick="openBeheerTab('spelers')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
               <div style="font-size:22px;margin-bottom:5px">👥</div>
-              <div style="font-size:12px;font-weight:700;color:#e0d040">Spelers</div>
+              <div style="font-size:12px;font-weight:700;color:#e0d040">Spelers & Accounts</div>
             </div>
-            <div onclick="openBeheerTab('users')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
-              <div style="font-size:22px;margin-bottom:5px">🔑</div>
-              <div style="font-size:12px;font-weight:700;color:#e0d040">Gebruikers</div>
+            <div onclick="openBeheerTab('overzicht')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
+              <div style="font-size:22px;margin-bottom:5px">📊</div>
+              <div style="font-size:12px;font-weight:700;color:#e0d040">Overzicht</div>
             </div>
             <div onclick="openBeheerTab('wedstrijden')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
               <div style="font-size:22px;margin-bottom:5px">🏟️</div>
@@ -568,7 +568,7 @@ textarea{resize:vertical;min-height:70px}
               <div style="font-size:12px;font-weight:700;color:#e0d040">Maandprijs</div>
             </div>
           </div>
-        </div>      </div>
+        </div>
 
       <!-- Detail -->
       <div id="detail" style="display:none;flex-direction:column;height:100%;overflow:hidden;background:#f8fafc">
@@ -676,9 +676,8 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <!-- Beheer tabs -->
   <div style="background:#fff;border-bottom:1px solid #e2e8f0;display:flex;overflow-x:auto;flex-shrink:0">
-    <button class="beheer-tab on" data-tab="spelers" onclick="switchBeheerTab('spelers',this)">👥 Spelers</button>
+    <button class="beheer-tab on" data-tab="spelers" onclick="switchBeheerTab('spelers',this)">👥 Spelers & Accounts</button>
     <button class="beheer-tab" data-tab="overzicht" onclick="switchBeheerTab('overzicht',this)">📊 Overzicht</button>
-    <button class="beheer-tab" data-tab="users" onclick="switchBeheerTab('users',this)">🔑 Gebruikers</button>
     <button class="beheer-tab" data-tab="wedstrijden" onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
     <button class="beheer-tab" data-tab="maandprijs" onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
   </div>
@@ -715,7 +714,7 @@ textarea{resize:vertical;min-height:70px}
     </div>
 
     <!-- Gebruikers -->
-    <div id="bp-users" class="beheer-pane">
+    <div id="bp-users" class="beheer-pane" style="display:none">
       <div class="section-card">
         <div class="section-card-title">Gebruikersbeheer</div>
         <div id="beheer-user-list"></div>
@@ -1265,7 +1264,7 @@ async function loadBeheerWedstrijden() {
   renderBeheerMatchList(data||[]);
 }
 
-function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toegang',true);return;}hide('s-app');showFlex('s-beheer');loadBeheerSpelers();loadBeheerUsers();}
+function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toegang',true);return;}hide('s-app');showFlex('s-beheer');loadBeheerSpelers();}
 
 function openBeheerTab(tab) {
   showFlex('s-beheer');
@@ -1274,7 +1273,7 @@ function openBeheerTab(tab) {
 
 
 function switchBeheerTab(id,btn){
-  ['spelers','overzicht','users','wedstrijden','maandprijs'].forEach(t=>{
+  ['spelers','overzicht','wedstrijden','maandprijs'].forEach(t=>{
     const p=document.getElementById('bp-'+t);
     if(p) p.style.display = t===id ? 'block' : 'none';
   });
@@ -1287,16 +1286,107 @@ function switchBeheerTab(id,btn){
   if(id==='wedstrijden') loadBeheerWedstrijden();
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
-  else if(id==='users') loadBeheerUsers();
   else if(id==='overzicht') loadBeheerOverzicht();
 }
 async function loadBeheerSpelers(){
-  const {data}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
-  const {data:urs}=await sbGet('user_roles','select=speler_id&role=eq.player');
-  const linked=new Set((urs||[]).map(u=>u.speler_id));
+  const [{data:spelers},{data:urs},{data:sps}]=await Promise.all([
+    sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc'),
+    sbGet('user_roles','select=*'),
+    sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc')
+  ]);
   const el=$('beheer-speler-list');if(!el)return;
-  if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen spelers</div>';return;}
-  el.innerHTML=data.map(s=>'<div class="user-row"><div class="user-info"><div class="user-name">'+s.voornaam+' '+s.naam+'</div><div class="user-email">'+(linked.has(s.id)?'✓ Account gekoppeld':'Geen account')+'</div></div><button class="btn-red" onclick="deleteSpeler('+s.id+',\''+s.voornaam+' '+s.naam+'\')">Verwijder</button></div>').join('');
+  if(!spelers||!spelers.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8">Geen spelers</div>';return;}
+
+  // Map user_roles by speler_id
+  const urBySpeler={};
+  (urs||[]).forEach(u=>{if(u.speler_id)urBySpeler[u.speler_id]=u;});
+
+  let html='<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+='<thead><tr style="background:#203060;color:#fff">';
+  html+='<th style="text-align:left;padding:8px 10px">Speler</th>';
+  html+='<th style="padding:8px 6px;text-align:center">Fiche</th>';
+  html+='<th style="padding:8px 6px;text-align:center">Rol</th>';
+  html+='<th style="padding:8px 6px;text-align:center">Account</th>';
+  html+='<th style="padding:8px 6px"></th>';
+  html+='</tr></thead><tbody>';
+
+  spelers.filter(s=>!s.data?.is_trainer).forEach((s,i)=>{
+    const d=s.data||{};
+    const ur=urBySpeler[s.id];
+    const isKeeper=d.is_keeper===true;
+    const bg=i%2===0?'#fff':'#f8fafc';
+
+    const ficheFields=['pv-fav-pos','pv-droom','pv-niv','pv-doel','pv-verw-trainer','sterke_technisch','werk_technisch'];
+    const ficheScore=ficheFields.filter(f=>d[f]&&(Array.isArray(d[f])?d[f].length>0:d[f]!=='')).length;
+    const ficheIcon=ficheScore>=5?'✅':ficheScore>=2?'🟡':'❌';
+
+    const spelerNaam=(isKeeper?'🧤 ':'')+s.voornaam+' '+s.naam;
+    const uid=ur?.user_id||'';
+    const spelerId=s.id;
+
+    // Rol dropdown
+    const rolSelect=ur
+      ? '<select class="comb-role-select" data-uid="'+uid+'" data-speler-id="'+spelerId+'" style="font-size:11px;padding:3px 5px;border:1px solid #e2e8f0;border-radius:5px">'+
+        ['admin','coach','player','keeper','pending'].map(r=>'<option value="'+r+'"'+(ur.role===r?' selected':'')+'>'+r+'</option>').join('')+
+        '</select>'
+      : '<span style="font-size:11px;color:#94a3b8;font-style:italic">—</span>';
+
+    // Account status
+    const accountStatus=ur
+      ? '<span style="font-size:10px;font-weight:600;color:#15803d">✅ '+( ur.naam||ur.email||'')+'</span>'
+      : '<span style="font-size:10px;color:#f59e0b">Geen account</span>';
+
+    // Opslaan + delete
+    const acties=ur
+      ? '<div style="display:flex;gap:4px"><button class="comb-save-btn b-btn" data-uid="'+uid+'" data-speler-id="'+spelerId+'" style="padding:4px 8px;background:#203060;color:#fff;border:none;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer;white-space:nowrap">Opslaan</button>'
+        +'<button class="comb-del-user-btn" data-uid="'+uid+'" data-naam="'+(ur.naam||ur.email||s.voornaam).replace(/"/g,'&quot;')+'" style="padding:4px 7px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer">🗑</button></div>'
+      : '<button class="comb-del-speler-btn" data-id="'+spelerId+'" data-naam="'+s.voornaam+' '+s.naam+'" style="padding:4px 7px;background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:5px;font-size:10px;font-weight:700;cursor:pointer">🗑</button>';
+
+    html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9">`;
+    html+=`<td style="padding:8px 10px;font-weight:600;color:#0a1628">${spelerNaam}</td>`;
+    html+=`<td style="text-align:center;padding:6px">${ficheIcon}</td>`;
+    html+=`<td style="text-align:center;padding:6px">${rolSelect}</td>`;
+    html+=`<td style="padding:6px 8px">${accountStatus}</td>`;
+    html+=`<td style="padding:6px">${acties}</td>`;
+    html+='</tr>';
+  });
+
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+
+  // Opslaan
+  el.querySelectorAll('.comb-save-btn').forEach(btn=>{
+    btn.addEventListener('click', async function(){
+      const uid=this.dataset.uid, spelerId=parseInt(this.dataset.spelerId);
+      const row=this.closest('tr');
+      const roleEl=row?.querySelector('.comb-role-select');
+      const selectedRole=roleEl?.value;
+      const orig=this.textContent;
+      btnLoad(this,'Bezig…');
+      const rolePatch={role:selectedRole,speler_id:spelerId};
+      const promises=[sbPatch('user_roles','user_id=eq.'+uid,rolePatch)];
+      if(selectedRole==='keeper'||selectedRole==='player'){
+        const {data:sRow}=await sbGetOne('spelers','id=eq.'+spelerId+'&select=id,data');
+        const d=sRow?.data||{};d.is_keeper=(selectedRole==='keeper');
+        promises.push(sbPatch('spelers','id=eq.'+spelerId,{data:d}));
+      }
+      const results=await Promise.all(promises);
+      const hasError=results.some(r=>r?.error);
+      if(hasError){toast('⚠️ Fout bij opslaan',true);btnReset(this,orig);return;}
+      btnOk(this,2000,orig);toast('✓ Opgeslagen');
+      setTimeout(()=>loadBeheerSpelers(),1800);
+    });
+  });
+
+  // Delete user
+  el.querySelectorAll('.comb-del-user-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){deleteUser(this.dataset.uid,this.dataset.naam);});
+  });
+
+  // Delete speler (zonder account)
+  el.querySelectorAll('.comb-del-speler-btn').forEach(btn=>{
+    btn.addEventListener('click',function(){deleteSpeler(parseInt(this.dataset.id),this.dataset.naam);});
+  });
 }
 function toggleAddSpeler(){const f=$('add-speler-form');if(f)f.style.display=f.style.display==='none'?'block':'none';}
 async function addSpeler(){
