@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v250</title>
+<title>KSK Lovendegem U13 IP v251</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2221,9 +2221,10 @@ async function saveEvaluatie(matchId, teamIds) {
   const ratings={};
   const evalContainer=document.getElementById('eval-body-'+matchId);
   if(evalContainer){
-    evalContainer.querySelectorAll('.score-btn[data-mid="'+matchId+'"]').forEach(btn=>{
-      if(btn.style.background.includes('203060')||btn.style.backgroundColor==='rgb(32, 48, 96)'){
-        ratings[btn.dataset.pid]=parseInt(btn.dataset.val);
+    evalContainer.querySelectorAll('.score-btn[data-pid]').forEach(btn=>{
+      if(btn.classList.contains('ts-selected')||btn.style.background.includes('203060')||btn.style.backgroundColor==='rgb(32, 48, 96)'){
+        const pid=parseInt(btn.dataset.pid);
+        if(pid) ratings[pid]=parseInt(btn.dataset.val);
       }
     });
   }
