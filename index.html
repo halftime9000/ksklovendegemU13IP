@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v242</title>
+<title>KSK Lovendegem U13 IP v244</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1721,7 +1721,7 @@ async function savePlayerView(){
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
   const merged=Object.assign({},row?.data||{},d2);
   const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
-  if(!error){toast('Opgeslagen!');const b=$('pv-save');if(b){b.textContent='Opgeslagen ✓';b.style.background='#15803d';b.style.color='#fff';}}
+  if(!error){toast('Opgeslagen!');const b=$('pv-save');if(b){b.textContent='✓ Opgeslagen';b.style.background='#15803d';b.style.color='#fff';setTimeout(()=>{b.textContent='💾 Opslaan';b.style.background='#182448';b.style.color='#E0D040';},2500);}}
   else toast('Fout bij opslaan','err');
 }
 
@@ -2233,8 +2233,20 @@ async function saveEvaluatie(matchId, teamIds) {
   };
 
   
-  const {error}=await sbUpsert('match_evaluaties', payload);
-  if(error){toast('❌ Fout bij opslaan: '+(error.message||error.code||JSON.stringify(error).substring(0,60)),true);return;}
+  // Probeer eerst te updaten (PATCH), daarna pas inserteren
+  const {data:patchResult, error:patchErr} = await sbPatch(
+    'match_evaluaties',
+    'match_id=eq.'+matchId+'&beoordelaar=eq.'+uid,
+    payload
+  );
+  if(patchErr){
+    toast('❌ Fout bij opslaan: '+(patchErr.message||patchErr.code||'onbekend'),true);return;
+  }
+  // Als geen rij gevonden (leeg array) → nieuwe rij invoegen
+  if(Array.isArray(patchResult) && patchResult.length===0){
+    const {error:insErr}=await sbInsert('match_evaluaties', {...payload, match_id:matchId, beoordelaar:uid});
+    if(insErr){toast('❌ Fout bij aanmaken: '+(insErr.message||insErr.code||'onbekend'),true);return;}
+  }
 
   // Extra velden apart (keeper + team) — stil falen als kolommen nog niet bestaan
   const uid2=userSpelerId?parseInt(userSpelerId):null;
