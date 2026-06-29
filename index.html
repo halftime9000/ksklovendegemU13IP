@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v235</title>
+<title>KSK Lovendegem U13 IP v236</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1732,6 +1732,14 @@ function setDisp(id,v){const el=$(id);if(el)el.style.display=v;}
 function show(id){const el=$(id);if(el)el.style.display='block';}
 function showFlex(id){const el=$(id);if(el)el.style.display='flex';}
 function hide(id){const el=$(id);if(el)el.style.display='none';}
+// iOS Safari fix: touchstart voor knoppen in scroll containers
+document.addEventListener('touchstart', function(e) {
+  const btn = e.target.closest('.do-verzenden');
+  if(!btn) return;
+  e.preventDefault();
+  doVerzenden();
+}, {passive:false});
+
 // Globale fallback voor verzend-btn (capture phase)
 document.addEventListener('click', function(e) {
   const btn = e.target.closest('.verzend-btn');
@@ -2099,7 +2107,7 @@ async function openEvalForm(matchId) {
   window._evalMatch = {id: matchId, teammates: teammates};
 
   if(!locked){
-    html+='<button onclick="doVerzenden()" class="btn-green" style="width:100%;padding:13px;font-size:13px;font-weight:700;margin-top:8px;border-radius:9px;-webkit-tap-highlight-color:transparent;touch-action:manipulation">💾 Opslaan</button>';
+    html+='<button onclick="doVerzenden()" class="btn-green do-verzenden" style="width:100%;padding:13px;font-size:13px;font-weight:700;margin-top:8px;border-radius:9px;-webkit-tap-highlight-color:transparent;touch-action:manipulation;cursor:pointer">💾 Opslaan</button>';
     html+='<div style="height:80px"></div>';
   }
 
