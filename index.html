@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v226</title>
+<title>KSK Lovendegem U13 IP v227</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2174,7 +2174,7 @@ async function saveEvaluatie(matchId, teamIds) {
     tegenstander_systeem:sysSel?sysSel.textContent.trim():'',
     tegenstander_systeem_extra:document.getElementById('sys-extra-'+matchId)?.value||'',
     tegenstander_beste:document.getElementById('beste-teg-'+matchId)?.value||'',
-    // Veldspeler
+    // Veldspeler eigen prestatie
     eigen_b_plus:parseInt(document.getElementById('ep-bplus-'+matchId+'-score')?.value)||null,
     eigen_b_plus_opmerking:document.getElementById('ep-bplus-'+matchId+'-opm')?.value||'',
     eigen_b_min:parseInt(document.getElementById('ep-bmin-'+matchId+'-score')?.value)||null,
@@ -2183,33 +2183,33 @@ async function saveEvaluatie(matchId, teamIds) {
     eigen_trans_bp_bm_opmerking:document.getElementById('ep-tbpbm-'+matchId+'-opm')?.value||'',
     eigen_trans_bm_bp:parseInt(document.getElementById('ep-tbmbp-'+matchId+'-score')?.value)||null,
     eigen_trans_bm_bp_opmerking:document.getElementById('ep-tbmbp-'+matchId+'-opm')?.value||'',
-    // Keeper
-    keeper_doellijn:parseInt(document.getElementById('ep-doellijn-'+matchId+'-score')?.value)||null,
-    keeper_doellijn_opm:document.getElementById('ep-doellijn-'+matchId+'-opm')?.value||'',
-    keeper_1v1:parseInt(document.getElementById('ep-1v1-'+matchId+'-score')?.value)||null,
-    keeper_1v1_opm:document.getElementById('ep-1v1-'+matchId+'-opm')?.value||'',
-    keeper_communicatie:parseInt(document.getElementById('ep-comm-'+matchId+'-score')?.value)||null,
-    keeper_communicatie_opm:document.getElementById('ep-comm-'+matchId+'-opm')?.value||'',
-    keeper_uitstraling:parseInt(document.getElementById('ep-uitstr-'+matchId+'-score')?.value)||null,
-    keeper_uitstraling_opm:document.getElementById('ep-uitstr-'+matchId+'-opm')?.value||'',
-    eigen_trans_bm_bp_opmerking:document.getElementById('ep-tbmbp-'+matchId+'-opm')?.value||'',
     updated_at:new Date().toISOString()
   };
 
   const {error}=await sbUpsert('match_evaluaties', payload);
   if(error){toast('Fout: '+(error.message||'onbekend'),true);return;}
 
-  // Team velden apart opslaan (vereist SQL migratie — stil falen als kolommen ontbreken)
+  // Extra velden apart (keeper + team) — stil falen als kolommen nog niet bestaan
   const uid2=userSpelerId?parseInt(userSpelerId):null;
+  const extraPatch={};
+  if(userRole==='keeper'){
+    extraPatch.keeper_doellijn=parseInt(document.getElementById('ep-doellijn-'+matchId+'-score')?.value)||null;
+    extraPatch.keeper_doellijn_opm=document.getElementById('ep-doellijn-'+matchId+'-opm')?.value||'';
+    extraPatch.keeper_1v1=parseInt(document.getElementById('ep-1v1-'+matchId+'-score')?.value)||null;
+    extraPatch.keeper_1v1_opm=document.getElementById('ep-1v1-'+matchId+'-opm')?.value||'';
+    extraPatch.keeper_communicatie=parseInt(document.getElementById('ep-comm-'+matchId+'-score')?.value)||null;
+    extraPatch.keeper_communicatie_opm=document.getElementById('ep-comm-'+matchId+'-opm')?.value||'';
+    extraPatch.keeper_uitstraling=parseInt(document.getElementById('ep-uitstr-'+matchId+'-score')?.value)||null;
+    extraPatch.keeper_uitstraling_opm=document.getElementById('ep-uitstr-'+matchId+'-opm')?.value||'';
+  }
   const teamMent=parseInt(document.querySelector('#team_mentaliteit-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null;
   const teamSamen=parseInt(document.querySelector('#team_samenspel-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null;
   const teamWaarom=document.getElementById('team-ment-waarom-'+matchId)?.value||'';
-  if(teamMent||teamSamen||teamWaarom){
-    await sbPatch('match_evaluaties','match_id=eq.'+matchId+'&beoordelaar=eq.'+uid2,{
-      team_mentaliteit:teamMent,
-      team_mentaliteit_waarom:teamWaarom,
-      team_samenspel:teamSamen
-    }).catch(()=>{});
+  extraPatch.team_mentaliteit=teamMent;
+  extraPatch.team_mentaliteit_waarom=teamWaarom;
+  extraPatch.team_samenspel=teamSamen;
+  if(Object.keys(extraPatch).length>0){
+    await sbPatch('match_evaluaties','match_id=eq.'+matchId+'&beoordelaar=eq.'+uid2,extraPatch).catch(()=>{});
   }
 
   toast('✓ Evaluatie verzonden!');
