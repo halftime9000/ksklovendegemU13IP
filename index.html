@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v246</title>
+<title>KSK Lovendegem U13 IP v248</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1120,10 +1120,12 @@ function renderList() {
   const ul=$('player-list'); if(!ul)return; ul.innerHTML='';
   PLAYERS.filter(p=>(p.voornaam+' '+p.naam).toLowerCase().includes(q)).forEach(p=>{
     const d=DB[p.id]?.data||{},pc=calcPct(d),has=hasData(d);
+    const isTrainer=d.is_trainer===true;
     const ini=(p.voornaam[0]+p.naam[0]).toUpperCase(),avc=pc===100?'c':has?'s':'';
     const el=document.createElement('div');
     el.className='pi'+(selId===p.id?' sel':'');
-    el.innerHTML='<div class="pav '+avc+'">'+ini+'</div><div class="pinfo"><div class="pname">'+p.voornaam+' '+p.naam+'</div>'+(has?'<div class="pprog"><div class="pbar"><div class="pfill '+(pc===100?'c':'')+'" style="width:'+pc+'%"></div></div><span class="ppct">'+pc+'%</span></div>':'')+'</div>';
+    const trainerBadge=isTrainer?' <span style="font-size:10px;font-weight:700;color:#6366f1;background:#ede9fe;padding:1px 6px;border-radius:8px;margin-left:4px">(Trainer)</span>':'';
+    el.innerHTML='<div class="pav '+avc+'">'+ini+'</div><div class="pinfo"><div class="pname">'+p.voornaam+' '+p.naam+trainerBadge+'</div>'+(has?'<div class="pprog"><div class="pbar"><div class="pfill '+(pc===100?'c':'')+'" style="width:'+pc+'%"></div></div><span class="ppct">'+pc+'%</span></div>':'')+'</div>';
     el.onclick=()=>selectPlayer(p.id); ul.appendChild(el);
   });
 }
@@ -1136,6 +1138,12 @@ function selectPlayer(id) {
   const p=PLAYERS.find(x=>x.id===id), d=DB[id]?.data||{};
   $('hdr-av').textContent=(p.voornaam[0]+p.naam[0]).toUpperCase();
   $('hdr-name').textContent=p.voornaam+' '+p.naam;
+  if(DB[id]?.data?.is_trainer){
+    const badge=document.createElement('span');
+    badge.textContent='(Trainer)';
+    badge.style.cssText='font-size:11px;font-weight:700;color:#6366f1;background:#ede9fe;padding:2px 8px;border-radius:8px;margin-left:6px';
+    $('hdr-name').appendChild(badge);
+  }
   updSub(d);
   $('f-voornaam').value=p.voornaam; $('f-naam').value=p.naam;
   TEXT_FIELDS.forEach(f=>{const el=$('f-'+f);if(el)el.value=d[f]||'';});
@@ -2017,7 +2025,8 @@ async function openEvalForm(matchId) {
     '<div class="eval-block-title"><span>'+(isKeeperEval?'🧤':'📊')+'</span>Eigen prestatie</div>'+
     '<div class="field" style="margin-bottom:10px">'+
       '<label style="font-size:11px;font-weight:700;color:#203060;display:block;margin-bottom:6px">Mentaliteit</label>'+
-      '<div id="eigen_ment-'+matchId+'" style="display:flex;gap:4px;flex-wrap:wrap">'+mentBtns+'</div>'+
+      '<div id="eigen_ment-'+matchId+'" style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px">'+mentBtns+'</div>'+
+      '<textarea id="eigen-ment-opm-'+matchId+'" rows="2" style="width:100%;border:1px solid var(--border);border-radius:6px;padding:7px 10px;font-size:12px;outline:none;resize:none" placeholder="Korte opmerking..." '+(locked?'disabled':'')+'>'+( ev?.eigen_mentaliteit_opm||'')+'</textarea>'+
     '</div>'+
     '<div class="eigen-grid">';
   if(isKeeperEval){
@@ -2233,6 +2242,7 @@ async function saveEvaluatie(matchId, teamIds) {
     tegenstander_systeem_extra:document.getElementById('sys-extra-'+matchId)?.value||'',
     tegenstander_beste:document.getElementById('beste-teg-'+matchId)?.value||'',
     eigen_mentaliteit:parseInt(document.querySelector('#eigen_ment-'+matchId+' .score-btn[style*="203060"]')?.dataset?.val)||null,
+    eigen_mentaliteit_opm:document.getElementById('eigen-ment-opm-'+matchId)?.value||'',
     eigen_b_plus:parseInt(document.getElementById('ep-bplus-'+matchId+'-score')?.value)||null,
     eigen_b_plus_opmerking:document.getElementById('ep-bplus-'+matchId+'-opm')?.value||'',
     eigen_b_min:parseInt(document.getElementById('ep-bmin-'+matchId+'-score')?.value)||null,
