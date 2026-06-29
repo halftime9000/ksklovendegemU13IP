@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v232</title>
+<title>KSK Lovendegem U13 IP v233</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2099,7 +2099,8 @@ async function openEvalForm(matchId) {
   '</div>';
 
   if(!locked){
-    html+='<button class="btn-green verzend-btn" data-match-id="'+matchId+'" data-teammates="'+encodeURIComponent(JSON.stringify(teammates))+'" style="width:100%;padding:11px;font-size:13px;font-weight:600">💾 Verzenden</button>';
+    html+='<button class="btn-green verzend-btn" data-match-id="'+matchId+'" data-teammates="'+encodeURIComponent(JSON.stringify(teammates))+'" style="width:100%;padding:13px;font-size:13px;font-weight:700;margin-top:8px;border-radius:9px;-webkit-tap-highlight-color:transparent;touch-action:manipulation">💾 Verzenden</button>';
+    html+='<div style="height:80px"></div>';
   }
 
   evalDiv.innerHTML=html;
