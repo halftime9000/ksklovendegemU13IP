@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v269</title>
+<title>KSK Lovendegem U13 IP v270</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2426,14 +2426,29 @@ async function bekijkEvaluaties(matchId) {
   const {data:evals}=await sbGet('match_evaluaties','match_id=eq.'+matchId+'&select=*');
   if(!evals||!evals.length){div.innerHTML='<div style="font-size:12px;color:#94a3b8">Nog geen evaluaties.</div>';return;}
 
-  div.innerHTML='<div style="font-size:11px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">'+evals.length+' evaluatie(s)</div>'+
+  const mob = isMobile();
+  // Schaal: mobiel blijft exact zoals het was, desktop/web krijgt grotere tekst + meer ruimte benutten
+  const fsLabel   = mob ? '11px' : '14px';
+  const fsName    = mob ? '12px' : '16px';
+  const fsChip    = mob ? '11px' : '13px';
+  const fsRow     = mob ? '11px' : '13.5px';
+  const lhRow     = mob ? '1.8'  : '2';
+  const cardPad   = mob ? '12px' : '20px';
+  const chipPad   = mob ? '2px 7px' : '4px 11px';
+  const btnPad    = mob ? '4px 10px' : '7px 14px';
+  const wrapStart = mob ? '' : '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px">';
+  const wrapEnd   = mob ? '' : '</div>';
+  const cardMb    = mob ? 'margin-bottom:8px' : '';
+
+  div.innerHTML='<div style="font-size:'+fsLabel+';font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.05em;margin-bottom:'+(mob?'10px':'14px')+'">'+evals.length+' evaluatie(s)</div>'+
+  wrapStart +
   evals.map(ev=>{
     const sp=PLAYERS.find(x=>x.id===ev.beoordelaar)||{voornaam:'?',naam:''};
     const motmP=PLAYERS.find(x=>x.id===ev.motm);
     const wlP=PLAYERS.find(x=>x.id===ev.weak_link);
     const rHtml=Object.entries(ev.ratings||{}).map(([id,s])=>{
       const p=PLAYERS.find(x=>x.id===parseInt(id))||{voornaam:'?'};
-      return '<span style="background:#f1f5f9;padding:2px 7px;border-radius:4px;font-size:11px">'+p.voornaam+' <b>'+s+'</b></span>';
+      return '<span style="background:#f1f5f9;padding:'+chipPad+';border-radius:'+(mob?'4px':'6px')+';font-size:'+fsChip+'">'+p.voornaam+' <b>'+s+'</b></span>';
     }).join(' ');
 
     const eigenHTML=[
@@ -2446,28 +2461,29 @@ async function bekijkEvaluaties(matchId) {
       {l:'🧤 1v1',v:ev.keeper_1v1,o:ev.keeper_1v1_opm},
       {l:'🧤 Communicatie',v:ev.keeper_communicatie,o:ev.keeper_communicatie_opm},
       {l:'🧤 Uitstraling',v:ev.keeper_uitstraling,o:ev.keeper_uitstraling_opm},
-    ].filter(x=>x.v).map(x=>'<span style="font-size:11px"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
+    ].filter(x=>x.v).map(x=>'<span style="font-size:'+fsRow+'"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
 
     const teamHTML=[
       {l:'Mentaliteit ploeg',v:ev.team_mentaliteit,o:ev.team_mentaliteit_waarom},
       {l:'Samenspel',v:ev.team_samenspel,o:null},
-    ].filter(x=>x.v).map(x=>'<span style="font-size:11px"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
+    ].filter(x=>x.v).map(x=>'<span style="font-size:'+fsRow+'"><b>'+x.l+':</b> '+x.v+'/10'+(x.o?' — <em>'+x.o+'</em>':'')+'</span>').join('<br>');
 
-    return '<div style="background:#fff;border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:8px">'+
-      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'+
-      '<span style="font-size:12px;font-weight:700;color:#0f172a">'+sp.voornaam+' '+sp.naam+(ev.vergrendeld?' 🔒':'')+'</span>'+
+    return '<div style="background:#fff;border:1px solid var(--border);border-radius:'+(mob?'8px':'12px')+';padding:'+cardPad+';'+cardMb+'">'+
+      '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:'+(mob?'8px':'12px')+'">'+
+      '<span style="font-size:'+fsName+';font-weight:700;color:#0f172a">'+sp.voornaam+' '+sp.naam+(ev.vergrendeld?' 🔒':'')+'</span>'+
       '<button data-mid="'+matchId+'" data-bid="'+ev.beoordelaar+'" data-bnm="'+(sp.voornaam||'')+'" onclick="resetEenEvaluatie(this)" '+
-      'style="padding:4px 10px;background:#fee2e2;color:#dc2626;border:none;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer">🗑 Reset</button>'+
+      'style="padding:'+btnPad+';background:#fee2e2;color:#dc2626;border:none;border-radius:'+(mob?'5px':'7px')+';font-size:'+fsChip+';font-weight:600;cursor:pointer">🗑 Reset</button>'+
       '</div>'+
-      (ev.tegenstander_systeem?'<div style="font-size:11px;color:#475569;margin-bottom:4px">⚽ Systeem tegenstander: <b>'+ev.tegenstander_systeem+'</b>'+(ev.tegenstander_systeem_extra?' — '+ev.tegenstander_systeem_extra:'')+'</div>':'')+
-      (ev.tegenstander_beste?'<div style="font-size:11px;color:#475569;margin-bottom:6px">⭐ Beste teg.: '+ev.tegenstander_beste+'</div>':'')+
-      (rHtml?'<div style="margin-bottom:6px;display:flex;flex-wrap:wrap;gap:4px">'+rHtml+'</div>':'')+
-      (motmP?'<div style="font-size:11px;color:#1d4ed8;margin-bottom:3px">⭐ MOTM: <b>'+motmP.voornaam+'</b></div>':'')+
-      (wlP?'<div style="font-size:11px;color:#dc2626;margin-bottom:6px">🔴 Weak Link: <b>'+wlP.voornaam+'</b></div>':'')+
-      (eigenHTML?'<div style="font-size:11px;line-height:1.8;color:#374151;border-top:1px solid #f1f5f9;padding-top:6px;margin-top:4px">📊 Eigen prestatie:<br>'+eigenHTML+'</div>':'')+
-      (teamHTML?'<div style="font-size:11px;line-height:1.8;color:#374151;border-top:1px solid #f1f5f9;padding-top:6px;margin-top:4px">🤝 Team:<br>'+teamHTML+'</div>':'')+
+      (ev.tegenstander_systeem?'<div style="font-size:'+fsRow+';color:#475569;margin-bottom:4px">⚽ Systeem tegenstander: <b>'+ev.tegenstander_systeem+'</b>'+(ev.tegenstander_systeem_extra?' — '+ev.tegenstander_systeem_extra:'')+'</div>':'')+
+      (ev.tegenstander_beste?'<div style="font-size:'+fsRow+';color:#475569;margin-bottom:6px">⭐ Beste teg.: '+ev.tegenstander_beste+'</div>':'')+
+      (rHtml?'<div style="margin-bottom:'+(mob?'6px':'10px')+';display:flex;flex-wrap:wrap;gap:'+(mob?'4px':'6px')+'">'+rHtml+'</div>':'')+
+      (motmP?'<div style="font-size:'+fsRow+';color:#1d4ed8;margin-bottom:3px">⭐ MOTM: <b>'+motmP.voornaam+'</b></div>':'')+
+      (wlP?'<div style="font-size:'+fsRow+';color:#dc2626;margin-bottom:6px">🔴 Weak Link: <b>'+wlP.voornaam+'</b></div>':'')+
+      (eigenHTML?'<div style="font-size:'+fsRow+';line-height:'+lhRow+';color:#374151;border-top:1px solid #f1f5f9;padding-top:'+(mob?'6px':'10px')+';margin-top:4px">📊 Eigen prestatie:<br>'+eigenHTML+'</div>':'')+
+      (teamHTML?'<div style="font-size:'+fsRow+';line-height:'+lhRow+';color:#374151;border-top:1px solid #f1f5f9;padding-top:'+(mob?'6px':'10px')+';margin-top:4px">🤝 Team:<br>'+teamHTML+'</div>':'')+
     '</div>';
-  }).join('');
+  }).join('') +
+  wrapEnd;
 }
 
 // ══════════════════════════════════════════════════
@@ -2774,25 +2790,33 @@ async function loadAdminSeizoenPane() {
   const matchMap={};(matches||[]).forEach(m=>matchMap[m.id]=m);
 
   const isKeeperSeizoen = DB[selId]?.data?.is_keeper === true;
-  const sc=(v)=>v?`<span style="display:inline-block;width:30px;height:30px;border-radius:6px;background:#203060;color:#e0d040;font-size:13px;font-weight:800;text-align:center;line-height:30px">${v}</span>`:'<span style="color:#cbd5e1">—</span>';
+  const mob = isMobile();
+  const tblFs   = mob ? '12px' : '15px';
+  const thPad   = mob ? '8px 6px' : '12px 14px';
+  const thPadL  = mob ? '8px 10px' : '12px 18px';
+  const tdPad   = mob ? '6px' : '10px';
+  const tdPadL  = mob ? '8px 10px' : '12px 18px';
+  const badgeSz = mob ? 30 : 40;
+  const badgeFs = mob ? '13px' : '16px';
+  const sc=(v)=>v?`<span style="display:inline-block;width:${badgeSz}px;height:${badgeSz}px;border-radius:${mob?6:9}px;background:#203060;color:#e0d040;font-size:${badgeFs};font-weight:800;text-align:center;line-height:${badgeSz}px">${v}</span>`:'<span style="color:#cbd5e1">—</span>';
 
   let html='<div style="overflow-x:auto">';
-  html+='<table style="width:100%;border-collapse:collapse;font-size:12px">';
+  html+=`<table style="width:100%;border-collapse:collapse;font-size:${tblFs}">`;
   html+='<thead><tr style="background:#f1f5f9;text-align:center">';
-  html+='<th style="text-align:left;padding:8px 10px;font-weight:700;color:#203060">Wedstrijd</th>';
+  html+=`<th style="text-align:left;padding:${thPadL};font-weight:700;color:#203060">Wedstrijd</th>`;
 
   if(isKeeperSeizoen){
-    html+='<th style="padding:8px 6px;color:#203060">Doellijn</th>';
-    html+='<th style="padding:8px 6px;color:#203060">1v1</th>';
-    html+='<th style="padding:8px 6px;color:#203060">Comm.</th>';
-    html+='<th style="padding:8px 6px;color:#203060">Uitstraling</th>';
+    html+=`<th style="padding:${thPad};color:#203060">Doellijn</th>`;
+    html+=`<th style="padding:${thPad};color:#203060">1v1</th>`;
+    html+=`<th style="padding:${thPad};color:#203060">Comm.</th>`;
+    html+=`<th style="padding:${thPad};color:#203060">Uitstraling</th>`;
   } else {
-    html+='<th style="padding:8px 6px;color:#203060">B+</th>';
-    html+='<th style="padding:8px 6px;color:#203060">B-</th>';
-    html+='<th style="padding:8px 6px;color:#203060">T B+→B-</th>';
-    html+='<th style="padding:8px 6px;color:#203060">T B-→B+</th>';
+    html+=`<th style="padding:${thPad};color:#203060">B+</th>`;
+    html+=`<th style="padding:${thPad};color:#203060">B-</th>`;
+    html+=`<th style="padding:${thPad};color:#203060">T B+→B-</th>`;
+    html+=`<th style="padding:${thPad};color:#203060">T B-→B+</th>`;
   }
-  html+='<th style="padding:8px 6px;color:#203060">MOTM</th>';
+  html+=`<th style="padding:${thPad};color:#203060">MOTM</th>`;
   html+='</tr></thead><tbody>';
 
   evals.forEach((ev,i)=>{
@@ -2801,38 +2825,38 @@ async function loadAdminSeizoenPane() {
     const isMotm=ev.motm===selId;
     const bg=i%2===0?'#fff':'#f8fafc';
     html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9">`;
-    html+=`<td style="padding:8px 10px;font-weight:600;color:#0a1628">${datum} vs ${m.tegenstander||'?'}</td>`;
+    html+=`<td style="padding:${tdPadL};font-weight:600;color:#0a1628">${datum} vs ${m.tegenstander||'?'}</td>`;
     if(isKeeperSeizoen){
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_doellijn)}</td>`;
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_1v1)}</td>`;
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_communicatie)}</td>`;
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.keeper_uitstraling)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.keeper_doellijn)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.keeper_1v1)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.keeper_communicatie)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.keeper_uitstraling)}</td>`;
     } else {
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_plus)}</td>`;
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_b_min)}</td>`;
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bp_bm)}</td>`;
-      html+=`<td style="text-align:center;padding:6px">${sc(ev.eigen_trans_bm_bp)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.eigen_b_plus)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.eigen_b_min)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.eigen_trans_bp_bm)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad}">${sc(ev.eigen_trans_bm_bp)}</td>`;
     }
-    html+=`<td style="text-align:center;padding:6px">${isMotm?'⭐':'—'}</td>`;
+    html+=`<td style="text-align:center;padding:${tdPad}">${isMotm?'⭐':'—'}</td>`;
     html+='</tr>';
   });
 
   // Gemiddelde rij
   const avgK=(k)=>{const v=evals.filter(e=>e[k]).map(e=>e[k]);return v.length?(v.reduce((a,b)=>a+b,0)/v.length).toFixed(1):'—';};
   html+=`<tr style="background:#e0d040;font-weight:800">`;
-  html+=`<td style="padding:8px 10px;color:#182448">Gemiddelde (${evals.length})</td>`;
+  html+=`<td style="padding:${tdPadL};color:#182448">Gemiddelde (${evals.length})</td>`;
   if(isKeeperSeizoen){
-    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_doellijn')}</td>`;
-    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_1v1')}</td>`;
-    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_communicatie')}</td>`;
-    html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK('keeper_uitstraling')}</td>`;
+    html+=`<td style="text-align:center;padding:${tdPad};color:#182448">${avgK('keeper_doellijn')}</td>`;
+    html+=`<td style="text-align:center;padding:${tdPad};color:#182448">${avgK('keeper_1v1')}</td>`;
+    html+=`<td style="text-align:center;padding:${tdPad};color:#182448">${avgK('keeper_communicatie')}</td>`;
+    html+=`<td style="text-align:center;padding:${tdPad};color:#182448">${avgK('keeper_uitstraling')}</td>`;
   } else {
     ['eigen_b_plus','eigen_b_min','eigen_trans_bp_bm','eigen_trans_bm_bp'].forEach(k=>{
-      html+=`<td style="text-align:center;padding:6px;color:#182448">${avgK(k)}</td>`;
+      html+=`<td style="text-align:center;padding:${tdPad};color:#182448">${avgK(k)}</td>`;
     });
   }
   const motmCount=evals.filter(e=>e.motm===selId).length;
-  html+=`<td style="text-align:center;padding:6px;color:#182448">⭐${motmCount}x</td>`;
+  html+=`<td style="text-align:center;padding:${tdPad};color:#182448">⭐${motmCount}x</td>`;
   html+='</tr></tbody></table></div>';
   el.innerHTML=html;
 }
