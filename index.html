@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v273</title>
+<title>KSK Lovendegem U13 IP v274</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1534,7 +1534,7 @@ async function deleteUser(uid, naam){
   const {error}=await sbDelete('user_roles','user_id=eq.'+uid);
   if(error){toast('⚠️ Fout: '+(error.message||'onbekend'),true);return;}
   toast('✓ "'+naam+'" verwijderd');
-  loadBeheerUsers();
+  loadBeheerSpelers();
 }
 async function updateRole(uid,r){
   const sel = document.querySelector('.role-select[data-uid="'+uid+'"]');
