@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v270</title>
+<title>KSK Lovendegem U13 IP v271</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2640,10 +2640,13 @@ async function doRegister() {
     await sbSignIn(email,pwd,true);
 
     // 3. Add to user_roles as pending
-    await sbInsert('user_roles',{
+    const {error: roleErr} = await sbInsert('user_roles',{
       user_id:SB_USER.id, role:'pending',
       naam:vn+' '+nm, email
     });
+    if(roleErr){
+      throw new Error('Account is aangemaakt, maar de aanvraag kon niet worden opgeslagen: '+(roleErr.message||roleErr.hint||JSON.stringify(roleErr)));
+    }
 
     // 4. Show pending screen
     hide('s-login'); showFlex('s-pending');
