@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v267</title>
+<title>KSK Lovendegem U13 IP v269</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -3076,20 +3076,31 @@ function buildAdminResetBtns(id, naam) {
 
 async function resetSpelerData(spelerId, naam) {
   if(!confirm('Weet je zeker dat je ALLE data van ' + naam + ' wilt resetten? Dit kan niet ongedaan worden gemaakt.')) return;
+  // Volledige reset: dit object VERVANGT de hele data-kolom (geen merge), dus elk veld
+  // dat hier niet expliciet in staat wordt sowieso ook leeggemaakt. We zetten de
+  // velden hieronder toch expliciet voor leesbaarheid/onderhoud.
   const leeg = {
-    geboortedatum:'', gsm_speler:'', fav_ploeg:'', school_naam:'',
-    voorkeurspoot:'', vorige_clubs:'', rolmodel:'', waarom_voetbal:'',
-    droomscenario:'', bf_niveau:'', bf_doel:'', werkpunt:'', verw_trainer:'',
+    geboortedatum:'', gsm_speler:'', school_naam:'', jaren_actief:'',
+    fav_ploeg:'', rolmodel:'', waarom_voetbal:'', droomscenario:'', herinnering:'',
+    bf_niveau:'', bf_doel:'', werkpunt:'', verw_trainer:'',
+    voorkeurspoot:'', vorige_clubs:'', speelstijl:'', positie:'', sterkevoet:'',
+    bf_meest:'', bf_favoriet:'',
+    is_keeper:false, is_trainer:false,
+    unavail_dates:[],
     'pv-fav-pos':[], 'pv-ges-pos':[],
-    zb_inzet:null, zb_gedrag:null, zb_coach:null,
+    zb_inzet:null, zb_wedstrijd:null, zb_gedrag:null, zb_coach:null,
     sterke_technisch:[], sterke_taktisch:[], sterke_fysiek:[], sterke_mentaal:[],
     werk_technisch:[], werk_taktisch:[], werk_fysiek:[], werk_mentaal:[]
   };
   const {error} = await sbPatch('spelers','id=eq.'+spelerId,{data:leeg});
   if(!error){
     toast('✓ Data van '+naam+' gereset');
-    // Reload current view
-    if(selId===spelerId) loadAdminVoetbalPane();
+    // Reload current view direct, geen heen-en-weer navigeren nodig
+    if(selId===spelerId){
+      const p = PLAYERS.find(x=>x.id===spelerId) || {voornaam:naam, naam:''};
+      loadAdminProfielPane(leeg, p);
+      loadAdminVoetbalPane();
+    }
   } else {
     toast('Fout bij resetten','err');
   }
@@ -3099,15 +3110,31 @@ async function resetSpelerEvaluaties(spelerId, naam) {
   if(!confirm('Alle evaluaties van ' + naam + ' verwijderen?')) return;
   // Delete all evaluations for this player (table: match_evaluaties, col: beoordelaar)
   const {error} = await sbDelete('match_evaluaties', 'beoordelaar=eq.'+spelerId);
-  if(!error) toast('✓ Evaluaties van '+naam+' verwijderd');
-  else toast('Fout bij verwijderen','err');
+  if(!error){
+    toast('✓ Evaluaties van '+naam+' verwijderd');
+    if(selId===spelerId) loadAdminSeizoenPane();
+  } else {
+    toast('Fout bij verwijderen','err');
+  }
 }
 
 function resetSpelerProfiel(spelerId, naam) {
   if(!confirm('Profiel van ' + naam + ' resetten?')) return;
-  sbPatch('spelers','id=eq.'+spelerId,{data:{geboortedatum:'',gsm_speler:'',fav_ploeg:'',school_naam:''}}).then(({error})=>{
-    if(!error) toast('✓ Profiel gereset');
-    else toast('Fout','err');
+  sbGetOne('spelers','id=eq.'+spelerId+'&select=*').then(({data:row})=>{
+    const huidigeData = (row && row.data) || {};
+    const nieuweData = {...huidigeData, geboortedatum:'', gsm_speler:'', fav_ploeg:'', school_naam:''};
+    sbPatch('spelers','id=eq.'+spelerId,{data:nieuweData}).then(({error})=>{
+      if(!error){
+        toast('✓ Profiel gereset');
+        if(selId===spelerId){
+          const p = PLAYERS.find(x=>x.id===spelerId) || {voornaam:naam, naam:''};
+          loadAdminProfielPane(nieuweData, p);
+          loadAdminVoetbalPane();
+        }
+      } else {
+        toast('Fout','err');
+      }
+    });
   });
 }
 
