@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v264</title>
+<title>KSK Lovendegem U13 IP v266</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -597,7 +597,8 @@ textarea{resize:vertical;min-height:70px}
       </div>
     </div><!-- /layout -->
 </div><!-- /s-app -->
-</div><!-- /s-app-FINAL -->
+</div><!-- /s-app-FINAL (missing div fix v266) -->
+</div><!-- /s-app-TRUE-CLOSE -->
 
 
 
@@ -837,7 +838,7 @@ async function sbSignIn(email, password, remember) {
   sbSaveSession(d, remember); return d;
 }
 async function sbSignOut() {
-  if (SB_TOKEN) fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:sbH()}).catch(()=>{});
+  if (SB_TOKEN) fetch(SUPABASE_URL+'/auth/v1/logout',{method:'POST',headers:sbH(),redirect:'manual'}).catch(()=>{});
   sbClearSession();
 }
 async function sbGet(table, qs) {
@@ -1064,14 +1065,13 @@ async function handleLogin() {
 }
 
 async function doLogout() {
-  sbSignOut();
-  ['s-app','s-beheer','s-player','s-pending'].forEach(hide);
-  showFlex('s-login');
-  setDisp('demo-badge','none');
-  selId=null; DB={}; userRole='none'; userSpelerId=null;
-  // Reset login button
-  const btn=$('login-btn');
-  if(btn){btn.textContent='Inloggen';btn.disabled=false;}
+  // Supabase logout (fire and forget)
+  if (SB_TOKEN) {
+    fetch(SUPABASE_URL+'/auth/v1/logout', {method:'POST', headers:sbH(), redirect:'manual'}).catch(()=>{});
+  }
+  sbClearSession();
+  // Reload page - most reliable way to reset state
+  window.location.reload();
 }
 
 function startDemo() {
