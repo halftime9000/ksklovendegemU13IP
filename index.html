@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v274</title>
+<title>KSK Lovendegem U13 IP v275</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -3003,7 +3003,7 @@ async function loadBeheerOverzicht() {
         if(Array.isArray(arr)) arr.forEach(v => { counts[v]=(counts[v]||0)+1; });
       });
     });
-    return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    return Object.entries(counts).sort((a,b)=>b[1]-a[1]);
   };
   const sterkeTop = countPills('sterke');
   const werkTop = countPills('werk');
