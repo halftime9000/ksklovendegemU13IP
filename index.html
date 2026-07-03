@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v280</title>
+<title>KSK Lovendegem U13 IP v281</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2776,11 +2776,19 @@ async function saveAdminCoachBoodschap(verwijderen){
   if(verwijderen){
     if(ta) ta.value='';
     toast('✓ Boodschap verwijderd');
+    if(btn){btn.textContent=origTxt;btn.disabled=false;}
   } else {
+    if(btn){
+      btn.textContent='✓ Verzonden';
+      btn.style.background='#15803d';
+      setTimeout(()=>{
+        btn.textContent=origTxt;
+        btn.style.background='#203060';
+        btn.disabled=false;
+      },2000);
+    }
     toast('✓ Boodschap verzonden');
-    if(btn){btn.textContent='✓ Verzonden';setTimeout(()=>{btn.textContent=origTxt;btn.disabled=false;},2000);return;}
   }
-  if(btn){btn.textContent=origTxt;btn.disabled=false;}
 }
 
 function loadAdminVoetbalPane() {
