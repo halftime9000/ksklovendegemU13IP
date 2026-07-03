@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v284</title>
+<title>KSK Lovendegem U13 IP v287</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -568,7 +568,19 @@ textarea{resize:vertical;min-height:70px}
               <div style="font-size:12px;font-weight:700;color:#e0d040">Maandprijs</div>
             </div>
           </div>
-        </div>
+
+          <!-- Groepsbericht -->
+          <div style="margin-top:12px;background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:4px solid #203060">
+            <div style="font-size:12px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">📢 Groepsbericht aan heel de ploeg</div>
+            <div style="font-size:11px;color:#64748b;margin-bottom:10px">Dit overschrijft het individuele bericht van elke speler.</div>
+            <textarea id="groeps-bericht" rows="4" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box;line-height:1.6" placeholder="bv. Goede week gehad, blijf zo doorgaan! Volgende training vrijdag 18u."></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px">
+              <button onclick="stuurGroepsBericht()" id="btn-groeps-verzenden" style="flex:1;background:#203060;color:#fff;border:none;border-radius:8px;padding:10px;font-size:13px;font-weight:700;cursor:pointer">📨 Verzenden aan alle spelers</button>
+              <button onclick="verwijderGroepsBericht()" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer">🗑</button>
+            </div>
+          </div>
+
+        </div><!-- /admin-nav-cards -->
 
       </div><!-- /empty-state -->
 
@@ -2754,14 +2766,14 @@ function loadAdminProfielPane(d, speler) {
 
 async function saveAdminCoachBoodschap(verwijderen){
   if(!selId){toast('⚠️ Geen speler geselecteerd',true);return;}
-  if(verwijderen){
-    const huidig = ta?.value?.trim();
-    if(!huidig){toast('Er is geen boodschap om te verwijderen',true);if(btn){btn.textContent=origTxt;btn.disabled=false;}return;}
-    if(!confirm('Boodschap verwijderen?\n\n"'+huidig+'"')) {if(btn){btn.textContent=origTxt;btn.disabled=false;}return;}
-  }
   const ta=$('admin-coach-msg');
   const btn=document.getElementById('btn-verzenden');
   const origTxt = btn ? btn.textContent : '';
+  if(verwijderen){
+    const huidig = ta?.value?.trim();
+    if(!huidig){toast('Er is geen boodschap om te verwijderen',true);return;}
+    if(!confirm('Boodschap verwijderen?\n\n"'+huidig+'"')) return;
+  }
   if(btn){btn.textContent='Bezig…';btn.disabled=true;}
   const {data:row, error:fetchErr}=await sbGetOne('spelers','id=eq.'+selId+'&select=id,data');
   if(fetchErr){
@@ -2794,6 +2806,48 @@ async function saveAdminCoachBoodschap(verwijderen){
     toast('✓ Boodschap verzonden');
   }
 }
+
+async function stuurGroepsBericht(){
+  const ta=$('groeps-bericht');
+  const bericht=(ta?.value||'').trim();
+  if(!bericht){toast('⚠️ Schrijf eerst een bericht',true);return;}
+  if(!confirm('Dit bericht wordt naar ALLE spelers gestuurd en overschrijft hun individueel bericht.\n\nDoorgaan?'))return;
+  const btn=document.getElementById('btn-groeps-verzenden');
+  const origTxt=btn?btn.textContent:'';
+  if(btn){btn.textContent='Bezig…';btn.disabled=true;}
+  const {data:spelers,error:fetchErr}=await sbGet('spelers','select=id,data&seizoen=eq.2026-27');
+  if(fetchErr||!spelers?.length){
+    toast('⚠️ Fout bij ophalen spelers',true);
+    if(btn){btn.textContent=origTxt;btn.disabled=false;}
+    return;
+  }
+  let fouten=0;
+  await Promise.all(spelers.map(async s=>{
+    const merged=Object.assign({},s.data||{},{coach_boodschap:bericht});
+    const {error}=await sbPatch('spelers','id=eq.'+s.id,{data:merged});
+    if(error)fouten++;
+  }));
+  if(fouten){toast('⚠️ '+fouten+' speler(s) niet gelukt',true);}
+  else{
+    if(btn){btn.textContent='✓ Verzonden';btn.style.background='#15803d';setTimeout(()=>{btn.textContent=origTxt;btn.style.background='#203060';btn.disabled=false;},2500);}
+    toast('✓ Bericht verzonden aan '+spelers.length+' spelers');
+  }
+}
+
+async function verwijderGroepsBericht(){
+  if(!confirm('Bericht verwijderen bij ALLE spelers?'))return;
+  const {data:spelers,error:fetchErr}=await sbGet('spelers','select=id,data&seizoen=eq.2026-27');
+  if(fetchErr||!spelers?.length){toast('⚠️ Fout bij ophalen spelers',true);return;}
+  let fouten=0;
+  await Promise.all(spelers.map(async s=>{
+    const merged=Object.assign({},s.data||{},{coach_boodschap:''});
+    const {error}=await sbPatch('spelers','id=eq.'+s.id,{data:merged});
+    if(error)fouten++;
+  }));
+  if(fouten){toast('⚠️ '+fouten+' speler(s) niet gelukt',true);}
+  else{const ta=$('groeps-bericht');if(ta)ta.value='';toast('✓ Bericht verwijderd bij alle spelers');}
+}
+
 
 function loadAdminVoetbalPane() {
   const el = document.getElementById('admin-pane-voetbal');
