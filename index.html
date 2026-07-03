@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v281</title>
+<title>KSK Lovendegem U13 IP v283</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1820,7 +1820,7 @@ async function loadPlayerView(){
 
     // Coach boodschap card
     const boodschapCard = `<div class="card" style="border-left:4px solid #203060;margin-bottom:12px">
-      <div class="card-t" style="color:#203060">💬 Boodschap van de coach</div>
+      <div class="card-t">💬 Boodschap van de coach</div>
       ${coachBoodschap
         ? `<div style="margin-top:8px;font-size:13px;color:#374151;font-style:italic;line-height:1.5">"${coachBoodschap}"</div>`
         : `<div style="margin-top:8px;font-size:12px;color:#94a3b8">Nog geen boodschap van de coach.</div>`
@@ -2753,7 +2753,9 @@ function loadAdminProfielPane(d, speler) {
 async function saveAdminCoachBoodschap(verwijderen){
   if(!selId){toast('⚠️ Geen speler geselecteerd',true);return;}
   if(verwijderen){
-    if(!confirm('Boodschap verwijderen?')) return;
+    const huidig = ta?.value?.trim();
+    if(!huidig){toast('Er is geen boodschap om te verwijderen',true);if(btn){btn.textContent=origTxt;btn.disabled=false;}return;}
+    if(!confirm('Boodschap verwijderen?\n\n"'+huidig+'"')) {if(btn){btn.textContent=origTxt;btn.disabled=false;}return;}
   }
   const ta=$('admin-coach-msg');
   const btn=document.getElementById('btn-verzenden');
