@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v277</title>
+<title>KSK Lovendegem U13 IP v278</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1814,8 +1814,45 @@ async function loadPlayerView(){
     // Load player data
     const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
     const d=row?.data||{};
+    // Build werkpunt options for persoonlijk doel
+    const isKeeper = d.is_keeper === true || userRole === 'keeper';
+    const werkCats = isKeeper ? KEEPER_CATEGORIES : CATEGORIES;
+    const allWerkOpts = [];
+    ['technisch','taktisch','fysiek','mentaal'].forEach(cat => {
+      (werkCats[cat]||[]).forEach(v => allWerkOpts.push(v));
+    });
+    const huidigDoel = d.persoonlijk_doel || '';
+    const coachBoodschap = d.coach_boodschap || '';
+    const isCoachOrAdmin = userRole === 'admin' || userRole === 'coach';
+
+    // Coach boodschap card
+    const boodschapCard = `<div class="card" style="border-left:4px solid #203060;margin-bottom:12px">
+      <div class="card-t" style="color:#203060">💬 Boodschap van de coach</div>
+      ${isCoachOrAdmin
+        ? `<textarea id="pv-coach-msg" rows="3" style="width:100%;margin-top:8px;padding:8px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box" placeholder="Schrijf hier een persoonlijke boodschap voor deze speler...">${coachBoodschap}</textarea>
+           <button onclick="saveCoachBoodschap()" style="margin-top:8px;background:#203060;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">💾 Opslaan</button>`
+        : coachBoodschap
+          ? `<div style="margin-top:8px;font-size:13px;color:#374151;font-style:italic;line-height:1.5">"${coachBoodschap}"</div>`
+          : `<div style="margin-top:8px;font-size:12px;color:#94a3b8">Nog geen boodschap van de coach.</div>`
+      }
+    </div>`;
+
+    // Persoonlijk doel card
+    const doelPillsHtml = allWerkOpts.map(v =>
+      `<button onclick="selectDoelPill(this,'${v.replace(/'/g,"\\'")}');pvDirty()" data-val="${v}"
+        style="padding:5px 10px;border-radius:20px;border:1.5px solid ${huidigDoel===v?'#dc2626':'#e2e8f0'};background:${huidigDoel===v?'#fee2e2':'#f8fafc'};color:${huidigDoel===v?'#dc2626':'#64748b'};font-size:11px;font-weight:600;cursor:pointer;margin:3px">${v}</button>`
+    ).join('');
+    const doelCard = `<div class="card" style="border-left:4px solid #dc2626;margin-bottom:12px">
+      <div class="card-t" style="color:#dc2626">🎯 Mijn seizoensdoel</div>
+      <div style="font-size:12px;color:#64748b;margin:6px 0 10px">Kies één werkpunt waaraan je dit seizoen prioriteit geeft:</div>
+      <div id="pv-doel-pills" style="display:flex;flex-wrap:wrap;gap:2px">${doelPillsHtml}</div>
+      ${huidigDoel ? `<div style="margin-top:10px;font-size:12px;color:#dc2626;font-weight:700">✓ Gekozen: ${huidigDoel}</div>` : ''}
+    </div>`;
+
     if(!pp)return;
     pp.innerHTML=
+      boodschapCard +
+      doelCard +
       '<div class="card"><div class="card-t">👤 Persoonlijke gegevens</div><div class="fields">'+
       '<div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly style="color:#374151"></div>'+
       '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly style="color:#374151"></div></div>'+
@@ -1846,6 +1883,9 @@ async function savePlayerView(){
   if($('pv-gsm'))d2.gsm_speler=$('pv-gsm').value;
   if($('pv-school'))d2.school_naam=$('pv-school').value;
   if($('pv-jaren'))d2.jaren_actief=$('pv-jaren').value;
+  // Persoonlijk doel
+  const gekozenDoel = document.querySelector('#pv-doel-pills button[data-val].on');
+  if(gekozenDoel) d2.persoonlijk_doel = gekozenDoel.dataset.val;
   const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
   const merged=Object.assign({},row?.data||{},d2);
   const {data:patchResult, error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
@@ -1854,6 +1894,27 @@ async function savePlayerView(){
   const b=$('pv-save');
   if(b){b.textContent='✓ Opgeslagen';b.style.background='#15803d';b.style.color='#fff';setTimeout(()=>{b.textContent='💾 Opslaan';b.style.background='#182448';b.style.color='#E0D040';},2500);}
   toast('Opgeslagen!');
+}
+
+function selectDoelPill(btn, val){
+  document.querySelectorAll('#pv-doel-pills button').forEach(b=>{
+    const active = b.dataset.val === val;
+    b.classList.toggle('on', active);
+    b.style.borderColor = active ? '#dc2626' : '#e2e8f0';
+    b.style.background  = active ? '#fee2e2' : '#f8fafc';
+    b.style.color       = active ? '#dc2626' : '#64748b';
+  });
+}
+
+async function saveCoachBoodschap(){
+  if(!userSpelerId){toast('Geen speler geselecteerd',true);return;}
+  const ta=$('pv-coach-msg');
+  if(!ta)return;
+  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=id,data');
+  const merged=Object.assign({},row?.data||{},{coach_boodschap:ta.value.trim()});
+  const {error}=await sbPatch('spelers','id=eq.'+userSpelerId,{data:merged});
+  if(error){toast('Fout bij opslaan',true);return;}
+  toast('✓ Boodschap opgeslagen');
 }
 
 
