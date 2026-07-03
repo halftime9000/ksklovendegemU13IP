@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v276</title>
+<title>KSK Lovendegem U13 IP v277</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2995,6 +2995,12 @@ async function loadBeheerOverzicht() {
   };
 
   // Sterke & werkpunten tellen — alle opties tonen, ook 0x
+  const keeperOnlyOptions = new Set();
+  ['technisch','taktisch','fysiek','mentaal'].forEach(cat => {
+    const regular = new Set(CATEGORIES[cat]||[]);
+    (KEEPER_CATEGORIES[cat]||[]).forEach(v => { if(!regular.has(v)) keeperOnlyOptions.add(v); });
+  });
+
   const countPills = (type) => {
     // Alle mogelijke waarden verzamelen (veldspeler + keeper)
     const allOptions = new Set();
@@ -3019,12 +3025,14 @@ async function loadBeheerOverzicht() {
 
   const pillBar = (label, count, max, col) => {
     const pct = Math.round((count/max)*100);
+    const isKeeper = keeperOnlyOptions.has(label);
+    const displayLabel = isKeeper ? `${label} 🧤` : label;
     return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
-      <div style="width:130px;font-size:12px;font-weight:600;color:#374151;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${label}</div>
+      <div style="width:145px;font-size:12px;font-weight:600;color:${isKeeper?'#0369a1':'#374151'};white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${displayLabel}">${displayLabel}</div>
       <div style="flex:1;background:#f1f5f9;border-radius:4px;height:10px;overflow:hidden">
-        <div style="width:${pct}%;height:100%;background:${col};border-radius:4px;transition:width .3s"></div>
+        <div style="width:${pct}%;height:100%;background:${isKeeper?'#0369a1':col};border-radius:4px;transition:width .3s"></div>
       </div>
-      <div style="font-size:11px;font-weight:700;color:${col};width:24px;text-align:right">${count}x</div>
+      <div style="font-size:11px;font-weight:700;color:${isKeeper?'#0369a1':col};width:24px;text-align:right">${count}x</div>
     </div>`;
   };
 
