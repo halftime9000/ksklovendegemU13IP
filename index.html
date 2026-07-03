@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v275</title>
+<title>KSK Lovendegem U13 IP v276</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2994,9 +2994,18 @@ async function loadBeheerOverzicht() {
     return `<span style="font-weight:800;color:${col}">${val}/10</span>`;
   };
 
-  // Sterke & werkpunten tellen
+  // Sterke & werkpunten tellen — alle opties tonen, ook 0x
   const countPills = (type) => {
+    // Alle mogelijke waarden verzamelen (veldspeler + keeper)
+    const allOptions = new Set();
+    ['technisch','taktisch','fysiek','mentaal'].forEach(cat => {
+      (CATEGORIES[cat]||[]).forEach(v => allOptions.add(v));
+      (KEEPER_CATEGORIES[cat]||[]).forEach(v => allOptions.add(v));
+    });
+    // Begin met 0 voor elk
     const counts = {};
+    allOptions.forEach(v => { counts[v] = 0; });
+    // Tel wat spelers hebben ingevuld
     spDataAll.forEach(d => {
       ['technisch','taktisch','fysiek','mentaal'].forEach(cat => {
         const arr = d[type+'_'+cat];
