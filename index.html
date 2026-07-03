@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v279</title>
+<title>KSK Lovendegem U13 IP v280</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -2729,7 +2729,10 @@ function loadAdminProfielPane(d, speler) {
     '<div style="font-size:12px;font-weight:700;color:#203060;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">💬 Boodschap voor speler</div>' +
     '<div style="font-size:11px;color:#64748b;margin-bottom:8px">Alleen zichtbaar voor deze speler in zijn eigen profiel.</div>' +
     `<textarea id="admin-coach-msg" rows="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box" placeholder="Schrijf hier een persoonlijke boodschap...">${d.coach_boodschap||''}</textarea>` +
-    '<button onclick="saveAdminCoachBoodschap()" style="margin-top:8px;background:#203060;color:#fff;border:none;border-radius:7px;padding:8px 16px;font-size:12px;font-weight:700;cursor:pointer">💾 Opslaan</button>' +
+    '<div style="display:flex;gap:8px;margin-top:8px">' +
+    '<button id="btn-verzenden" onclick="saveAdminCoachBoodschap(false)" style="flex:1;background:#203060;color:#fff;border:none;border-radius:7px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer">📨 Verzenden</button>' +
+    '<button onclick="saveAdminCoachBoodschap(true)" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:7px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer">🗑 Verwijderen</button>' +
+    '</div>' +
     '</div>' +
     '<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06);margin-bottom:12px">' +
     '<div style="font-size:12px;font-weight:700;color:#203060;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em">👤 Persoonlijke gegevens</div>' +
@@ -2747,15 +2750,37 @@ function loadAdminProfielPane(d, speler) {
   });
 }
 
-async function saveAdminCoachBoodschap(){
-  if(!selId){toast('Geen speler geselecteerd',true);return;}
+async function saveAdminCoachBoodschap(verwijderen){
+  if(!selId){toast('⚠️ Geen speler geselecteerd',true);return;}
+  if(verwijderen){
+    if(!confirm('Boodschap verwijderen?')) return;
+  }
   const ta=$('admin-coach-msg');
-  if(!ta)return;
-  const {data:row}=await sbGetOne('spelers','id=eq.'+selId+'&select=id,data');
-  const merged=Object.assign({},row?.data||{},{coach_boodschap:ta.value.trim()});
+  const btn=document.getElementById('btn-verzenden');
+  const origTxt = btn ? btn.textContent : '';
+  if(btn){btn.textContent='Bezig…';btn.disabled=true;}
+  const {data:row, error:fetchErr}=await sbGetOne('spelers','id=eq.'+selId+'&select=id,data');
+  if(fetchErr){
+    toast('⚠️ Fout bij ophalen: '+(fetchErr.message||'onbekend'),true);
+    if(btn){btn.textContent=origTxt;btn.disabled=false;}
+    return;
+  }
+  const nieuweBoodschap = verwijderen ? '' : (ta?.value||'').trim();
+  const merged=Object.assign({},row?.data||{},{coach_boodschap:nieuweBoodschap});
   const {error}=await sbPatch('spelers','id=eq.'+selId,{data:merged});
-  if(error){toast('Fout bij opslaan',true);return;}
-  toast('✓ Boodschap opgeslagen');
+  if(error){
+    toast('⚠️ Fout bij opslaan: '+(error.message||'onbekend'),true);
+    if(btn){btn.textContent=origTxt;btn.disabled=false;}
+    return;
+  }
+  if(verwijderen){
+    if(ta) ta.value='';
+    toast('✓ Boodschap verwijderd');
+  } else {
+    toast('✓ Boodschap verzonden');
+    if(btn){btn.textContent='✓ Verzonden';setTimeout(()=>{btn.textContent=origTxt;btn.disabled=false;},2000);return;}
+  }
+  if(btn){btn.textContent=origTxt;btn.disabled=false;}
 }
 
 function loadAdminVoetbalPane() {
