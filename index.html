@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v293</title>
+<title>KSK Lovendegem U13 IP v294</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -959,7 +959,7 @@ const MULTI_KEYS = ['sterke_technisch','sterke_taktisch','sterke_fysiek','sterke
 const MONTHS = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
 const MON_SHORT = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
 
-const KEY_FIELDS  = ['geboortedatum','gsm_speler','positie','bf_niveau','bf_doel'];
+const KEY_FIELDS  = ['geboortedatum','gsm_speler','bf_niveau','bf_doel'];
 const TEXT_FIELDS = ['geboortedatum','gsm_speler','allergie','medicatie','medisch_info','vorige_club','bf_niveau','bf_doel','bf_verwachting','beschikbaarheid','school_naam'];
 const LS_KEY = 'ksk_lovendegem_u13_demo';
 const TS_KEY = 'ksk_team_stats';
@@ -1237,10 +1237,11 @@ function switchTabById(id){document.querySelectorAll('.tab-pane').forEach(p=>p.c
 
 // STATS
 function updateStats(){
+  const total=Object.keys(DB).length;
   const complete=Object.values(DB).filter(r=>calcPct(r.data||{})===100).length;
   const started=Object.values(DB).filter(r=>hasData(r.data||{})).length;
   const sn=$('stat-n');if(sn)sn.textContent=complete;
-  const ft=$('foot-txt');if(ft)ft.textContent=started+'/25 ingevuld';
+  const ft=$('foot-txt');if(ft)ft.textContent=started+'/'+total+' ingevuld';
   const es=$('es-started');if(es)es.textContent=started;
   const ec=$('es-complete');if(ec)ec.textContent=complete;
 }
