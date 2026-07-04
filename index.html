@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v294</title>
+<title>KSK Lovendegem U13 IP v295</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1246,7 +1246,15 @@ function updateStats(){
   const ec=$('es-complete');if(ec)ec.textContent=complete;
 }
 function calcPct(d){if(!d)return 0;return Math.round(KEY_FIELDS.filter(f=>{const v=d[f];return v!==''&&v!==false&&v!=null;}).length/KEY_FIELDS.length*100);}
-function hasData(d){return d&&Object.keys(d).some(k=>{const v=d[k];return v!==''&&v!==false&&v!=null&&!(Array.isArray(v)&&v.length===0);});}
+function hasData(d){
+  if(!d)return false;
+  // Alleen velden die de speler zelf invult tellen mee
+  const playerFields=['geboortedatum','gsm_speler','bf_niveau','bf_doel','voorkeurspoot','bf_favoriet','pv-fav-pos','pv-doel','pv-niv','rolmodel','fav_ploeg','waarom_voetbal','droomscenario','school_naam'];
+  return playerFields.some(k=>{
+    const v=d[k];
+    return v!==''&&v!==false&&v!=null&&!(Array.isArray(v)&&v.length===0);
+  });
+}
 
 // MOBILE
 function isMobile(){return window.innerWidth<=768;}
