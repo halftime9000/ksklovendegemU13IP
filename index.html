@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v303</title>
+<title>KSK Lovendegem U13 IP v304</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -748,7 +748,7 @@ textarea{resize:vertical;min-height:70px}
     <button class="beheer-tab" data-tab="beschikbaarheid" onclick="switchBeheerTab('beschikbaarheid',this)">📅 Beschikbaar</button>
   </div>
   <!-- Beheer panes -->
-  <div style="flex:1;overflow-y:auto;padding:16px">
+  <div id="beheer-scroll" style="flex:1;overflow-y:auto;padding:16px">
 
     <!-- Overzicht -->
     <div id="bp-overzicht" class="beheer-pane">
@@ -1417,6 +1417,8 @@ function switchBeheerTab(id,btn){
     b.style.color = isActive ? '#203060' : '#64748b';
     b.style.fontWeight = isActive ? '700' : '600';
   });
+  // Scroll altijd naar boven bij tab-wisseling
+  const sc=$('beheer-scroll');if(sc)sc.scrollTop=0;
   if(id==='wedstrijden') loadBeheerWedstrijden();
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
