@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v304</title>
+<title>KSK Lovendegem U13 IP v305</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -823,7 +823,7 @@ textarea{resize:vertical;min-height:70px}
 </div>
 </div>
 
-    <div id="bp-beschikbaarheid" class="beheer-pane">
+    <div id="bp-beschikbaarheid" class="beheer-pane" style="padding:16px;overflow-y:auto">
       <div style="background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:14px">
         <div style="font-size:12px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📅 Wie is beschikbaar op een datum?</div>
         <input type="date" id="beschik-datum" onchange="laadBeschikbaarheid()" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;color:#374151;box-sizing:border-box;margin-bottom:12px">
@@ -1407,7 +1407,15 @@ function openBeheerTab(tab) {
 
 
 function switchBeheerTab(id,btn){
-  ['spelers','overzicht','wedstrijden','maandprijs','beschikbaarheid'].forEach(t=>{
+  const isBeschik = id==='beschikbaarheid';
+  // beheer-scroll tonen/verbergen
+  const sc=$('beheer-scroll');
+  if(sc) sc.style.display = isBeschik ? 'none' : '';
+  // bp-beschikbaarheid tonen/verbergen
+  const bpb=$('bp-beschikbaarheid');
+  if(bpb){bpb.style.display=isBeschik?'block':'none';bpb.style.flex=isBeschik?'1':'';bpb.style.overflowY=isBeschik?'auto':'';}
+  // Overige panes
+  ['spelers','overzicht','wedstrijden','maandprijs'].forEach(t=>{
     const p=document.getElementById('bp-'+t);
     if(p) p.style.display = t===id ? 'block' : 'none';
   });
@@ -1417,8 +1425,7 @@ function switchBeheerTab(id,btn){
     b.style.color = isActive ? '#203060' : '#64748b';
     b.style.fontWeight = isActive ? '700' : '600';
   });
-  // Scroll altijd naar boven bij tab-wisseling
-  const sc=$('beheer-scroll');if(sc)sc.scrollTop=0;
+  if(!isBeschik && sc) sc.scrollTop=0;
   if(id==='wedstrijden') loadBeheerWedstrijden();
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
