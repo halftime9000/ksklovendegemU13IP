@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v300</title>
+<title>KSK Lovendegem U13 IP v301</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -627,7 +627,7 @@ textarea{resize:vertical;min-height:70px}
                 </div>
                 <div class="cal-grid" id="a-cal-grid"></div>
                 <div id="a-cal-periods" style="margin-top:10px;font-size:12px;color:#64748b;white-space:pre-line;display:none"></div>
-                <button onclick="saveUnavailDates()" style="margin-top:14px;width:100%;background:#203060;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>
+                <button id="a-cal-save" onclick="saveUnavailDates()" style="margin-top:14px;width:100%;background:#203060;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>
               </div>
             </div>
           </div>
@@ -726,7 +726,7 @@ textarea{resize:vertical;min-height:70px}
           </div>
           <div class="cal-grid" id="cal-grid"></div>
           <div id="cal-periods" style="margin-top:10px;font-size:12px;color:#64748b;white-space:pre-line;display:none"></div>
-          <button onclick="saveUnavailDates()" style="margin-top:14px;width:100%;background:#182448;color:#E0D040;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>
+          <button id="pv-cal-save" onclick="saveUnavailDates()" style="margin-top:14px;width:100%;background:#182448;color:#E0D040;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>
         </div>
       </div>
     </div>
@@ -1318,6 +1318,20 @@ async function saveUnavailDates(){
   console.log('[saveUnavailDates] save error=', error);
   if(error){toast('⚠️ Fout: '+(error.message||error.hint||JSON.stringify(error)),true);return;}
   if(DB[sid]) DB[sid].data=merged;
+  // Groen feedback op beide knoppen
+  ['pv-cal-save','a-cal-save'].forEach(id=>{
+    const btn=document.getElementById(id);
+    if(!btn)return;
+    btn.textContent='✓ Opgeslagen';
+    btn.style.background='#15803d';
+    btn.disabled=true;
+    setTimeout(()=>{
+      btn.textContent='💾 Opslaan';
+      btn.style.background=id==='a-cal-save'?'#203060':'#182448';
+      btn.style.color=id==='a-cal-save'?'#fff':'#E0D040';
+      btn.disabled=false;
+    },2000);
+  });
   toast('✓ Kalender opgeslagen');
 }
 
