@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v299</title>
+<title>KSK Lovendegem U13 IP v300</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1286,7 +1286,7 @@ function updatePeriodSummary(){
 }
 
 async function saveUnavailDates(){
-  const sid = userSpelerId || selId;
+  const sid = (userRole==='admin'||userRole==='coach') ? selId : (userSpelerId||selId);
   console.log('[saveUnavailDates] sid=', sid, 'userSpelerId=', userSpelerId, 'selId=', selId, 'unavailDates=', unavailDates);
   if(!sid){toast('⚠️ Geen speler geselecteerd',true);return;}
 
@@ -1297,14 +1297,13 @@ async function saveUnavailDates(){
 
   const merged=Object.assign({},row.data||{},{unavail_dates:[...unavailDates]});
 
-  // Speler (s-player) → sbPatch werkt, admin → sbUpsert
+  // Admin/coach → sbUpsert, speler → sbPatch op eigen rij
   let error;
-  if(userSpelerId && !selId){
-    // pure player context
+  if(userRole==='admin'||userRole==='coach'){
     const res=await sbPatch('spelers','id=eq.'+sid,{data:merged});
     error=res.error;
   } else {
-    // admin of admin+player context
+    // speler: patch eigen rij
     const res=await sbUpsert('spelers',{
       id:sid,
       naam:row.naam||'',
