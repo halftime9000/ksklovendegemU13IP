@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v301</title>
+<title>KSK Lovendegem U13 IP v302</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -745,6 +745,7 @@ textarea{resize:vertical;min-height:70px}
     <button class="beheer-tab" data-tab="overzicht" onclick="switchBeheerTab('overzicht',this)">📊 Overzicht</button>
     <button class="beheer-tab" data-tab="wedstrijden" onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
     <button class="beheer-tab" data-tab="maandprijs" onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
+    <button class="beheer-tab" data-tab="beschikbaarheid" onclick="switchBeheerTab('beschikbaarheid',this)">📅 Beschikbaar</button>
   </div>
   <!-- Beheer panes -->
   <div style="flex:1;overflow-y:auto;padding:16px">
@@ -821,6 +822,16 @@ textarea{resize:vertical;min-height:70px}
 </div>
 </div>
 </div>
+
+    <div id="bp-beschikbaarheid" class="beheer-pane">
+      <div class="section-card">
+        <div class="section-card-title">📅 Wie is beschikbaar op een datum?</div>
+        <div style="margin-bottom:16px">
+          <input type="date" id="beschik-datum" onchange="laadBeschikbaarheid()" style="width:100%;padding:10px;border:1px solid #e2e8f0;border-radius:8px;font-size:14px;color:#374151;box-sizing:border-box">
+        </div>
+        <div id="beschik-result"></div>
+      </div>
+    </div>
 
 </div><!-- /s-beheer -->
 
@@ -1398,7 +1409,7 @@ function openBeheerTab(tab) {
 
 
 function switchBeheerTab(id,btn){
-  ['spelers','overzicht','wedstrijden','maandprijs'].forEach(t=>{
+  ['spelers','overzicht','wedstrijden','maandprijs','beschikbaarheid'].forEach(t=>{
     const p=document.getElementById('bp-'+t);
     if(p) p.style.display = t===id ? 'block' : 'none';
   });
@@ -1412,6 +1423,35 @@ function switchBeheerTab(id,btn){
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
   else if(id==='overzicht') loadBeheerOverzicht();
+}
+
+async function laadBeschikbaarheid(){
+  const datum=$('beschik-datum')?.value;
+  const el=$('beschik-result');
+  if(!datum||!el)return;
+  el.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:13px;padding:12px">Laden...</div>';
+  const {data:spelers,error}=await sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc');
+  if(error||!spelers){el.innerHTML='<div style="color:#dc2626;font-size:13px">Fout bij laden</div>';return;}
+  const beschikbaar=[], afwezig=[];
+  spelers.forEach(s=>{
+    const d=s.data||{};
+    const unavail=Array.isArray(d.unavail_dates)?d.unavail_dates:[];
+    const naam=s.voornaam+' '+s.naam;
+    if(unavail.includes(datum)) afwezig.push(naam);
+    else beschikbaar.push(naam);
+  });
+  const lijst=(arr,kleur,icoon)=>arr.length
+    ? arr.map(n=>`<div style="padding:7px 10px;border-radius:7px;background:${kleur};font-size:13px;font-weight:600;color:#0a1628;margin-bottom:4px">${icoon} ${n}</div>`).join('')
+    : `<div style="font-size:12px;color:#94a3b8;padding:6px">—</div>`;
+  el.innerHTML=`
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">✅ Beschikbaar (${beschikbaar.length})</div>
+      ${lijst(beschikbaar,'#dcfce7','✅')}
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">❌ Niet beschikbaar (${afwezig.length})</div>
+      ${lijst(afwezig,'#fee2e2','❌')}
+    </div>`;
 }
 async function loadBeheerSpelers(){
   const [{data:spelers},{data:urs},{data:sps}]=await Promise.all([
