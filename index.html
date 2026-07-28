@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v298</title>
+<title>KSK Lovendegem U13 IP v299</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1287,22 +1287,38 @@ function updatePeriodSummary(){
 
 async function saveUnavailDates(){
   const sid = userSpelerId || selId;
+  console.log('[saveUnavailDates] sid=', sid, 'userSpelerId=', userSpelerId, 'selId=', selId, 'unavailDates=', unavailDates);
   if(!sid){toast('⚠️ Geen speler geselecteerd',true);return;}
-  // Haal huidige rij op voor naam/voornaam/seizoen (nodig voor upsert)
-  const cached = DB[sid];
-  const {data:row}=await sbGetOne('spelers','id=eq.'+sid+'&select=*');
-  if(!row){toast('⚠️ Speler niet gevonden',true);return;}
+
+  // Haal volledige rij op
+  const {data:row, error:fetchErr}=await sbGetOne('spelers','id=eq.'+sid+'&select=*');
+  console.log('[saveUnavailDates] row=', row, 'fetchErr=', fetchErr);
+  if(fetchErr||!row){toast('⚠️ Ophalen mislukt: '+(fetchErr?.message||'rij niet gevonden'),true);return;}
+
   const merged=Object.assign({},row.data||{},{unavail_dates:[...unavailDates]});
-  const {error}=await sbUpsert('spelers',{
-    id:sid,
-    naam:row.naam,
-    voornaam:row.voornaam,
-    seizoen:row.seizoen||'2026-27',
-    data:merged,
-    updated_at:new Date().toISOString()
-  });
-  if(error){toast('⚠️ Fout: '+(error.message||JSON.stringify(error)),true);return;}
-  if(DB[sid]) DB[sid].data = merged;
+
+  // Speler (s-player) → sbPatch werkt, admin → sbUpsert
+  let error;
+  if(userSpelerId && !selId){
+    // pure player context
+    const res=await sbPatch('spelers','id=eq.'+sid,{data:merged});
+    error=res.error;
+  } else {
+    // admin of admin+player context
+    const res=await sbUpsert('spelers',{
+      id:sid,
+      naam:row.naam||'',
+      voornaam:row.voornaam||'',
+      seizoen:row.seizoen||'2026-27',
+      data:merged,
+      updated_at:new Date().toISOString()
+    });
+    error=res.error;
+  }
+
+  console.log('[saveUnavailDates] save error=', error);
+  if(error){toast('⚠️ Fout: '+(error.message||error.hint||JSON.stringify(error)),true);return;}
+  if(DB[sid]) DB[sid].data=merged;
   toast('✓ Kalender opgeslagen');
 }
 
