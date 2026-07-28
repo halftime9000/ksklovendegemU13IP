@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v296</title>
+<title>KSK Lovendegem U13 IP v297</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -600,7 +600,7 @@ textarea{resize:vertical;min-height:70px}
           <button id="atab-profiel" onclick="switchAdminTab('profiel')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid #203060;background:none;font-size:13px;font-weight:700;color:#203060;cursor:pointer">👤 Profiel</button>
           <button id="atab-voetbal" onclick="switchAdminTab('voetbal')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">⚽ Voetbal</button>
           <button id="atab-seizoen" onclick="switchAdminTab('seizoen')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">📈 Seizoen</button>
-          <button id="atab-beschikbaarheid" onclick="switchAdminTab('beschikbaarheid')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">📅</button>
+          <button id="atab-beschikbaarheid" onclick="switchAdminTab('beschikbaarheid')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">📅 Kalender</button>
         </div>
         <!-- Content -->
         <div style="flex:1;overflow-y:auto;padding:16px;padding-bottom:32px;-webkit-overflow-scrolling:touch">
@@ -696,7 +696,7 @@ textarea{resize:vertical;min-height:70px}
     <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Profiel</button>
     <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Voetbal</button>
     <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
-    <button class="player-view-tab" onclick="switchPvTab('beschikbaarheid',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅</button>
+    <button class="player-view-tab" onclick="switchPvTab('beschikbaarheid',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅 Kalender</button>
   </div>
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
@@ -2809,9 +2809,15 @@ function switchAdminTab(tab) {
 }
 
 async function loadAdminBeschikbaarheidPane(){
-  if(!selId){return;}
-  const {data:row}=await sbGetOne('spelers','id=eq.'+selId+'&select=id,data');
-  const d=row?.data||{};
+  if(!selId){toast('⚠️ Geen speler geselecteerd',true);return;}
+  // DB cache eerst proberen (al geladen bij selectie)
+  let d = DB[selId]?.data;
+  if(!d || !Array.isArray(d.unavail_dates)){
+    // Toch opnieuw ophalen als cache leeg is
+    const {data:row,error}=await sbGetOne('spelers','id=eq.'+selId+'&select=id,data');
+    if(error){toast('⚠️ Fout bij laden: '+(error.message||''),true);return;}
+    d=row?.data||{};
+  }
   unavailDates=Array.isArray(d.unavail_dates)?[...d.unavail_dates]:[];
   rangeStart=null;
   _calPrefix='a-';
