@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v297</title>
+<title>KSK Lovendegem U13 IP v298</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -1286,16 +1286,24 @@ function updatePeriodSummary(){
 }
 
 async function saveUnavailDates(){
-  // Werkt voor zowel speler (userSpelerId) als admin (selId)
   const sid = userSpelerId || selId;
   if(!sid){toast('⚠️ Geen speler geselecteerd',true);return;}
-  const {data:row}=await sbGetOne('spelers','id=eq.'+sid+'&select=id,data');
-  const merged=Object.assign({},row?.data||{},{unavail_dates:[...unavailDates]});
-  const {error}=await sbPatch('spelers','id=eq.'+sid,{data:merged});
-  if(error){toast('⚠️ Fout bij opslaan: '+(error.message||''),true);return;}
-  // DB cache updaten
+  // Haal huidige rij op voor naam/voornaam/seizoen (nodig voor upsert)
+  const cached = DB[sid];
+  const {data:row}=await sbGetOne('spelers','id=eq.'+sid+'&select=*');
+  if(!row){toast('⚠️ Speler niet gevonden',true);return;}
+  const merged=Object.assign({},row.data||{},{unavail_dates:[...unavailDates]});
+  const {error}=await sbUpsert('spelers',{
+    id:sid,
+    naam:row.naam,
+    voornaam:row.voornaam,
+    seizoen:row.seizoen||'2026-27',
+    data:merged,
+    updated_at:new Date().toISOString()
+  });
+  if(error){toast('⚠️ Fout: '+(error.message||JSON.stringify(error)),true);return;}
   if(DB[sid]) DB[sid].data = merged;
-  toast('✓ Beschikbaarheid opgeslagen');
+  toast('✓ Kalender opgeslagen');
 }
 
 // TABS
@@ -1901,6 +1909,10 @@ async function loadPlayerView(){
     // Load player data
     const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
     const d=row?.data||{};
+    // Zet unavailDates voor kalender tab
+    unavailDates=Array.isArray(d.unavail_dates)?[...d.unavail_dates]:[];
+    rangeStart=null;
+    _calPrefix='';
     // Build coach boodschap vars
     const isKeeper = d.is_keeper === true || userRole === 'keeper';
     const coachBoodschap = d.coach_boodschap || '';
