@@ -1758,20 +1758,31 @@ function switchPvTab(tab, btn) {
   if(tab==='kalender') laadSpelerKalender();
 }
 
-function renderLastMatchHero(){
+async function renderLastMatchHero(){
   const el=$('pv-last-match-hero');if(!el)return;
   const uid=userSpelerId?Number(userSpelerId):null;
+  if(!uid){el.innerHTML='';return;}
   const TODAY2=new Date().toISOString().slice(0,10);
-  // Last past match where player was in squad
-  const past=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY2).sort((a,b)=>b.datum.localeCompare(a.datum));
-  const lastMatch=past.find(w=>{
-    if(!uid) return false;
-    const b=(w.blauw_spelers||[]).map(Number);
-    const g=(w.geel_spelers||[]).map(Number);
-    return b.includes(uid)||g.includes(uid);
-  });
-  if(!lastMatch){el.innerHTML='';return;}
-  const w=lastMatch;
+  // Past matches where player was in squad, newest first
+  const squadPast=(wedstrijdenData||[])
+    .filter(w=>w.datum&&w.datum<TODAY2)
+    .sort((a,b)=>b.datum.localeCompare(a.datum))
+    .filter(w=>{
+      const b=(w.blauw_spelers||[]).map(Number);
+      const g=(w.geel_spelers||[]).map(Number);
+      return b.includes(uid)||g.includes(uid);
+    });
+  if(!squadPast.length){el.innerHTML='';return;}
+  // Fetch all evals for this player in one call
+  let evalledIds=new Set();
+  try{
+    const {data:evs}=await sbGet('match_evaluaties','beoordelaar=eq.'+uid+'&select=match_id');
+    (evs||[]).forEach(e=>evalledIds.add(e.match_id));
+  }catch(e){}
+  // Find most recent un-evaluated match; fall back to most recent if all done
+  const target=squadPast.find(w=>!evalledIds.has(w.id))||squadPast[0];
+  const allDone=evalledIds.has(target.id);
+  const w=target;
   const inBlauw=(w.blauw_spelers||[]).map(Number).includes(uid);
   const myTeam=inBlauw?'blauw':'geel';
   const myScore=w[myTeam+'_score']||'';
@@ -1793,10 +1804,18 @@ function renderLastMatchHero(){
       </div>`;
     }
   }
-  // Check if eval already filled
-  el.innerHTML=`<div id="last-match-hero-inner" style="border-radius:14px;overflow:hidden;background:#0a1628;color:#fff;box-shadow:0 4px 20px rgba(10,22,40,.35)">
+  const heroLabel=allDone?'Laatste wedstrijd':'⚠️ Evaluatie open';
+  const ctaHtml=allDone
+    ?`<div style="display:flex;align-items:center;gap:8px;background:rgba(21,128,61,.25);border:1px solid #4ade80;border-radius:10px;padding:10px 12px">
+        <span style="font-size:18px">✅</span>
+        <span style="font-size:13px;font-weight:700;color:#4ade80">Alle evaluaties ingevuld</span>
+      </div>`
+    :`<button onclick="openEvalFromHero(${w.id})" style="width:100%;background:#E0D040;color:#0a1628;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        ✏️ Evaluatie invullen
+      </button>`;
+  el.innerHTML=`<div style="border-radius:14px;overflow:hidden;background:#0a1628;color:#fff;box-shadow:0 4px 20px rgba(10,22,40,.35)">
     <div style="background:${teamBg};padding:8px 14px;display:flex;justify-content:space-between;align-items:center">
-      <span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">Laatste wedstrijd</span>
+      <span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">${heroLabel}</span>
       <span style="font-size:11px;font-weight:700;opacity:.9">${teamLabel}</span>
     </div>
     <div style="padding:14px 16px 6px">
@@ -1804,26 +1823,8 @@ function renderLastMatchHero(){
       <div style="font-size:11px;color:#94a3b8;margin-top:2px">${fmtDate(w.datum)} · ${w.thuis_uit||'thuis'}</div>
       ${scoreHtml}
     </div>
-    <div style="padding:6px 16px 16px" id="last-match-eval-cta-${w.id}">
-      <div style="font-size:11px;color:#94a3b8;margin-bottom:8px">Evaluatie checken...</div>
-    </div>
+    <div style="padding:6px 16px 16px">${ctaHtml}</div>
   </div>`;
-  // async: check if eval filled
-  if(userSpelerId){
-    sbGet('match_evaluaties','beoordelaar=eq.'+userSpelerId+'&match_id=eq.'+w.id+'&select=id').then(({data:ev})=>{
-      const cta=$('last-match-eval-cta-'+w.id);if(!cta)return;
-      if(ev&&ev.length>0){
-        cta.innerHTML=`<div style="display:flex;align-items:center;gap:8px;background:rgba(21,128,61,.25);border:1px solid #4ade80;border-radius:10px;padding:10px 12px">
-          <span style="font-size:18px">✅</span>
-          <span style="font-size:13px;font-weight:700;color:#4ade80">Evaluatie ingevuld</span>
-        </div>`;
-      } else {
-        cta.innerHTML=`<button onclick="openEvalFromHero(${w.id})" style="width:100%;background:#E0D040;color:#0a1628;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:8px">
-          ✏️ Evaluatie invullen
-        </button>`;
-      }
-    });
-  }
 }
 
 function openEvalFromHero(mid){
@@ -2191,21 +2192,55 @@ function btnReset(btn,orig,origCls){if(!btn)return;btn.textContent=orig||'Opslaa
 
 
 
-function renderPvMatchListIn(containerId, overrideSpelerId) {
+async function renderPvMatchListIn(containerId, overrideSpelerId) {
   const el=$(containerId);if(!el)return;
   if(!wedstrijdenData.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
   const uid=overrideSpelerId?parseInt(overrideSpelerId):(userSpelerId?parseInt(userSpelerId):null);
+  const TODAY2=new Date().toISOString().slice(0,10);
+  // Fetch evals for this player
+  let evalledIds=new Set();
+  if(uid){
+    try{
+      const {data:evs}=await sbGet('match_evaluaties','beoordelaar=eq.'+uid+'&select=match_id');
+      (evs||[]).forEach(e=>evalledIds.add(e.match_id));
+    }catch(e){}
+  }
   el.innerHTML=wedstrijdenData.map(w=>{
     const motmP=PLAYERS.find(x=>x.id===w.man_of_match);
     const wlP=PLAYERS.find(x=>x.id===w.weak_link);
     const inBlauw=(w.blauw_spelers||[]).map(Number).includes(Number(uid));
     const inGeel=(w.geel_spelers||[]).map(Number).includes(Number(uid));
     const inLineup=inBlauw||inGeel;
-    return '<div class="match-card">'+
+    const isPast=w.datum&&w.datum<TODAY2;
+    const evalFilled=evalledIds.has(w.id);
+    // Left border color: green=filled, red=missing, none=future or not in squad
+    let borderStyle='';
+    let evalStatusBadge='';
+    if(isPast&&inLineup){
+      if(evalFilled){
+        borderStyle='border-left:4px solid #22c55e;';
+        evalStatusBadge='<div style="margin:0 12px 10px;padding:8px 12px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px;display:flex;align-items:center;gap:8px">'+
+          '<span style="font-size:15px">✅</span>'+
+          '<span style="font-size:12px;font-weight:600;color:#15803d">Evaluatie ingevuld</span>'+
+        '</div>';
+      } else {
+        borderStyle='border-left:4px solid #ef4444;';
+        evalStatusBadge='<div class="eval-section">'+
+          '<div class="eval-header" onclick="openEvalForm('+w.id+')">✏️ Jouw evaluatie — klik om in te vullen</div>'+
+          '<div class="eval-body" id="eval-body-'+w.id+'"></div>'+
+        '</div>';
+      }
+    } else if(!isPast&&inLineup){
+      evalStatusBadge='<div style="padding:8px 16px 12px;font-size:12px;color:#94a3b8;font-style:italic">Wedstrijd nog niet gespeeld.</div>';
+    } else if(!inLineup&&isPast){
+      evalStatusBadge='<div style="padding:8px 16px 12px;font-size:12px;color:#94a3b8;font-style:italic">Je stond niet opgesteld.</div>';
+    }
+    return '<div class="match-card" style="'+borderStyle+'">'+
       '<div class="match-head" onclick="toggleMatch('+w.id+')">'+
         '<span class="match-datum">'+fmtDate(w.datum)+'</span>'+
         '<span class="match-opp">vs '+w.tegenstander+'</span>'+
         '<span class="match-loc '+w.thuis_uit+'">'+w.thuis_uit+'</span>'+
+        (isPast&&inLineup?(evalFilled?'<span style="font-size:11px;color:#22c55e;font-weight:700">✓</span>':'<span style="font-size:11px;color:#ef4444;font-weight:700">!</span>'):'')+''+
         '<span class="match-chevron" id="chev-'+w.id+'">▼</span>'+
       '</div>'+
       '<div class="match-body" id="mb-'+w.id+'">'+
@@ -2223,13 +2258,7 @@ function renderPvMatchListIn(containerId, overrideSpelerId) {
         '</div>'+
         (motmP?'<div style="padding:6px 16px;font-size:12px;color:#1d4ed8;font-weight:600">⭐ MOTM: '+motmP.voornaam+'</div>':'')+
         (wlP?'<div style="padding:0 16px 6px;font-size:12px;color:#dc2626;font-weight:600">🔴 Weak Link: '+wlP.voornaam+'</div>':'')+
-        (inLineup?
-          '<div class="eval-section">'+
-            '<div class="eval-header" onclick="openEvalForm('+w.id+')">✏️ Jouw evaluatie — klik om in te vullen</div>'+
-            '<div class="eval-body" id="eval-body-'+w.id+'"></div>'+
-          '</div>'
-          :'<div style="padding:10px 16px;font-size:12px;color:#94a3b8;font-style:italic">Je stond niet opgesteld voor deze wedstrijd.</div>'
-        )+
+        evalStatusBadge+
       '</div>'+
     '</div>';
   }).join('');
