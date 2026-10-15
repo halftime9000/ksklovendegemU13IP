@@ -1931,6 +1931,13 @@ function openEvalFromHero(mid){
   setTimeout(()=>{
     const mb=$('mb-'+mid);
     if(mb){
+      // If inside the collapsed "Afgelopen wedstrijden" section, expand it first
+      const collapsibleBody=mb.closest('.match-card')?.parentElement;
+      if(collapsibleBody&&collapsibleBody.style.display==='none'){
+        collapsibleBody.style.display='block';
+        const chevEl=collapsibleBody.previousElementSibling?.querySelector('.afg-chev');
+        if(chevEl)chevEl.textContent='▲';
+      }
       if(!mb.classList.contains('open')) toggleMatch(mid);
       setTimeout(()=>{mb.scrollIntoView({behavior:'smooth',block:'center'});},100);
       setTimeout(()=>openEvalForm(mid),300);
@@ -2293,7 +2300,7 @@ async function renderPvMatchListIn(containerId, overrideSpelerId) {
       (evs||[]).forEach(e=>evalledIds.add(e.match_id));
     }catch(e){}
   }
-  el.innerHTML=wedstrijdenData.map(w=>{
+  function renderMatchCard(w){
     const motmP=PLAYERS.find(x=>x.id===w.man_of_match);
     const wlP=PLAYERS.find(x=>x.id===w.weak_link);
     const inBlauw=(w.blauw_spelers||[]).map(Number).includes(Number(uid));
@@ -2349,7 +2356,21 @@ async function renderPvMatchListIn(containerId, overrideSpelerId) {
         evalStatusBadge+
       '</div>'+
     '</div>';
-  }).join('');
+  }
+  const upcoming=wedstrijdenData.filter(w=>!w.datum||w.datum>=TODAY2);
+  const past=wedstrijdenData.filter(w=>w.datum&&w.datum<TODAY2);
+  let html=upcoming.map(renderMatchCard).join('');
+  if(past.length>0){
+    html+='<div style="margin-top:12px">'+
+      '<div onclick="var c=this.nextElementSibling;var open=c.style.display!==\'none\';c.style.display=open?\'none\':\'block\';this.querySelector(\'.afg-chev\').textContent=open?\'▼\':\'▲\'" '+
+      'style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#f1f5f9;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:#475569;user-select:none">'+
+        '<span>Afgelopen wedstrijden ('+past.length+')</span>'+
+        '<span class="afg-chev">▼</span>'+
+      '</div>'+
+      '<div style="display:none">'+past.map(renderMatchCard).join('')+'</div>'+
+    '</div>';
+  }
+  el.innerHTML=html||'<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';
 }
 
 function renderPvMatchList() {
