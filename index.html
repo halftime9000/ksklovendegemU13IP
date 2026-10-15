@@ -670,11 +670,11 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <!-- Tabs -->
   <div style="background:#fff;border-bottom:1.5px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
-    <button class="player-view-tab on" onclick="switchPvTab('home',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:15px;cursor:pointer">🏠</button>
+    <button class="player-view-tab on" onclick="switchPvTab('home',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Home</button>
     <button class="player-view-tab" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Profiel</button>
     <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Voetbal</button>
     <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
-    <button class="player-view-tab" onclick="switchPvTab('kalender',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅</button>
+    <button class="player-view-tab" onclick="switchPvTab('kalender',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Kalender</button>
   </div>
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
@@ -3513,8 +3513,7 @@ function buildEvalLeaderboardHtml(rows, isAdmin=false){
       const rank=i+1;
       const pct=r.pct??0;
       const col=barCol(pct);
-      const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
-      const rankLabel=medal||`<span style="font-size:11px;font-weight:700;color:#94a3b8;min-width:18px;display:inline-block;text-align:center">${rank}</span>`;
+      const rankLabel=`<span style="font-size:11px;font-weight:700;color:#94a3b8;min-width:18px;display:inline-block;text-align:center">${rank}</span>`;
       const namePart=isAdmin
         ?`<span style="font-size:12px;font-weight:600;color:#0a1628;cursor:pointer" onclick="selectPlayer(${r.s.id})">${r.s.voornaam} ${r.s.naam}</span>`
         :`<span style="font-size:12px;font-weight:600;color:#0a1628">${r.s.voornaam}</span>`;
