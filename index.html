@@ -1062,7 +1062,7 @@ async function handleLogin() {
       try {
         await loadWedstrijden();
         renderLastMatchHero();
-        renderPvMatchListIn('pvp-wedstrijden');
+        renderPvMatchListIn('pv-match-list');
       } catch(e){ console.warn(e); }
       // Profiel pane loads lazily when the user taps the Profiel tab
     } else if(userRole==='pending'){
@@ -1750,7 +1750,7 @@ function switchPvTab(tab, btn) {
   if(tab==='wedstrijden'){
     loadWedstrijden().then(()=>{
       renderLastMatchHero();
-      renderPvMatchListIn('pvp-wedstrijden');
+      renderPvMatchListIn('pv-match-list');
     });
   }
   if(tab==='profiel' && !_pvProfielLoaded){_pvProfielLoaded=true;loadPlayerView();}
