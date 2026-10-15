@@ -1113,10 +1113,16 @@ async function loadAll() {
   const {data,error}=await sbGet('spelers','select=*');
   if(error){toast('DB-fout: '+(error.message||'onbekend'),true);return;}
   if(!data||data.length===0){
-    await sbInsert('spelers',PLAYERS.map(p=>({id:p.id,naam:p.naam,voornaam:p.voornaam,seizoen:'2026-27',data:{}})));
-    await loadAll(); return;
+    // First run — nothing to seed anymore (PLAYERS no longer hardcoded)
+    toast('Geen spelers gevonden. Voeg spelers toe via Beheer → Spelers.',true);
+    return;
   }
   DB={}; data.forEach(r=>DB[r.id]=r);
+  // Rebuild PLAYERS from DB so newly added spelers automatically appear everywhere
+  PLAYERS.length=0;
+  data.slice().sort((a,b)=>(a.naam||'').localeCompare(b.naam||'')).forEach(r=>{
+    PLAYERS.push({id:r.id, naam:r.naam||'?', voornaam:r.voornaam||'?'});
+  });
   renderList(); updateStats(); setTimeout(loadSvdMLanding,300);
   loadWedstrijden(); // syncs WGV stats after fetch
 }
@@ -1150,7 +1156,7 @@ function renderList() {
   }).forEach(p=>{
     const d=DB[p.id]?.data||{},pc=calcPct(d),has=hasData(d);
     const isTrainer=d.is_trainer===true;
-    const ini=(p.voornaam[0]+p.naam[0]).toUpperCase(),avc=pc===100?'c':has?'s':'';
+    const ini=((p.voornaam||'?')[0]+(p.naam||'?')[0]).toUpperCase(),avc=pc===100?'c':has?'s':'';
     const el=document.createElement('div');
     el.className='pi'+(selId===p.id?' sel':'');
     const trainerBadge=isTrainer?' <span style="font-size:10px;font-weight:700;color:#6366f1;background:#ede9fe;padding:1px 6px;border-radius:8px;margin-left:4px">(Trainer)</span>':'';
