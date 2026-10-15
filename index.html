@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v308</title>
+<title>KSK Lovendegem U13 IP v310</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23182448'/><circle cx='50' cy='50' r='30' fill='none' stroke='%23E0D040' stroke-width='6'/><path d='M50 20 L58 44 L84 44 L63 58 L71 82 L50 68 L29 82 L37 58 L16 44 L42 44 Z' fill='%23E0D040'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
@@ -528,17 +528,17 @@ textarea{resize:vertical;min-height:70px}
           <div class="team-card">
             <div class="tc-head"><span class="tc-dot" style="background:#1d4ed8"></span>Ploeg Blauw</div>
             <div class="tc-stats">
-              <div class="tc-stat"><div id="blauw-w" contenteditable="true" oninput="saveTeamStats()" class="tc-num">0</div><div class="tc-lbl">W</div></div>
-              <div class="tc-stat"><div id="blauw-d" contenteditable="true" oninput="saveTeamStats()" class="tc-num">0</div><div class="tc-lbl">G</div></div>
-              <div class="tc-stat"><div id="blauw-l" contenteditable="true" oninput="saveTeamStats()" class="tc-num">0</div><div class="tc-lbl">V</div></div>
+              <div class="tc-stat"><div id="blauw-w" class="tc-num">0</div><div class="tc-lbl">W</div></div>
+              <div class="tc-stat"><div id="blauw-d" class="tc-num">0</div><div class="tc-lbl">G</div></div>
+              <div class="tc-stat"><div id="blauw-l" class="tc-num">0</div><div class="tc-lbl">V</div></div>
             </div>
           </div>
           <div class="team-card">
             <div class="tc-head"><span class="tc-dot" style="background:#eab308"></span>Ploeg Geel</div>
             <div class="tc-stats">
-              <div class="tc-stat"><div id="geel-w" contenteditable="true" oninput="saveTeamStats()" class="tc-num">0</div><div class="tc-lbl">W</div></div>
-              <div class="tc-stat"><div id="geel-d" contenteditable="true" oninput="saveTeamStats()" class="tc-num">0</div><div class="tc-lbl">G</div></div>
-              <div class="tc-stat"><div id="geel-l" contenteditable="true" oninput="saveTeamStats()" class="tc-num">0</div><div class="tc-lbl">V</div></div>
+              <div class="tc-stat"><div id="geel-w" class="tc-num">0</div><div class="tc-lbl">W</div></div>
+              <div class="tc-stat"><div id="geel-d" class="tc-num">0</div><div class="tc-lbl">G</div></div>
+              <div class="tc-stat"><div id="geel-l" class="tc-num">0</div><div class="tc-lbl">V</div></div>
             </div>
           </div>
         </div>
@@ -670,16 +670,17 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <!-- Tabs -->
   <div style="background:#fff;border-bottom:1.5px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
-    <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Profiel</button>
+    <button class="player-view-tab" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Profiel</button>
     <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Voetbal</button>
-    <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
+    <button class="player-view-tab on" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
     <button class="player-view-tab" onclick="switchPvTab('kalender',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅 Kalender</button>
   </div>
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
-    <div id="pvp-profiel" class="pv-pane on" style="padding:16px"><div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px">Profiel laden...</div></div>
+    <div id="pvp-profiel" class="pv-pane" style="padding:16px"><div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px">Profiel laden...</div></div>
     <div id="pvp-voetbal" class="pv-pane" style="padding:16px"></div>
-    <div id="pvp-wedstrijden" class="pv-pane" style="padding:16px">
+    <div id="pvp-wedstrijden" class="pv-pane on" style="padding:16px">
+      <div id="pv-last-match-hero" style="margin-bottom:16px"></div>
       <div id="pv-match-list" class="match-list"></div>
     </div>
     <div id="pvp-kalender" class="pv-pane" style="padding:16px">
@@ -1137,7 +1138,8 @@ async function loadAll() {
     await loadAll(); return;
   }
   DB={}; data.forEach(r=>DB[r.id]=r);
-  renderList(); updateStats(); setTimeout(loadTeamStats,100); setTimeout(loadSvdMLanding,300);
+  renderList(); updateStats(); setTimeout(loadSvdMLanding,300);
+  loadWedstrijden(); // syncs WGV stats after fetch
 }
 
 // MULTI-SELECT
@@ -1336,9 +1338,36 @@ function saveDemoToLS(){try{localStorage.setItem(LS_KEY,JSON.stringify(DB));}cat
 function exportData(){const b=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='ksk_backup_'+new Date().toISOString().slice(0,10)+'.json';a.click();toast('Backup gedownload ✓');}
 function importData(evt){const file=evt.target.files[0];if(!file)return;const r=new FileReader();r.onload=e=>{try{const p=JSON.parse(e.target.result);Object.keys(p).forEach(id=>{if(DB[id])DB[id].data=p[id].data||{};});saveDemoToLS();renderList();updateStats();toast('Import gelukt ✓');if(selId)selectPlayer(selId);}catch(err){toast('Fout bij import',true);}};r.readAsText(file);evt.target.value='';}
 
-// TEAM STATS
-function loadTeamStats(){try{const s=JSON.parse(localStorage.getItem(TS_KEY)||'{}');['blauw-w','blauw-d','blauw-l','geel-w','geel-d','geel-l'].forEach(id=>{const el=$(id);if(el&&s[id]!==undefined)el.value=s[id];});}catch(e){}}
-function saveTeamStats(){try{const s={};['blauw-w','blauw-d','blauw-l','geel-w','geel-d','geel-l'].forEach(id=>{const el=$(id);if(el)s[id]=el.value;});localStorage.setItem(TS_KEY,JSON.stringify(s));}catch(e){}}
+// TEAM STATS — synced from wedstrijden data
+function loadTeamStats(){syncTeamStats();}
+function saveTeamStats(){/* no-op: stats are now computed, not manually entered */}
+function syncTeamStats(){
+  const data=wedstrijdenData||[];
+  const stats={blauw:{w:0,d:0,l:0},geel:{w:0,d:0,l:0}};
+  const TODAY2=new Date().toISOString().slice(0,10);
+  data.forEach(w=>{
+    if(!w.datum||w.datum>=TODAY2) return; // only past matches
+    ['blauw','geel'].forEach(team=>{
+      const raw=w[team+'_score'];
+      if(!raw||!raw.includes('-')) return;
+      const parts=raw.split('-').map(s=>parseInt(s.trim(),10));
+      if(parts.length<2||isNaN(parts[0])||isNaN(parts[1])) return;
+      // thuis: first = us, second = them; uit: second = us, first = them
+      const uit=(w.thuis_uit||'thuis').toLowerCase()==='uit';
+      const ours=uit?parts[1]:parts[0];
+      const theirs=uit?parts[0]:parts[1];
+      if(ours>theirs) stats[team].w++;
+      else if(ours===theirs) stats[team].d++;
+      else stats[team].l++;
+    });
+  });
+  ['blauw','geel'].forEach(t=>{
+    ['w','d','l'].forEach(k=>{
+      const el=$(t+'-'+k);
+      if(el) el.textContent=stats[t][k];
+    });
+  });
+}
 
 // ADMIN BEHEER
 async function loadBeheerWedstrijden() {
@@ -1688,7 +1717,7 @@ async function linkSpeler(uid,spelerId){await sbPatch('user_roles','user_id=eq.'
 // WEDSTRIJDEN
 function setLocatie(loc){nmLocatie=loc;$('nm-thuis')?.classList.toggle('on',loc==='thuis');$('nm-uit')?.classList.toggle('on',loc==='uit');}
 function toggleAddMatchForm(){const f=$('add-match-form');if(f)f.style.display=f.style.display==='none'?'block':'none';}
-async function loadWedstrijden(){const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');if(error)return;wedstrijdenData=data||[];}
+async function loadWedstrijden(){const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');if(error)return;wedstrijdenData=data||[];syncTeamStats();}
 function renderMatchList(containerId,data,editable){
   const el=$(containerId);if(!el)return;
   if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
@@ -1726,6 +1755,7 @@ async function saveWedstrijd(id, btn){
 async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;await sbDelete('wedstrijden','id=eq.'+id);toast('Verwijderd');loadWedstrijden();}
 
 // PLAYER VIEW
+let _pvProfielLoaded=false;
 function switchPvTab(tab, btn) {
   document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));
@@ -1733,10 +1763,94 @@ function switchPvTab(tab, btn) {
   if(pane) pane.classList.add('on');
   if(btn) btn.classList.add('on');
   if(tab==='wedstrijden'){
-    loadWedstrijden().then(()=>renderPvMatchListIn('pvp-wedstrijden'));
+    loadWedstrijden().then(()=>{
+      renderLastMatchHero();
+      renderPvMatchListIn('pvp-wedstrijden');
+    });
   }
+  if(tab==='profiel' && !_pvProfielLoaded){_pvProfielLoaded=true;loadPlayerView();}
   if(tab==='voetbal') loadPvVoetbal();
   if(tab==='kalender') laadSpelerKalender();
+}
+
+function renderLastMatchHero(){
+  const el=$('pv-last-match-hero');if(!el)return;
+  const uid=userSpelerId?Number(userSpelerId):null;
+  const TODAY2=new Date().toISOString().slice(0,10);
+  // Last past match where player was in squad
+  const past=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY2).sort((a,b)=>b.datum.localeCompare(a.datum));
+  const lastMatch=past.find(w=>{
+    if(!uid) return false;
+    const b=(w.blauw_spelers||[]).map(Number);
+    const g=(w.geel_spelers||[]).map(Number);
+    return b.includes(uid)||g.includes(uid);
+  });
+  if(!lastMatch){el.innerHTML='';return;}
+  const w=lastMatch;
+  const inBlauw=(w.blauw_spelers||[]).map(Number).includes(uid);
+  const myTeam=inBlauw?'blauw':'geel';
+  const myScore=w[myTeam+'_score']||'';
+  const teamLabel=inBlauw?'🔵 Ploeg Blauw':'🟡 Ploeg Geel';
+  const teamBg=inBlauw?'#1d4ed8':'#ca8a04';
+  const thuis=(w.thuis_uit||'thuis').toLowerCase()==='thuis';
+  let scoreHtml='';
+  if(myScore&&myScore.includes('-')){
+    const parts=myScore.split('-').map(s=>parseInt(s.trim(),10));
+    const ours=thuis?parts[0]:parts[1];
+    const theirs=thuis?parts[1]:parts[0];
+    if(!isNaN(ours)&&!isNaN(theirs)){
+      const won=ours>theirs,draw=ours===theirs;
+      const resultLabel=won?'GEWONNEN':draw?'GELIJKSPEL':'VERLOREN';
+      const resultCol=won?'#15803d':draw?'#b45309':'#dc2626';
+      scoreHtml=`<div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px">
+        <div style="font-size:42px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1">${ours}–${theirs}</div>
+        <div style="background:${resultCol};color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.08em;text-transform:uppercase;align-self:center">${resultLabel}</div>
+      </div>`;
+    }
+  }
+  // Check if eval already filled
+  el.innerHTML=`<div id="last-match-hero-inner" style="border-radius:14px;overflow:hidden;background:#0a1628;color:#fff;box-shadow:0 4px 20px rgba(10,22,40,.35)">
+    <div style="background:${teamBg};padding:8px 14px;display:flex;justify-content:space-between;align-items:center">
+      <span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">Laatste wedstrijd</span>
+      <span style="font-size:11px;font-weight:700;opacity:.9">${teamLabel}</span>
+    </div>
+    <div style="padding:14px 16px 6px">
+      <div style="font-size:16px;font-weight:700;color:#e2e8f0">vs ${w.tegenstander}</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:2px">${fmtDate(w.datum)} · ${w.thuis_uit||'thuis'}</div>
+      ${scoreHtml}
+    </div>
+    <div style="padding:6px 16px 16px" id="last-match-eval-cta-${w.id}">
+      <div style="font-size:11px;color:#94a3b8;margin-bottom:8px">Evaluatie checken...</div>
+    </div>
+  </div>`;
+  // async: check if eval filled
+  if(userSpelerId){
+    sbGet('match_evaluaties','beoordelaar=eq.'+userSpelerId+'&match_id=eq.'+w.id+'&select=id').then(({data:ev})=>{
+      const cta=$('last-match-eval-cta-'+w.id);if(!cta)return;
+      if(ev&&ev.length>0){
+        cta.innerHTML=`<div style="display:flex;align-items:center;gap:8px;background:rgba(21,128,61,.25);border:1px solid #4ade80;border-radius:10px;padding:10px 12px">
+          <span style="font-size:18px">✅</span>
+          <span style="font-size:13px;font-weight:700;color:#4ade80">Evaluatie ingevuld</span>
+        </div>`;
+      } else {
+        cta.innerHTML=`<button onclick="openEvalFromHero(${w.id})" style="width:100%;background:#E0D040;color:#0a1628;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;letter-spacing:.01em;display:flex;align-items:center;justify-content:center;gap:8px">
+          ✏️ Evaluatie invullen
+        </button>`;
+      }
+    });
+  }
+}
+
+function openEvalFromHero(mid){
+  // Scroll to match in list and open it
+  const mb=$('mb-'+mid);
+  if(mb){
+    if(!mb.classList.contains('open')) toggleMatch(mid);
+    setTimeout(()=>{mb.scrollIntoView({behavior:'smooth',block:'center'});},100);
+    setTimeout(()=>openEvalForm(mid),300);
+  } else {
+    openEvalForm(mid);
+  }
 }
 async function laadSpelerKalender(){
   if(!userSpelerId){toast('Geen speler gekoppeld',true);return;}
@@ -1933,22 +2047,33 @@ async function loadPlayerView(){
     const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
     const d=row?.data||{};
 
-    // Count missed wedstrijd evaluations (only past matches where player was in squad)
+    // Count missed wedstrijd evaluations + build team leaderboard
     let missedEvalCount=0;
+    let evalLeaderboardHtml='';
     try {
       const uid=Number(userSpelerId);
-      const pastMatchesInSquad=(wedstrijdenData||[]).filter(w=>{
-        if(!w.datum||w.datum>=TODAY)return false;
+      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY);
+      const pastMatchesInSquad=pastMatches.filter(w=>{
         const b=(w.blauw_spelers||[]).map(Number);
         const g=(w.geel_spelers||[]).map(Number);
         return b.includes(uid)||g.includes(uid);
       });
-      if(pastMatchesInSquad.length>0){
-        const {data:evals}=await sbGet('match_evaluaties','beoordelaar=eq.'+userSpelerId+'&select=match_id');
-        const filledIds=new Set((evals||[]).map(e=>e.match_id));
-        missedEvalCount=pastMatchesInSquad.filter(w=>!filledIds.has(w.id)).length;
-      }
-    } catch(e){}
+      // Fetch all evals for leaderboard (beoordelaar + count per player)
+      let allSpelers=PLAYERS.filter(p=>p.id);
+      // Also need spelers with data for is_trainer filter — use PLAYERS (no trainer flag here, skip filter)
+      const {data:allEvals}=await sbGet('match_evaluaties','select=beoordelaar');
+      const evalCountByPlayer={};
+      (allEvals||[]).forEach(ev=>{
+        evalCountByPlayer[ev.beoordelaar]=(evalCountByPlayer[ev.beoordelaar]||0)+1;
+      });
+      // Missed count for this player
+      const myFilled=Math.min(evalCountByPlayer[Number(userSpelerId)]||evalCountByPlayer[userSpelerId]||0, pastMatchesInSquad.length);
+      missedEvalCount=Math.max(0,pastMatchesInSquad.length-myFilled);
+      // Build leaderboard using PLAYERS list (no trainer flag, include all)
+      const spelersForBoard=allSpelers.map(p=>({id:p.id,voornaam:p.voornaam,naam:p.naam,data:{}}));
+      const evalRows=buildEvalRows(spelersForBoard, pastMatches, evalCountByPlayer);
+      if(evalRows.length>0) evalLeaderboardHtml=buildEvalLeaderboardHtml(evalRows, false);
+    } catch(e){ console.warn('eval leaderboard error',e); }
 
     // Missed evaluations banner
     const missedBanner = missedEvalCount>0
@@ -1980,8 +2105,12 @@ async function loadPlayerView(){
     </div>`;
 
     if(!pp)return;
+    const leaderboardCard=evalLeaderboardHtml
+      ?`<div class="card" style="margin-bottom:12px">${evalLeaderboardHtml}</div>`
+      :'';
     pp.innerHTML=
       missedBanner+
+      leaderboardCard+
       '<div class="card"><div class="card-t">👤 Persoonlijke gegevens</div><div class="fields">'+
       '<div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly style="color:#374151"></div>'+
       '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly style="color:#374151"></div></div>'+
@@ -3253,6 +3382,72 @@ async function loadAdminSeizoenPane() {
   html+=`<td style="text-align:center;padding:${tdPad};color:#182448">⭐${motmCount}x</td>`;
   html+='</tr></tbody></table></div>';
   el.innerHTML=html;
+}
+
+// ── EVAL LEADERBOARD HELPERS ─────────────────────────────────────
+function buildEvalRows(spelers, pastMatches, evalCountByPlayer){
+  const TODAY2=new Date().toISOString().slice(0,10);
+  const past=pastMatches||[];
+  return spelers
+    .filter(s=>!s.data?.is_trainer)
+    .map(s=>{
+      const uid=Number(s.id);
+      const squadMatches=past.filter(w=>{
+        const b=(w.blauw_spelers||[]).map(Number);
+        const g=(w.geel_spelers||[]).map(Number);
+        return b.includes(uid)||g.includes(uid);
+      }).length;
+      const filled=Math.min(evalCountByPlayer[s.id]||0, squadMatches);
+      const missed=Math.max(0,squadMatches-filled);
+      const pct=squadMatches>0?Math.round((filled/squadMatches)*100):null;
+      return {s,squadMatches,filled,missed,pct};
+    })
+    .filter(r=>r.squadMatches>0)
+    .sort((a,b)=>{
+      // Sort by pct descending (100% first), then by name
+      const pa=a.pct??-1, pb=b.pct??-1;
+      if(pb!==pa) return pb-pa;
+      return a.s.voornaam.localeCompare(b.s.voornaam);
+    });
+}
+
+function buildEvalLeaderboardHtml(rows, isAdmin=false){
+  const barCol=pct=>pct>=100?'#15803d':pct>=70?'#4ade80':pct>=40?'#f97316':'#dc2626';
+  let h=`<div style="background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:14px">`;
+  h+=`<div style="font-size:11px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">📋 Evaluaties team — ranglijst</div>`;
+  if(!rows.length){
+    h+=`<div style="font-size:12px;color:#94a3b8">Nog geen wedstrijddata beschikbaar.</div>`;
+  } else {
+    rows.forEach((r,i)=>{
+      const rank=i+1;
+      const pct=r.pct??0;
+      const col=barCol(pct);
+      const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+      const rankLabel=medal||`<span style="font-size:11px;font-weight:700;color:#94a3b8;min-width:18px;display:inline-block;text-align:center">${rank}</span>`;
+      const namePart=isAdmin
+        ?`<span style="font-size:12px;font-weight:600;color:#0a1628;cursor:pointer" onclick="selectPlayer(${r.s.id})">${r.s.voornaam} ${r.s.naam}</span>`
+        :`<span style="font-size:12px;font-weight:600;color:#0a1628">${r.s.voornaam}</span>`;
+      h+=`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid #f8fafc">`;
+      h+=`<span style="width:22px;text-align:center;font-size:14px;flex-shrink:0">${rankLabel}</span>`;
+      h+=`<div style="flex:1;min-width:0">${namePart}</div>`;
+      h+=`<div style="display:flex;align-items:center;gap:6px;flex-shrink:0">`;
+      h+=`<div style="width:80px;background:#f1f5f9;border-radius:4px;height:7px;overflow:hidden">`;
+      h+=`<div style="width:${pct}%;height:100%;background:${col};border-radius:4px"></div></div>`;
+      h+=`<span style="font-size:11px;font-weight:800;color:${col};width:34px;text-align:right">${pct}%</span>`;
+      h+=`<span style="font-size:10px;color:#94a3b8;width:36px;text-align:right">${r.filled}/${r.squadMatches}</span>`;
+      h+=`</div></div>`;
+    });
+    const totalFilled=rows.reduce((s,r)=>s+r.filled,0);
+    const totalSquad=rows.reduce((s,r)=>s+r.squadMatches,0);
+    const teamPct=totalSquad>0?Math.round((totalFilled/totalSquad)*100):0;
+    const teamCol=barCol(teamPct);
+    h+=`<div style="margin-top:10px;padding-top:8px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center">`;
+    h+=`<span style="font-size:11px;color:#64748b;font-weight:600">Team totaal</span>`;
+    h+=`<span style="font-size:12px;font-weight:800;color:${teamCol}">${teamPct}% <span style="font-weight:400;color:#94a3b8;font-size:10px">(${totalFilled}/${totalSquad})</span></span>`;
+    h+=`</div>`;
+  }
+  h+=`</div>`;
+  return h;
 }
 
 // ── BEHEER OVERZICHT (alle spelers in één oogopslag) ─────────────
