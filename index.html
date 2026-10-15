@@ -1905,6 +1905,14 @@ async function renderHomePage(){
   const rankEl=$('pv-home-rank');
   if(rankEl){
     try{
+      // PLAYERS kan leeg zijn bij eerste login — haal ze op indien nodig
+      if(!PLAYERS.length){
+        const {data:pls}=await sbGet('spelers','select=id,naam,voornaam&order=naam.asc');
+        if(pls&&pls.length){
+          PLAYERS.length=0;
+          pls.forEach(r=>PLAYERS.push({id:r.id,naam:r.naam||'?',voornaam:r.voornaam||'?'}));
+        }
+      }
       const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY2);
       const {data:allEvals}=await sbGet('match_evaluaties','select=beoordelaar');
       const evalCountByPlayer={};
