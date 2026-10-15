@@ -680,7 +680,8 @@ textarea{resize:vertical;min-height:70px}
   <div style="flex:1;overflow-y:auto">
     <div id="pvp-home" class="pv-pane on" style="padding:16px">
       <div id="pv-home-hero" style="margin-bottom:16px"></div>
-      <div id="pv-home-counter"></div>
+      <div id="pv-home-counter" style="margin-bottom:12px"></div>
+      <div id="pv-home-rank"></div>
     </div>
     <div id="pvp-profiel" class="pv-pane" style="padding:16px"><div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px">Profiel laden...</div></div>
     <div id="pvp-voetbal" class="pv-pane" style="padding:16px"></div>
@@ -2168,12 +2169,8 @@ async function loadPlayerView(){
     </div>`;
 
     if(!pp)return;
-    const leaderboardCard=evalLeaderboardHtml
-      ?`<div class="card" style="margin-bottom:12px">${evalLeaderboardHtml}</div>`
-      :'';
     pp.innerHTML=
       missedBanner+
-      leaderboardCard+
       '<div class="card"><div class="card-t">👤 Persoonlijke gegevens</div><div class="fields">'+
       '<div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly style="color:#374151"></div>'+
       '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly style="color:#374151"></div></div>'+
