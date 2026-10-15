@@ -961,35 +961,8 @@ const KEEPER_CATEGORIES = {
   mentaal:   ['Winnersmentaliteit','Concentratie','Leiderschap','Zelfvertrouwen','Omgaan met tegenslagen','Inzet','Doorzetten','Teamspeler'],
 };
 const CAT_LABELS = {technisch:'Technisch', taktisch:'Taktisch', fysiek:'Fysiek', mentaal:'Mentaal'};
-const PLAYERS = [
-  {id:1,  naam:'Altintas',        voornaam:'Iltay'},
-  {id:2,  naam:'Annaert',         voornaam:'Rémi'},
-  {id:3,  naam:'Arickx',          voornaam:'Maxim'},
-  {id:4,  naam:'Arickx',          voornaam:'Senne'},
-  {id:5,  naam:'Asllani',         voornaam:'Jugerd'},
-  {id:6,  naam:'Capa',            voornaam:'Umut'},
-  {id:7,  naam:'Criel',           voornaam:'Juul'},
-  {id:8,  naam:'De Vos',          voornaam:'Saviour Aisosa'},
-  {id:9,  naam:'Dejonghe',        voornaam:'Mauro'},
-  {id:10, naam:'Demoor',          voornaam:'Lowie'},
-  {id:11, naam:'Denecker',        voornaam:'Max Joseph'},
-  {id:12, naam:'Dormaels',        voornaam:'Sverre'},
-  {id:13, naam:'Goeminne',        voornaam:'Alec'},
-  {id:14, naam:'Goethals',        voornaam:'Sem'},
-  {id:15, naam:'Khzami',          voornaam:"Mu'min"},
-  {id:16, naam:'Malfait',         voornaam:'Noah'},
-  {id:17, naam:'Mortier',         voornaam:'Louis'},
-  {id:18, naam:'Tajouri',         voornaam:'Iyed'},
-  {id:19, naam:'Tekgul',          voornaam:'Yekta'},
-  {id:20, naam:'Tunceli',         voornaam:'Semih'},
-  {id:21, naam:'Van Acker',       voornaam:'Jorre'},
-  {id:22, naam:'Van Kerckvoorde', voornaam:'Léon'},
-  {id:23, naam:'Vanderkelen',     voornaam:'Jacques'},
-  {id:24, naam:'Vankeerberghen',  voornaam:'Len'},
-  {id:25, naam:'Vereecke',        voornaam:'Liam'},
-  {id:26, naam:'Agar',            voornaam:'Hasan'},
-  {id:27, naam:'Pauwels',         voornaam:'Kristof'},
-];
+// PLAYERS is rebuilt from Supabase in loadAll() — do not hardcode here
+let PLAYERS = [];
 const MULTI_KEYS = ['sterke_technisch','sterke_taktisch','sterke_fysiek','sterke_mentaal','werk_technisch','werk_taktisch','werk_fysiek','werk_mentaal'];
 const MONTHS = ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
 const MON_SHORT = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
@@ -1084,8 +1057,14 @@ async function handleLogin() {
     ['s-login','s-pending','s-app','s-player','s-beheer'].forEach(hide);
 
     if(userRole==='player'||userRole==='keeper'){
-      try { await loadPlayerView(); } catch(e){ console.warn(e); }
       showFlex('s-player');
+      // Start on wedstrijden tab — load matches + hero card immediately
+      try {
+        await loadWedstrijden();
+        renderLastMatchHero();
+        renderPvMatchListIn('pvp-wedstrijden');
+      } catch(e){ console.warn(e); }
+      // Profiel pane loads lazily when the user taps the Profiel tab
     } else if(userRole==='pending'){
       showFlex('s-pending');
     } else {
