@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v305</title>
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23182448'/%3E%3Ctext x='16' y='13' font-family='Arial Black,sans-serif' font-size='9' font-weight='900' fill='%23E0D040' text-anchor='middle' dominant-baseline='middle'%3EKSK%3C/text%3E%3Ctext x='16' y='24' font-family='Arial,sans-serif' font-size='6' font-weight='700' fill='%23fff' text-anchor='middle' dominant-baseline='middle'%3EU13 IP%3C/text%3E%3C/svg%3E">
+<title>KSK Lovendegem U13 IP v306</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23182448'/><circle cx='50' cy='50' r='30' fill='none' stroke='%23E0D040' stroke-width='6'/><path d='M50 20 L58 44 L84 44 L63 58 L71 82 L50 68 L29 82 L37 58 L16 44 L42 44 Z' fill='%23E0D040'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
 <style>
@@ -601,38 +601,14 @@ textarea{resize:vertical;min-height:70px}
           <button id="atab-profiel" onclick="switchAdminTab('profiel')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid #203060;background:none;font-size:13px;font-weight:700;color:#203060;cursor:pointer">👤 Profiel</button>
           <button id="atab-voetbal" onclick="switchAdminTab('voetbal')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">⚽ Voetbal</button>
           <button id="atab-seizoen" onclick="switchAdminTab('seizoen')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">📈 Seizoen</button>
-          <button id="atab-beschikbaarheid" onclick="switchAdminTab('beschikbaarheid')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">📅 Kalender</button>
+          <button id="atab-kalender" onclick="switchAdminTab('kalender')" style="flex:1;padding:12px 8px;border:none;border-bottom:3px solid transparent;background:none;font-size:13px;font-weight:600;color:#94a3b8;cursor:pointer">📅 Kalender</button>
         </div>
         <!-- Content -->
         <div style="flex:1;overflow-y:auto;padding:16px;padding-bottom:32px;-webkit-overflow-scrolling:touch">
           <div id="admin-pane-profiel"></div>
           <div id="admin-pane-voetbal" style="display:none"></div>
-          <div id="admin-pane-beschikbaarheid" style="display:none;padding-bottom:16px">
-            <div class="card" style="margin-top:4px">
-              <div class="card-t">📅 Onbeschikbare periodes</div>
-              <div style="padding:14px">
-                <div style="font-size:11px;color:#64748b;margin-bottom:12px">Klik op een dag om te markeren (rood). Klik op twee dagen voor een bereik.</div>
-                <div class="cal-nav">
-                  <button onclick="prevMonth()" style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:4px 12px;font-size:16px;cursor:pointer">‹</button>
-                  <span id="a-cal-title" style="font-weight:700;font-size:14px;color:#203060"></span>
-                  <button onclick="nextMonth()" style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:4px 12px;font-size:16px;cursor:pointer">›</button>
-                </div>
-                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin:8px 0 4px">
-                  <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Ma</div>
-                  <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Di</div>
-                  <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Wo</div>
-                  <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Do</div>
-                  <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Vr</div>
-                  <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Za</div>
-                  <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Zo</div>
-                </div>
-                <div class="cal-grid" id="a-cal-grid"></div>
-                <div id="a-cal-periods" style="margin-top:10px;font-size:12px;color:#64748b;white-space:pre-line;display:none"></div>
-                <button id="a-cal-save" onclick="saveUnavailDates()" style="margin-top:14px;width:100%;background:#203060;color:#fff;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>
-              </div>
-            </div>
-          </div>
           <div id="admin-pane-seizoen" style="display:none"></div>
+          <div id="admin-pane-kalender" style="display:none"></div>
         </div>
       </div>
     </div><!-- /layout -->
@@ -697,7 +673,7 @@ textarea{resize:vertical;min-height:70px}
     <button class="player-view-tab on" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Profiel</button>
     <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Voetbal</button>
     <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
-    <button class="player-view-tab" onclick="switchPvTab('beschikbaarheid',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅 Kalender</button>
+    <button class="player-view-tab" onclick="switchPvTab('kalender',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅 Kalender</button>
   </div>
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
@@ -706,29 +682,18 @@ textarea{resize:vertical;min-height:70px}
     <div id="pvp-wedstrijden" class="pv-pane" style="padding:16px">
       <div id="pv-match-list" class="match-list"></div>
     </div>
-    <div id="pvp-beschikbaarheid" class="pv-pane" style="padding:16px">
+    <div id="pvp-kalender" class="pv-pane" style="padding:16px">
       <div class="card">
-        <div class="card-t">📅 Onbeschikbare periodes</div>
-        <div style="padding:14px">
-          <div style="font-size:11px;color:#64748b;margin-bottom:12px">Klik op een dag om te markeren als onbeschikbaar (rood). Klik op twee dagen voor een bereik.</div>
-          <div class="cal-nav">
-            <button onclick="prevMonth()" style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:4px 12px;font-size:16px;cursor:pointer">‹</button>
-            <span id="cal-title" style="font-weight:700;font-size:14px;color:#203060"></span>
-            <button onclick="nextMonth()" style="background:none;border:1px solid #e2e8f0;border-radius:6px;padding:4px 12px;font-size:16px;cursor:pointer">›</button>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px;margin-top:8px">
-            <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Ma</div>
-            <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Di</div>
-            <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Wo</div>
-            <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Do</div>
-            <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Vr</div>
-            <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Za</div>
-            <div style="text-align:center;font-size:10px;font-weight:700;color:#94a3b8;padding:4px">Zo</div>
-          </div>
-          <div class="cal-grid" id="cal-grid"></div>
-          <div id="cal-periods" style="margin-top:10px;font-size:12px;color:#64748b;white-space:pre-line;display:none"></div>
-          <button id="pv-cal-save" onclick="saveUnavailDates()" style="margin-top:14px;width:100%;background:#182448;color:#E0D040;border:none;border-radius:8px;padding:12px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>
+        <div class="card-t">📅 Vakantiekalender</div>
+        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Klik op een dag om je onbeschikbaarheid in te stellen. Klik nogmaals om te verwijderen.</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <button onclick="pvPrevMonth()" style="background:#f1f5f9;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px">‹</button>
+          <div id="pv-cal-title" style="font-size:14px;font-weight:700;color:#0a1628"></div>
+          <button onclick="pvNextMonth()" style="background:#f1f5f9;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px">›</button>
         </div>
+        <div id="pv-cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px"></div>
+        <div id="pv-cal-periods" style="font-size:11px;color:#64748b;display:none;margin-bottom:10px"></div>
+        <button id="pv-cal-save" onclick="saveUnavailDates()" style="width:100%;padding:10px;background:#182448;color:#E0D040;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>
       </div>
     </div>
   </div>
@@ -824,13 +789,20 @@ textarea{resize:vertical;min-height:70px}
 </div>
 </div>
 
-    <div id="bp-beschikbaarheid" class="beheer-pane" style="padding:16px;overflow-y:auto">
-      <div style="background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:14px">
-        <div style="font-size:12px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em;margin-bottom:10px">📅 Wie is beschikbaar op een datum?</div>
-        <input type="date" id="beschik-datum" onchange="laadBeschikbaarheid()" style="width:100%;padding:8px 10px;border:1px solid #e2e8f0;border-radius:7px;font-size:13px;color:#374151;box-sizing:border-box;margin-bottom:12px">
-        <div id="beschik-result"></div>
+  </div><!-- /beheer-scroll -->
+
+  <!-- Beschikbaarheid pane — buiten beheer-scroll voor eigen scroll -->
+  <div id="bp-beschikbaarheid" style="display:none;flex:1;overflow-y:auto;padding:16px;flex-direction:column">
+    <div class="section-card">
+      <div class="section-card-title">📅 Spelersbeschikbaarheid</div>
+      <div style="font-size:12px;color:#64748b;margin-bottom:12px">Selecteer een datum om te zien welke spelers beschikbaar of afwezig zijn.</div>
+      <div class="field" style="margin-bottom:12px">
+        <label>Datum</label>
+        <input type="date" id="beschik-datum" oninput="laadBeschikbaarheid()" style="font-size:14px">
       </div>
+      <div id="beschik-result"></div>
     </div>
+  </div>
 
 </div><!-- /s-beheer -->
 
@@ -1259,16 +1231,17 @@ async function savePlayer() {
 }
 function collectForm(){const d={};TEXT_FIELDS.forEach(f=>{const el=$('f-'+f);if(el)d[f]=el.value.trim();});d.positie=tgState.positie;d.sterkevoet=tgState.sterkevoet;d.bf_meest=tgState.bf_meest;d.bf_favoriet=tgState.bf_favoriet;MULTI_KEYS.forEach(k=>d[k]=[...multiState[k]]);d.unavail_dates=[...unavailDates];return d;}
 
-// CALENDAR
+// CALENDAR — prefix systeem: '' = admin detail, 'pv-' = player view, 'a-' = (unused legacy)
 let _calPrefix = '';
 function renderCalendar(prefix){
-  if(prefix!==undefined)_calPrefix=prefix;
+  if(prefix!==undefined) _calPrefix=prefix;
   const pfx=_calPrefix;
   const ct=$(pfx+'cal-title');if(!ct)return;
   ct.textContent=MONTHS[calMonth]+' '+calYear;
   const grid=$(pfx+'cal-grid');if(!grid)return;
   const firstDay=new Date(calYear,calMonth,1).getDay(),startOff=(firstDay+6)%7,days=new Date(calYear,calMonth+1,0).getDate();
   let h='';
+  ['Ma','Di','Wo','Do','Vr','Za','Zo'].forEach(d=>h+='<div class="cal-day-hdr">'+d+'</div>');
   for(let i=0;i<startOff;i++)h+='<div class="cal-day empty"></div>';
   for(let day=1;day<=days;day++){
     const ds=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
@@ -1283,8 +1256,11 @@ function toggleDate(ds){
   else if(!rangeStart){unavailDates.push(ds);rangeStart=ds;renderCalendar();markDirty();}
   else{const a=rangeStart<ds?rangeStart:ds,b=rangeStart<ds?ds:rangeStart;let cur=new Date(a);const end=new Date(b);while(cur<=end){const s=cur.toISOString().slice(0,10);if(!unavailDates.includes(s))unavailDates.push(s);cur.setDate(cur.getDate()+1);}rangeStart=null;renderCalendar();markDirty();}
 }
-function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar();}
-function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar();}
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar(_calPrefix);}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar(_calPrefix);}
+// Player view kalender nav (uses 'pv-' prefix)
+function pvPrevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendar('pv-');}
+function pvNextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendar('pv-');}
 function updatePeriodSummary(){
   const el=$(_calPrefix+'cal-periods');if(!el)return;
   if(!unavailDates.length){el.style.display='none';return;}
@@ -1294,53 +1270,26 @@ function updatePeriodSummary(){
   const fmt=ds=>{const d=new Date(ds+'T00:00:00');return d.getDate()+' '+MON_SHORT[d.getMonth()]+' '+d.getFullYear();};
   el.style.display='block';el.textContent='📅 Periodes:\n'+periods.map(r=>r.s===r.e?fmt(r.s):fmt(r.s)+' – '+fmt(r.e)).join('\n');el.style.whiteSpace='pre-line';
 }
-
 async function saveUnavailDates(){
-  const sid = (userRole==='admin'||userRole==='coach') ? selId : (userSpelerId||selId);
-  console.log('[saveUnavailDates] sid=', sid, 'userSpelerId=', userSpelerId, 'selId=', selId, 'unavailDates=', unavailDates);
+  const sid=(userRole==='admin'||userRole==='coach')?selId:(userSpelerId||selId);
   if(!sid){toast('⚠️ Geen speler geselecteerd',true);return;}
-
-  // Haal volledige rij op
-  const {data:row, error:fetchErr}=await sbGetOne('spelers','id=eq.'+sid+'&select=*');
-  console.log('[saveUnavailDates] row=', row, 'fetchErr=', fetchErr);
-  if(fetchErr||!row){toast('⚠️ Ophalen mislukt: '+(fetchErr?.message||'rij niet gevonden'),true);return;}
-
+  const {data:row,error:fetchErr}=await sbGetOne('spelers','id=eq.'+sid+'&select=*');
+  if(fetchErr||!row){toast('⚠️ Ophalen mislukt',true);return;}
   const merged=Object.assign({},row.data||{},{unavail_dates:[...unavailDates]});
-
-  // Admin/coach → sbUpsert, speler → sbPatch op eigen rij
   let error;
   if(userRole==='admin'||userRole==='coach'){
-    const res=await sbPatch('spelers','id=eq.'+sid,{data:merged});
+    const res=await sbUpsert('spelers',{id:sid,naam:row.naam||'',voornaam:row.voornaam||'',seizoen:row.seizoen||'2026-27',data:merged,updated_at:new Date().toISOString()});
     error=res.error;
   } else {
-    // speler: patch eigen rij
-    const res=await sbUpsert('spelers',{
-      id:sid,
-      naam:row.naam||'',
-      voornaam:row.voornaam||'',
-      seizoen:row.seizoen||'2026-27',
-      data:merged,
-      updated_at:new Date().toISOString()
-    });
+    const res=await sbPatch('spelers','id=eq.'+sid,{data:merged});
     error=res.error;
   }
-
-  console.log('[saveUnavailDates] save error=', error);
   if(error){toast('⚠️ Fout: '+(error.message||error.hint||JSON.stringify(error)),true);return;}
-  if(DB[sid]) DB[sid].data=merged;
-  // Groen feedback op beide knoppen
-  ['pv-cal-save','a-cal-save'].forEach(id=>{
-    const btn=document.getElementById(id);
-    if(!btn)return;
-    btn.textContent='✓ Opgeslagen';
-    btn.style.background='#15803d';
-    btn.disabled=true;
-    setTimeout(()=>{
-      btn.textContent='💾 Opslaan';
-      btn.style.background=id==='a-cal-save'?'#203060':'#182448';
-      btn.style.color=id==='a-cal-save'?'#fff':'#E0D040';
-      btn.disabled=false;
-    },2000);
+  if(DB[sid])DB[sid].data=merged;
+  ['pv-cal-save','a-cal-save'].forEach(btnId=>{
+    const btn=document.getElementById(btnId);if(!btn)return;
+    btn.textContent='✓ Opgeslagen';btn.style.background='#15803d';btn.disabled=true;
+    setTimeout(()=>{btn.textContent='💾 Opslaan';btn.style.background=btnId==='a-cal-save'?'#203060':'#182448';btn.style.color=btnId==='a-cal-save'?'#fff':'#E0D040';btn.disabled=false;},2000);
   });
   toast('✓ Kalender opgeslagen');
 }
@@ -1409,55 +1358,48 @@ function openBeheerTab(tab) {
 
 function switchBeheerTab(id,btn){
   const isBeschik = id==='beschikbaarheid';
-  // beheer-scroll tonen/verbergen
   const sc=$('beheer-scroll');
   if(sc) sc.style.display = isBeschik ? 'none' : '';
-  // bp-beschikbaarheid tonen/verbergen
   const bpb=$('bp-beschikbaarheid');
-  if(bpb){bpb.style.display=isBeschik?'block':'none';bpb.style.flex=isBeschik?'1':'';bpb.style.overflowY=isBeschik?'auto':'';}
-  // Overige panes
-  ['spelers','overzicht','wedstrijden','maandprijs'].forEach(t=>{
-    const p=document.getElementById('bp-'+t);
-    if(p) p.style.display = t===id ? 'block' : 'none';
-  });
+  if(bpb){bpb.style.display=isBeschik?'flex':'none';}
+  if(!isBeschik){
+    ['spelers','overzicht','wedstrijden','maandprijs'].forEach(t=>{
+      const p=document.getElementById('bp-'+t);
+      if(p) p.style.display = t===id ? 'block' : 'none';
+    });
+  }
   document.querySelectorAll('.beheer-tab').forEach(b=>{
     const isActive = b.dataset.tab === id;
     b.style.borderBottomColor = isActive ? '#203060' : 'transparent';
     b.style.color = isActive ? '#203060' : '#64748b';
     b.style.fontWeight = isActive ? '700' : '600';
   });
-  if(!isBeschik && sc) sc.scrollTop=0;
   if(id==='wedstrijden') loadBeheerWedstrijden();
   else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
   else if(id==='overzicht') loadBeheerOverzicht();
 }
-
 async function laadBeschikbaarheid(){
   const datum=$('beschik-datum')?.value;
   const el=$('beschik-result');
   if(!datum||!el)return;
-  el.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:13px;padding:8px">Laden...</div>';
-  const {data:spelers,error}=await sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc');
-  if(error||!spelers){el.innerHTML='<div style="color:#dc2626;font-size:13px">Fout bij laden</div>';return;}
-  const beschikbaar=[], afwezig=[];
-  spelers.forEach(s=>{
+  el.innerHTML='<div style="font-size:12px;color:#94a3b8">Laden...</div>';
+  const {data:spelers}=await sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc');
+  const beschikbaar=[],afwezig=[];
+  (spelers||[]).forEach(s=>{
     const unavail=Array.isArray(s.data?.unavail_dates)?s.data.unavail_dates:[];
     (unavail.includes(datum)?afwezig:beschikbaar).push(s.voornaam+' '+s.naam);
   });
-  const lijst=(arr,bg,icoon)=>arr.length
-    ? arr.map(n=>`<div style="padding:5px 8px;border-radius:6px;background:${bg};font-size:12px;font-weight:600;color:#0a1628;margin-bottom:3px">${icoon} ${n}</div>`).join('')
-    : `<div style="font-size:11px;color:#94a3b8;padding:4px">—</div>`;
-  el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-    <div>
-      <div style="font-size:10px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">✅ Beschikbaar (${beschikbaar.length})</div>
-      ${lijst(beschikbaar,'#dcfce7','✅')}
-    </div>
-    <div>
-      <div style="font-size:10px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">❌ Niet beschikbaar (${afwezig.length})</div>
-      ${lijst(afwezig,'#fee2e2','❌')}
-    </div>
-  </div>`;
+  el.innerHTML=
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
+    '<div style="background:#f0fdf4;border-radius:10px;padding:12px">'+
+    '<div style="font-size:11px;font-weight:700;color:#15803d;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">✅ Beschikbaar ('+beschikbaar.length+')</div>'+
+    beschikbaar.map(n=>'<div style="font-size:12px;color:#0a1628;padding:3px 0;border-bottom:1px solid #dcfce7">'+n+'</div>').join('')+
+    '</div>'+
+    '<div style="background:#fff1f2;border-radius:10px;padding:12px">'+
+    '<div style="font-size:11px;font-weight:700;color:#dc2626;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">❌ Afwezig ('+afwezig.length+')</div>'+
+    afwezig.map(n=>'<div style="font-size:12px;color:#0a1628;padding:3px 0;border-bottom:1px solid #fee2e2">'+n+'</div>').join('')+
+    '</div></div>';
 }
 async function loadBeheerSpelers(){
   const [{data:spelers},{data:urs},{data:sps}]=await Promise.all([
@@ -1794,7 +1736,13 @@ function switchPvTab(tab, btn) {
     loadWedstrijden().then(()=>renderPvMatchListIn('pvp-wedstrijden'));
   }
   if(tab==='voetbal') loadPvVoetbal();
-  if(tab==='beschikbaarheid'){_calPrefix='';renderCalendar('');}
+  if(tab==='kalender') laadSpelerKalender();
+}
+async function laadSpelerKalender(){
+  if(!userSpelerId){toast('Geen speler gekoppeld',true);return;}
+  const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=data');
+  unavailDates=Array.isArray(row?.data?.unavail_dates)?[...row.data.unavail_dates]:[];
+  renderCalendar('pv-');
 }
 
 function zelfScoreBtns(id) {
@@ -1984,15 +1932,31 @@ async function loadPlayerView(){
     // Load player data
     const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
     const d=row?.data||{};
-    // Zet unavailDates voor kalender tab
-    unavailDates=Array.isArray(d.unavail_dates)?[...d.unavail_dates]:[];
-    rangeStart=null;
-    _calPrefix='';
-    // Build coach boodschap vars
-    const isKeeper = d.is_keeper === true || userRole === 'keeper';
-    const coachBoodschap = d.coach_boodschap || '';
+
+    // Count missed wedstrijd evaluations (past matches without evaluation)
+    let missedEvalCount=0;
+    try {
+      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY);
+      if(pastMatches.length>0){
+        const {data:evals}=await sbGet('match_evaluaties','beoordelaar=eq.'+userSpelerId+'&select=match_id');
+        const filledIds=new Set((evals||[]).map(e=>e.match_id));
+        missedEvalCount=pastMatches.filter(w=>!filledIds.has(w.id)).length;
+      }
+    } catch(e){}
+
+    // Missed evaluations banner
+    const missedBanner = missedEvalCount>0
+      ? `<div style="background:#fff7ed;border:1.5px solid #f97316;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="switchPvTab('wedstrijden',document.querySelector('.player-view-tab:nth-child(3)'))">
+          <div style="font-size:20px">⚠️</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#c2410c">Je hebt ${missedEvalCount} wedstrijd${missedEvalCount===1?'evaluatie':'evaluaties'} niet ingevuld</div>
+            <div style="font-size:11px;color:#9a3412;margin-top:2px">Tik hier om naar Wedstrijden te gaan →</div>
+          </div>
+        </div>`
+      : '';
 
     // Coach boodschap card
+    const coachBoodschap = d.coach_boodschap || '';
     const boodschapCard = `<div class="card" style="margin-bottom:12px">
       <div class="card-t">📋 Bericht van trainer</div>
       <div style="padding:14px">
@@ -2005,6 +1969,7 @@ async function loadPlayerView(){
 
     if(!pp)return;
     pp.innerHTML=
+      missedBanner+
       '<div class="card"><div class="card-t">👤 Persoonlijke gegevens</div><div class="fields">'+
       '<div class="frow"><div class="field"><label>Voornaam</label><input value="'+sp.voornaam+'" readonly style="color:#374151"></div>'+
       '<div class="field"><label>Naam</label><input value="'+sp.naam+'" readonly style="color:#374151"></div></div>'+
@@ -2880,7 +2845,7 @@ async function doRegister() {
 // ═══ ADMIN READ-ONLY VIEW ════════════════════════════════════════════════════
 
 function switchAdminTab(tab) {
-  ['profiel','voetbal','seizoen','beschikbaarheid'].forEach(t => {
+  ['profiel','voetbal','seizoen','kalender'].forEach(t => {
     const btn = document.getElementById('atab-'+t);
     const pane = document.getElementById('admin-pane-'+t);
     if(btn) {
@@ -2892,23 +2857,27 @@ function switchAdminTab(tab) {
   });
   if(tab==='voetbal') loadAdminVoetbalPane();
   if(tab==='seizoen') loadAdminSeizoenPane();
-  if(tab==='beschikbaarheid') loadAdminBeschikbaarheidPane();
+  if(tab==='kalender') loadAdminKalenderPane();
 }
-
-async function loadAdminBeschikbaarheidPane(){
-  if(!selId){toast('⚠️ Geen speler geselecteerd',true);return;}
-  // DB cache eerst proberen (al geladen bij selectie)
-  let d = DB[selId]?.data;
-  if(!d || !Array.isArray(d.unavail_dates)){
-    // Toch opnieuw ophalen als cache leeg is
-    const {data:row,error}=await sbGetOne('spelers','id=eq.'+selId+'&select=id,data');
-    if(error){toast('⚠️ Fout bij laden: '+(error.message||''),true);return;}
-    d=row?.data||{};
-  }
-  unavailDates=Array.isArray(d.unavail_dates)?[...d.unavail_dates]:[];
-  rangeStart=null;
-  _calPrefix='a-';
-  renderCalendar('a-');
+function loadAdminKalenderPane(){
+  const el=document.getElementById('admin-pane-kalender');
+  if(!el||!selId)return;
+  const sp=DB[selId]||{};
+  unavailDates=Array.isArray(sp.data?.unavail_dates)?[...sp.data.unavail_dates]:[];
+  el.innerHTML=
+    '<div style="background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.06)">' +
+    '<div style="font-size:12px;font-weight:700;color:#203060;margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em">📅 Vakantiekalender</div>' +
+    '<div style="font-size:12px;color:#64748b;margin-bottom:12px">Klik op een dag om onbeschikbaarheid in te stellen of te verwijderen.</div>' +
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">' +
+    '<button onclick="prevMonth()" style="background:#f1f5f9;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px">‹</button>' +
+    '<div id="cal-title" style="font-size:14px;font-weight:700;color:#0a1628"></div>' +
+    '<button onclick="nextMonth()" style="background:#f1f5f9;border:none;border-radius:6px;width:30px;height:30px;cursor:pointer;font-size:16px">›</button>' +
+    '</div>' +
+    '<div id="cal-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:10px"></div>' +
+    '<div id="cal-periods" style="font-size:11px;color:#64748b;display:none;margin-bottom:10px"></div>' +
+    '<button id="a-cal-save" onclick="saveUnavailDates()" style="width:100%;padding:10px;background:#203060;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">💾 Opslaan</button>' +
+    '</div>';
+  renderCalendar('');
 }
 
 function loadAdminProfielPane(d, speler) {
