@@ -1361,7 +1361,7 @@ function syncTeamStats(){
 
 // ADMIN BEHEER
 async function loadBeheerWedstrijden() {
-  const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');
+  const {data,error}=await sbGet('wedstrijden','select=*&order=datum.desc');
   if(error){toast('Fout: '+error.message,true);return;}
   wedstrijdenData=data||[];
   renderBeheerMatchList(data||[]);
@@ -2357,7 +2357,7 @@ async function renderPvMatchListIn(containerId, overrideSpelerId) {
       '</div>'+
     '</div>';
   }
-  const upcoming=wedstrijdenData.filter(w=>!w.datum||w.datum>=TODAY2);
+  const upcoming=wedstrijdenData.filter(w=>!w.datum||w.datum>=TODAY2).sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
   const past=wedstrijdenData.filter(w=>w.datum&&w.datum<TODAY2);
   let html=upcoming.map(renderMatchCard).join('');
   if(past.length>0){
@@ -2520,7 +2520,7 @@ function renderBeheerMatchList(data) {
       </div>
     </div>`;
   }
-  const upcoming=data.filter(w=>!w.datum||w.datum>=TODAY2);
+  const upcoming=data.filter(w=>!w.datum||w.datum>=TODAY2).sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
   const past=data.filter(w=>w.datum&&w.datum<TODAY2);
   let html=upcoming.map(renderAdminCard).join('');
   if(past.length>0){
