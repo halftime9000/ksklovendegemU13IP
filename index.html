@@ -1707,7 +1707,7 @@ async function linkSpeler(uid,spelerId){await sbPatch('user_roles','user_id=eq.'
 // WEDSTRIJDEN
 function setLocatie(loc){nmLocatie=loc;$('nm-thuis')?.classList.toggle('on',loc==='thuis');$('nm-uit')?.classList.toggle('on',loc==='uit');}
 function toggleAddMatchForm(){const f=$('add-match-form');if(f)f.style.display=f.style.display==='none'?'block':'none';}
-async function loadWedstrijden(){const {data,error}=await sbGet('wedstrijden','select=*&order=datum.asc');if(error)return;wedstrijdenData=data||[];syncTeamStats();}
+async function loadWedstrijden(){const {data,error}=await sbGet('wedstrijden','select=*&order=datum.desc');if(error)return;wedstrijdenData=data||[];syncTeamStats();}
 function renderMatchList(containerId,data,editable){
   const el=$(containerId);if(!el)return;
   if(!data||!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden</div>';return;}
