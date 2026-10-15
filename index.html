@@ -1933,14 +1933,20 @@ async function loadPlayerView(){
     const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
     const d=row?.data||{};
 
-    // Count missed wedstrijd evaluations (past matches without evaluation)
+    // Count missed wedstrijd evaluations (only past matches where player was in squad)
     let missedEvalCount=0;
     try {
-      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY);
-      if(pastMatches.length>0){
+      const uid=Number(userSpelerId);
+      const pastMatchesInSquad=(wedstrijdenData||[]).filter(w=>{
+        if(!w.datum||w.datum>=TODAY)return false;
+        const b=(w.blauw_spelers||[]).map(Number);
+        const g=(w.geel_spelers||[]).map(Number);
+        return b.includes(uid)||g.includes(uid);
+      });
+      if(pastMatchesInSquad.length>0){
         const {data:evals}=await sbGet('match_evaluaties','beoordelaar=eq.'+userSpelerId+'&select=match_id');
         const filledIds=new Set((evals||[]).map(e=>e.match_id));
-        missedEvalCount=pastMatches.filter(w=>!filledIds.has(w.id)).length;
+        missedEvalCount=pastMatchesInSquad.filter(w=>!filledIds.has(w.id)).length;
       }
     } catch(e){}
 
@@ -1953,7 +1959,13 @@ async function loadPlayerView(){
             <div style="font-size:11px;color:#9a3412;margin-top:2px">Tik hier om naar Wedstrijden te gaan →</div>
           </div>
         </div>`
-      : '';
+      : `<div style="background:#f0fdf4;border:1.5px solid #4ade80;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px">
+          <div style="font-size:20px">✅</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#15803d">Alle wedstrijdevaluaties ingevuld</div>
+            <div style="font-size:11px;color:#166534;margin-top:2px">Goed bezig! Je hebt geen openstaande evaluaties.</div>
+          </div>
+        </div>`;
 
     // Coach boodschap card
     const coachBoodschap = d.coach_boodschap || '';
@@ -3172,7 +3184,7 @@ async function loadBeheerOverzicht() {
   const [{data:spelers},{data:evals},{data:wedstrijden}]=await Promise.all([
     sbGet('spelers','select=id,naam,voornaam,data&order=naam.asc'),
     sbGet('match_evaluaties','select=beoordelaar,ratings,motm,weak_link,eigen_b_plus,eigen_b_min,eigen_mentaliteit'),
-    sbGet('wedstrijden','select=id,blauw_spelers,geel_spelers')
+    sbGet('wedstrijden','select=id,datum,blauw_spelers,geel_spelers')
   ]);
 
   if(!spelers||!spelers.length){el.innerHTML='<div style="padding:20px;color:#94a3b8;font-size:13px">Geen spelers gevonden.</div>';return;}
