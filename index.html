@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Cache-Control" content="no-cache,no-store,must-revalidate">
-<title>KSK Lovendegem U13 IP v306</title>
+<title>KSK Lovendegem U13 IP v308</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='18' fill='%23182448'/><circle cx='50' cy='50' r='30' fill='none' stroke='%23E0D040' stroke-width='6'/><path d='M50 20 L58 44 L84 44 L63 58 L71 82 L50 68 L29 82 L37 58 L16 44 L42 44 Z' fill='%23E0D040'/></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@1,300;1,400&display=swap" rel="stylesheet">
@@ -2135,6 +2135,84 @@ function mkLineupList(players, bIds, gIds, mid) {
   }).join('');
 }
 
+function mkLockedLineup(bIds, gIds, mid) {
+  const bNames=bIds.map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam+' '+p.naam:'?';});
+  const gNames=gIds.map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam+' '+p.naam:'?';});
+  const mkCol=(names,col,label,dot)=>`
+    <div style="flex:1;min-width:120px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="width:10px;height:10px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0"></span>
+        <span style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em">${label}</span>
+        <span style="font-size:11px;color:#94a3b8">(${names.length})</span>
+      </div>
+      ${names.length?names.map(n=>`<div style="font-size:12px;color:#1e293b;padding:3px 0;border-bottom:1px solid #f1f5f9">${n}</div>`).join('')
+        :'<div style="font-size:11px;color:#94a3b8;font-style:italic">Geen spelers</div>'}
+    </div>`;
+  return `<div id="lineup-locked-${mid}" style="padding:12px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em">🔒 Opstelling (afgerond)</span>
+      <button onclick="unlockLineup(${mid})" style="font-size:11px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#374151;cursor:pointer;font-weight:600">✏️ Bewerken</button>
+    </div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap">
+      ${mkCol(bNames,'#3b82f6','Ploeg Blauw','#3b82f6')}
+      ${mkCol(gNames,'#eab308','Ploeg Geel','#eab308')}
+    </div>
+  </div>`;
+}
+
+const _lineupUnlocked=new Set();
+function unlockLineup(mid){
+  _lineupUnlocked.add(mid);
+  const w=wedstrijdenData.find(x=>x.id===mid)||{};
+  const locked=document.getElementById('lineup-locked-'+mid);
+  const editable=document.getElementById('lineup-edit-'+mid);
+  if(locked) locked.style.display='none';
+  if(editable){editable.style.display='';return;}
+  // build edit section on the fly
+  const container=document.getElementById('lineup-section-'+mid);
+  if(!container)return;
+  const div=document.createElement('div');
+  div.id='lineup-edit-'+mid;
+  div.innerHTML='<div class="lineup-section-title" style="display:flex;justify-content:space-between;align-items:center">'+
+    '<span>Opstelling aanpassen</span>'+
+    '<button onclick="relockLineup('+mid+')" style="font-size:11px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#374151;cursor:pointer">🔒 Vergrendelen</button>'+
+    '</div>'+
+    mkLineupList(PLAYERS, getLineup(mid).blauw, getLineup(mid).geel, mid);
+  container.appendChild(div);
+}
+function relockLineup(mid){
+  _lineupUnlocked.delete(mid);
+  const locked=document.getElementById('lineup-locked-'+mid);
+  const editable=document.getElementById('lineup-edit-'+mid);
+  // Update locked view with current lineup state
+  if(locked){
+    const lu=getLineup(mid);
+    const bNames=lu.blauw.map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam+' '+p.naam:'?';});
+    const gNames=lu.geel.map(id=>{const p=PLAYERS.find(x=>x.id===id);return p?p.voornaam+' '+p.naam:'?';});
+    const mkCol=(names,dot,label)=>`<div style="flex:1;min-width:120px">
+      <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
+        <span style="width:10px;height:10px;border-radius:50%;background:${dot};display:inline-block;flex-shrink:0"></span>
+        <span style="font-size:11px;font-weight:700;color:#374151;text-transform:uppercase;letter-spacing:.05em">${label}</span>
+        <span style="font-size:11px;color:#94a3b8">(${names.length})</span>
+      </div>
+      ${names.length?names.map(n=>`<div style="font-size:12px;color:#1e293b;padding:3px 0;border-bottom:1px solid #f1f5f9">${n}</div>`).join('')
+        :'<div style="font-size:11px;color:#94a3b8;font-style:italic">Geen spelers</div>'}
+    </div>`;
+    locked.innerHTML=`<div style="padding:12px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.05em">🔒 Opstelling (afgerond)</span>
+        <button onclick="unlockLineup(${mid})" style="font-size:11px;padding:4px 10px;border:1px solid #cbd5e1;border-radius:6px;background:#fff;color:#374151;cursor:pointer;font-weight:600">✏️ Bewerken</button>
+      </div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        ${mkCol(bNames,'#3b82f6','Ploeg Blauw')}
+        ${mkCol(gNames,'#eab308','Ploeg Geel')}
+      </div>
+    </div>`;
+    locked.style.display='';
+  }
+  if(editable) editable.style.display='none';
+}
+
 function assignP(pid, mid, team) {
   const lu=getLineup(mid);
   const inTeam=lu[team].includes(pid);
@@ -2179,9 +2257,11 @@ function renderBeheerMatchList(data) {
           </div>
         </div>
         <!-- Lineup -->
-        <div class="lineup-section">
-          <div class="lineup-section-title">Opstelling — klik Blauw of Geel per speler</div>
-          ${mkLineupList(PLAYERS, bSpelers, gSpelers, w.id)}
+        <div class="lineup-section" id="lineup-section-${w.id}">
+          ${w.datum && w.datum < TODAY
+            ? mkLockedLineup(bSpelers, gSpelers, w.id)
+            : '<div class="lineup-section-title">Opstelling — klik Blauw of Geel per speler</div>'+mkLineupList(PLAYERS, bSpelers, gSpelers, w.id)
+          }
         </div>
         <!-- Actions -->
         <div class="match-save-row">
@@ -3267,6 +3347,91 @@ async function loadBeheerOverzicht() {
   html+='<span style="color:#4ade80">● 7-8</span>';
   html+='<span style="color:#15803d">● 9-10</span>';
   html+='</div>';
+
+  // ── GEMISTE WEDSTRIJD-EVALUATIES ───────────────────────────────
+  {
+    const TODAY2=new Date().toISOString().slice(0,10);
+    const pastMatches=(wedstrijden||[]).filter(w=>w.datum&&w.datum<TODAY2);
+    const filledByPlayer={};
+    (evals||[]).forEach(ev=>{
+      if(!filledByPlayer[ev.beoordelaar]) filledByPlayer[ev.beoordelaar]=new Set();
+      // we need match_id; fetch separate or derive — but evals here don't have match_id
+      // We'll add match_id to the query above; for now skip if not present
+    });
+
+    // Build per-speler missed count using the beoordelaar approach:
+    // A player filled an eval if there's a match_evaluaties row with beoordelaar=player.id
+    // We need match_id per eval to check which matches they filled
+    // Since we fetched evals without match_id here, we compute differently:
+    // Count evals filled per player vs how many squad past matches they had
+
+    // Count evals per beoordelaar (total rows = total matches evaluated)
+    const evalCountByPlayer={};
+    (evals||[]).forEach(ev=>{
+      evalCountByPlayer[ev.beoordelaar]=(evalCountByPlayer[ev.beoordelaar]||0)+1;
+    });
+
+    // Per speler: squad past matches count
+    const nonTrainers=spelers.filter(s=>!s.data?.is_trainer);
+    const missedRows=nonTrainers.map(s=>{
+      const uid=Number(s.id);
+      const squadMatches=pastMatches.filter(w=>{
+        const b=(w.blauw_spelers||[]).map(Number);
+        const g=(w.geel_spelers||[]).map(Number);
+        return b.includes(uid)||g.includes(uid);
+      }).length;
+      const filled=evalCountByPlayer[s.id]||0;
+      const missed=Math.max(0,squadMatches-filled);
+      return {s,squadMatches,filled,missed};
+    }).filter(r=>r.squadMatches>0).sort((a,b)=>b.missed-a.missed||a.s.voornaam.localeCompare(b.s.voornaam));
+
+    html+=`<div style="margin-top:20px;background:#fff;border-radius:10px;border:1px solid #e2e8f0;padding:14px">`;
+    html+=`<div style="font-size:11px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">📋 Wedstrijd-evaluaties per speler</div>`;
+
+    if(!missedRows.length){
+      html+=`<div style="font-size:12px;color:#94a3b8">Geen speeldata gevonden om te vergelijken.</div>`;
+    } else {
+      html+=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px">`;
+      html+=`<thead><tr style="background:#f8fafc;color:#64748b;text-align:center;font-size:11px">`;
+      html+=`<th style="text-align:left;padding:8px 12px;font-weight:600">Speler</th>`;
+      html+=`<th style="padding:6px 8px;font-weight:600" title="Wedstrijden in squad (verleden)">In squad</th>`;
+      html+=`<th style="padding:6px 8px;font-weight:600" title="Evaluaties ingevuld">Ingevuld</th>`;
+      html+=`<th style="padding:6px 8px;font-weight:600" title="Evaluaties niet ingevuld">Gemist</th>`;
+      html+=`<th style="padding:6px 8px;font-weight:600">Status</th>`;
+      html+=`</tr></thead><tbody>`;
+      missedRows.forEach((r,i)=>{
+        const bg=i%2===0?'#fff':'#f8fafc';
+        const missedCol=r.missed===0?'#15803d':r.missed<=2?'#f97316':'#dc2626';
+        const missedBadge=r.missed===0
+          ?`<span style="font-weight:800;color:#15803d">0</span>`
+          :`<span style="font-weight:800;color:${missedCol}">${r.missed}</span>`;
+        const pct=r.squadMatches>0?Math.round((r.filled/r.squadMatches)*100):0;
+        const barCol=pct>=100?'#15803d':pct>=70?'#4ade80':pct>=40?'#f97316':'#dc2626';
+        const statusBar=`<div style="display:flex;align-items:center;gap:6px">
+          <div style="flex:1;min-width:60px;background:#f1f5f9;border-radius:4px;height:8px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${barCol};border-radius:4px"></div>
+          </div>
+          <span style="font-size:10px;font-weight:700;color:${barCol};width:30px">${pct}%</span>
+        </div>`;
+        html+=`<tr style="background:${bg};border-bottom:1px solid #f1f5f9;cursor:pointer" onclick="selectPlayer(${r.s.id})">`;
+        html+=`<td style="padding:8px 12px;font-weight:600;color:#0a1628">${r.s.voornaam} ${r.s.naam}</td>`;
+        html+=`<td style="text-align:center;padding:6px 8px;color:#64748b">${r.squadMatches}</td>`;
+        html+=`<td style="text-align:center;padding:6px 8px;font-weight:700;color:#203060">${r.filled}</td>`;
+        html+=`<td style="text-align:center;padding:6px 8px">${missedBadge}</td>`;
+        html+=`<td style="padding:6px 12px;min-width:100px">${statusBar}</td>`;
+        html+=`</tr>`;
+      });
+      html+=`</tbody></table></div>`;
+      const totalMissed=missedRows.reduce((s,r)=>s+r.missed,0);
+      const totalFilled=missedRows.reduce((s,r)=>s+r.filled,0);
+      const totalSquad=missedRows.reduce((s,r)=>s+r.squadMatches,0);
+      html+=`<div style="margin-top:10px;font-size:11px;color:#64748b;display:flex;gap:16px;flex-wrap:wrap">`;
+      html+=`<span>Team totaal: <b style="color:#203060">${totalFilled}/${totalSquad}</b> ingevuld</span>`;
+      html+=`<span style="color:${totalMissed===0?'#15803d':'#dc2626'}">● ${totalMissed} gemist</span>`;
+      html+=`</div>`;
+    }
+    html+=`</div>`;
+  }
 
   // ── TEAM STATISTIEKEN ──────────────────────────────────────────
   const spDataAll = spelers.filter(s=>!s.data?.is_trainer).map(s=>s.data||{});
