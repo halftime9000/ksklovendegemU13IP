@@ -670,16 +670,21 @@ textarea{resize:vertical;min-height:70px}
   </div>
   <!-- Tabs -->
   <div style="background:#fff;border-bottom:1.5px solid #e2e8f0;display:flex;gap:0;flex-shrink:0">
+    <button class="player-view-tab on" onclick="switchPvTab('home',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:15px;cursor:pointer">🏠</button>
     <button class="player-view-tab" onclick="switchPvTab('profiel',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Profiel</button>
     <button class="player-view-tab" onclick="switchPvTab('voetbal',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Voetbal</button>
-    <button class="player-view-tab on" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
-    <button class="player-view-tab" onclick="switchPvTab('kalender',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅 Kalender</button>
+    <button class="player-view-tab" onclick="switchPvTab('wedstrijden',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">Wedstrijden</button>
+    <button class="player-view-tab" onclick="switchPvTab('kalender',this)" style="flex:1;padding:12px 6px;border:none;background:none;font-size:13px;cursor:pointer;letter-spacing:.01em">📅</button>
   </div>
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
+    <div id="pvp-home" class="pv-pane on" style="padding:16px">
+      <div id="pv-home-hero" style="margin-bottom:16px"></div>
+      <div id="pv-home-counter"></div>
+    </div>
     <div id="pvp-profiel" class="pv-pane" style="padding:16px"><div style="text-align:center;color:#94a3b8;font-size:13px;padding:20px">Profiel laden...</div></div>
     <div id="pvp-voetbal" class="pv-pane" style="padding:16px"></div>
-    <div id="pvp-wedstrijden" class="pv-pane on" style="padding:16px">
+    <div id="pvp-wedstrijden" class="pv-pane" style="padding:16px">
       <div id="pv-last-match-hero" style="margin-bottom:16px"></div>
       <div id="pv-match-list" class="match-list"></div>
     </div>
@@ -1058,11 +1063,10 @@ async function handleLogin() {
 
     if(userRole==='player'||userRole==='keeper'){
       showFlex('s-player');
-      // Start on wedstrijden tab — load matches + hero card immediately
+      // Start on home tab
       try {
         await loadWedstrijden();
-        renderLastMatchHero();
-        renderPvMatchListIn('pv-match-list');
+        renderHomePage();
       } catch(e){ console.warn(e); }
       // Profiel pane loads lazily when the user taps the Profiel tab
     } else if(userRole==='pending'){
@@ -1747,6 +1751,9 @@ function switchPvTab(tab, btn) {
   const pane=$('pvp-'+tab);
   if(pane) pane.classList.add('on');
   if(btn) btn.classList.add('on');
+  if(tab==='home'){
+    loadWedstrijden().then(()=>renderHomePage());
+  }
   if(tab==='wedstrijden'){
     loadWedstrijden().then(()=>{
       renderLastMatchHero();
@@ -1827,16 +1834,86 @@ async function renderLastMatchHero(){
   </div>`;
 }
 
-function openEvalFromHero(mid){
-  // Scroll to match in list and open it
-  const mb=$('mb-'+mid);
-  if(mb){
-    if(!mb.classList.contains('open')) toggleMatch(mid);
-    setTimeout(()=>{mb.scrollIntoView({behavior:'smooth',block:'center'});},100);
-    setTimeout(()=>openEvalForm(mid),300);
-  } else {
-    openEvalForm(mid);
+async function renderHomePage(){
+  const uid=userSpelerId?Number(userSpelerId):null;
+  const heroEl=$('pv-home-hero');
+  const counterEl=$('pv-home-counter');
+  if(!uid){if(heroEl)heroEl.innerHTML='';if(counterEl)counterEl.innerHTML='';return;}
+  const TODAY2=new Date().toISOString().slice(0,10);
+  const squadPast=(wedstrijdenData||[])
+    .filter(w=>w.datum&&w.datum<TODAY2)
+    .sort((a,b)=>b.datum.localeCompare(a.datum))
+    .filter(w=>{
+      const b=(w.blauw_spelers||[]).map(Number);
+      const g=(w.geel_spelers||[]).map(Number);
+      return b.includes(uid)||g.includes(uid);
+    });
+  // Fetch evals once
+  let evalledIds=new Set();
+  try{
+    const {data:evs}=await sbGet('match_evaluaties','beoordelaar=eq.'+uid+'&select=match_id');
+    (evs||[]).forEach(e=>evalledIds.add(e.match_id));
+  }catch(e){}
+  // ── Hero card ──
+  if(heroEl){
+    if(!squadPast.length){
+      heroEl.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:13px;padding:24px">Nog geen wedstrijden gespeeld.</div>';
+    } else {
+      const target=squadPast.find(w=>!evalledIds.has(w.id))||squadPast[0];
+      const allDone=evalledIds.has(target.id);
+      const w=target;
+      const inBlauw=(w.blauw_spelers||[]).map(Number).includes(uid);
+      const myTeam=inBlauw?'blauw':'geel';
+      const myScore=w[myTeam+'_score']||'';
+      const teamLabel=inBlauw?'🔵 Ploeg Blauw':'🟡 Ploeg Geel';
+      const teamBg=inBlauw?'#1d4ed8':'#ca8a04';
+      const thuis=(w.thuis_uit||'thuis').toLowerCase()==='thuis';
+      let scoreHtml='';
+      if(myScore&&myScore.includes('-')){
+        const parts=myScore.split('-').map(s=>parseInt(s.trim(),10));
+        const ours=thuis?parts[0]:parts[1];
+        const theirs=thuis?parts[1]:parts[0];
+        if(!isNaN(ours)&&!isNaN(theirs)){
+          const won=ours>theirs,draw=ours===theirs;
+          const resultLabel=won?'GEWONNEN':draw?'GELIJKSPEL':'VERLOREN';
+          const resultCol=won?'#15803d':draw?'#b45309':'#dc2626';
+          scoreHtml=`<div style="display:flex;align-items:center;gap:10px;margin:10px 0 4px"><div style="font-size:42px;font-weight:900;color:#fff;letter-spacing:-2px;line-height:1">${ours}–${theirs}</div><div style="background:${resultCol};color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:20px;letter-spacing:.08em;text-transform:uppercase;align-self:center">${resultLabel}</div></div>`;
+        }
+      }
+      const heroLabel=allDone?'Laatste wedstrijd':'⚠️ Evaluatie open';
+      const ctaHtml=allDone
+        ?`<div style="display:flex;align-items:center;gap:8px;background:rgba(21,128,61,.25);border:1px solid #4ade80;border-radius:10px;padding:10px 12px"><span style="font-size:18px">✅</span><span style="font-size:13px;font-weight:700;color:#4ade80">Alle evaluaties ingevuld</span></div>`
+        :`<button onclick="openEvalFromHero(${w.id})" style="width:100%;background:#E0D040;color:#0a1628;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">✏️ Evaluatie invullen</button>`;
+      heroEl.innerHTML=`<div style="border-radius:14px;overflow:hidden;background:#0a1628;color:#fff;box-shadow:0 4px 20px rgba(10,22,40,.35)"><div style="background:${teamBg};padding:8px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">${heroLabel}</span><span style="font-size:11px;font-weight:700;opacity:.9">${teamLabel}</span></div><div style="padding:14px 16px 6px"><div style="font-size:16px;font-weight:700;color:#e2e8f0">vs ${w.tegenstander}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">${fmtDate(w.datum)} · ${w.thuis_uit||'thuis'}</div>${scoreHtml}</div><div style="padding:6px 16px 16px">${ctaHtml}</div></div>`;
+    }
   }
+  // ── Eval teller ──
+  if(counterEl){
+    const total=squadPast.length;
+    const filled=squadPast.filter(w=>evalledIds.has(w.id)).length;
+    if(!total){counterEl.innerHTML='';return;}
+    const pct=Math.round(filled/total*100);
+    const allGreen=filled===total;
+    const barColor=allGreen?'#22c55e':filled>0?'#e0d040':'#ef4444';
+    const msg=allGreen?'— top! 🎉':filled===0?'— nog niets ingevuld':'';
+    counterEl.innerHTML=`<div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-top:4px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:13px;font-weight:700;color:#0f172a">📋 Evaluaties seizoen</span><span style="font-size:14px;font-weight:800;color:${barColor}">${filled}/${total}</span></div><div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:999px"></div></div><div style="font-size:11px;color:#64748b;margin-top:6px">${pct}% ingevuld ${msg}</div></div>`;
+  }
+}
+
+function openEvalFromHero(mid){
+  // Switch to wedstrijden tab first, then scroll to match
+  const wedBtn=document.querySelector('.player-view-tab[onclick*="wedstrijden"]');
+  switchPvTab('wedstrijden',wedBtn);
+  setTimeout(()=>{
+    const mb=$('mb-'+mid);
+    if(mb){
+      if(!mb.classList.contains('open')) toggleMatch(mid);
+      setTimeout(()=>{mb.scrollIntoView({behavior:'smooth',block:'center'});},100);
+      setTimeout(()=>openEvalForm(mid),300);
+    } else {
+      openEvalForm(mid);
+    }
+  },500);
 }
 async function laadSpelerKalender(){
   if(!userSpelerId){toast('Geen speler gekoppeld',true);return;}
