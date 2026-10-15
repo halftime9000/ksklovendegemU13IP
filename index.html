@@ -1892,12 +1892,27 @@ async function renderHomePage(){
   if(counterEl){
     const total=squadPast.length;
     const filled=squadPast.filter(w=>evalledIds.has(w.id)).length;
-    if(!total){counterEl.innerHTML='';return;}
-    const pct=Math.round(filled/total*100);
-    const allGreen=filled===total;
-    const barColor=allGreen?'#22c55e':filled>0?'#e0d040':'#ef4444';
-    const msg=allGreen?'— top! 🎉':filled===0?'— nog niets ingevuld':'';
-    counterEl.innerHTML=`<div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px;margin-top:4px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:13px;font-weight:700;color:#0f172a">📋 Evaluaties seizoen</span><span style="font-size:14px;font-weight:800;color:${barColor}">${filled}/${total}</span></div><div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:999px"></div></div><div style="font-size:11px;color:#64748b;margin-top:6px">${pct}% ingevuld ${msg}</div></div>`;
+    if(!total){counterEl.innerHTML='';}
+    else{
+      const pct=Math.round(filled/total*100);
+      const allGreen=filled===total;
+      const barColor=allGreen?'#22c55e':filled>0?'#e0d040':'#ef4444';
+      const msg=allGreen?'— top! 🎉':filled===0?'— nog niets ingevuld':'';
+      counterEl.innerHTML=`<div style="background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:16px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><span style="font-size:13px;font-weight:700;color:#0f172a">📋 Mijn evaluaties</span><span style="font-size:14px;font-weight:800;color:${barColor}">${filled}/${total}</span></div><div style="height:8px;background:#e2e8f0;border-radius:999px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${barColor};border-radius:999px"></div></div><div style="font-size:11px;color:#64748b;margin-top:6px">${pct}% ingevuld ${msg}</div></div>`;
+    }
+  }
+  // ── Team ranglijst ──
+  const rankEl=$('pv-home-rank');
+  if(rankEl){
+    try{
+      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY2);
+      const {data:allEvals}=await sbGet('match_evaluaties','select=beoordelaar');
+      const evalCountByPlayer={};
+      (allEvals||[]).forEach(ev=>{evalCountByPlayer[ev.beoordelaar]=(evalCountByPlayer[ev.beoordelaar]||0)+1;});
+      const spelersForBoard=PLAYERS.map(p=>({id:p.id,voornaam:p.voornaam,naam:p.naam,data:{}}));
+      const evalRows=buildEvalRows(spelersForBoard,pastMatches,evalCountByPlayer);
+      rankEl.innerHTML=evalRows.length>0?buildEvalLeaderboardHtml(evalRows,false):'';
+    }catch(e){rankEl.innerHTML='';}
   }
 }
 
@@ -2111,9 +2126,8 @@ async function loadPlayerView(){
     const {data:row}=await sbGetOne('spelers','id=eq.'+userSpelerId+'&select=*');
     const d=row?.data||{};
 
-    // Count missed wedstrijd evaluations + build team leaderboard
+    // Count missed wedstrijd evaluations
     let missedEvalCount=0;
-    let evalLeaderboardHtml='';
     try {
       const uid=Number(userSpelerId);
       const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY);
@@ -2122,26 +2136,18 @@ async function loadPlayerView(){
         const g=(w.geel_spelers||[]).map(Number);
         return b.includes(uid)||g.includes(uid);
       });
-      // Fetch all evals for leaderboard (beoordelaar + count per player)
-      let allSpelers=PLAYERS.filter(p=>p.id);
-      // Also need spelers with data for is_trainer filter — use PLAYERS (no trainer flag here, skip filter)
       const {data:allEvals}=await sbGet('match_evaluaties','select=beoordelaar');
       const evalCountByPlayer={};
       (allEvals||[]).forEach(ev=>{
         evalCountByPlayer[ev.beoordelaar]=(evalCountByPlayer[ev.beoordelaar]||0)+1;
       });
-      // Missed count for this player
       const myFilled=Math.min(evalCountByPlayer[Number(userSpelerId)]||evalCountByPlayer[userSpelerId]||0, pastMatchesInSquad.length);
       missedEvalCount=Math.max(0,pastMatchesInSquad.length-myFilled);
-      // Build leaderboard using PLAYERS list (no trainer flag, include all)
-      const spelersForBoard=allSpelers.map(p=>({id:p.id,voornaam:p.voornaam,naam:p.naam,data:{}}));
-      const evalRows=buildEvalRows(spelersForBoard, pastMatches, evalCountByPlayer);
-      if(evalRows.length>0) evalLeaderboardHtml=buildEvalLeaderboardHtml(evalRows, false);
-    } catch(e){ console.warn('eval leaderboard error',e); }
+    } catch(e){ console.warn('eval missed error',e); }
 
     // Missed evaluations banner
     const missedBanner = missedEvalCount>0
-      ? `<div style="background:#fff7ed;border:1.5px solid #f97316;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="switchPvTab('wedstrijden',document.querySelector('.player-view-tab:nth-child(3)'))">
+      ? `<div style="background:#fff7ed;border:1.5px solid #f97316;border-radius:10px;padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;cursor:pointer" onclick="switchPvTab('wedstrijden',document.querySelector('.player-view-tab:nth-child(4)'))">
           <div style="font-size:20px">⚠️</div>
           <div>
             <div style="font-size:13px;font-weight:700;color:#c2410c">Je hebt ${missedEvalCount} wedstrijd${missedEvalCount===1?'evaluatie':'evaluaties'} niet ingevuld</div>
