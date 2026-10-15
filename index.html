@@ -2482,11 +2482,9 @@ function assignP(pid, mid, team) {
 function renderBeheerMatchList(data) {
   const el=$('beheer-match-list');if(!el)return;
   if(!data.length){el.innerHTML='<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden — voeg er een toe hierboven</div>';return;}
-  el.innerHTML=data.map(w=>{
+  const TODAY2=new Date().toISOString().slice(0,10);
+  function renderAdminCard(w){
     const bSpelers=w.blauw_spelers||[], gSpelers=w.geel_spelers||[];
-    const allInMatch=[...new Set([...bSpelers,...gSpelers])];
-    const playerOpts=PLAYERS.map(p=>'<option value="'+p.id+'"'+(w.man_of_match===p.id?' selected':'')+'>'+p.voornaam+' '+p.naam+'</option>').join('');
-    const wlOpts=PLAYERS.map(p=>'<option value="'+p.id+'"'+(w.weak_link===p.id?' selected':'')+'>'+p.voornaam+' '+p.naam+'</option>').join('');
     return `<div class="match-card" id="bmc-${w.id}">
       <div class="match-head" onclick="toggleBMatch(${w.id})">
         <span class="match-datum">${fmtDate(w.datum)}</span>
@@ -2495,7 +2493,6 @@ function renderBeheerMatchList(data) {
         <span class="match-chevron" id="bchev-${w.id}">▼</span>
       </div>
       <div class="match-body" id="bmb-${w.id}">
-        <!-- Score -->
         <div class="match-teams">
           <div class="match-team">
             <div class="match-team-label"><span class="match-team-dot" style="background:#3b82f6"></span>Ploeg Blauw</div>
@@ -2508,14 +2505,12 @@ function renderBeheerMatchList(data) {
             <textarea class="match-notes" id="bmn-geel-${w.id}" placeholder="Notities...">${w.geel_notities||''}</textarea>
           </div>
         </div>
-        <!-- Lineup -->
         <div class="lineup-section" id="lineup-section-${w.id}">
-          ${w.datum && w.datum < TODAY
+          ${w.datum && w.datum < TODAY2
             ? mkLockedLineup(bSpelers, gSpelers, w.id)
             : '<div class="lineup-section-title">Opstelling — klik Blauw of Geel per speler</div>'+mkLineupList(PLAYERS, bSpelers, gSpelers, w.id)
           }
         </div>
-        <!-- Actions -->
         <div class="match-save-row">
           <button class="btn-red" onclick="deleteBWedstrijd(${w.id})">Verwijder</button>
           <button class="btn-grey" onclick="bekijkEvaluaties(${w.id})">📊 Evaluaties</button>
@@ -2524,7 +2519,21 @@ function renderBeheerMatchList(data) {
         <div id="eval-overzicht-${w.id}" style="display:none;padding:14px 16px;border-top:1px solid var(--border);background:#f8fafc"></div>
       </div>
     </div>`;
-  }).join('');
+  }
+  const upcoming=data.filter(w=>!w.datum||w.datum>=TODAY2);
+  const past=data.filter(w=>w.datum&&w.datum<TODAY2);
+  let html=upcoming.map(renderAdminCard).join('');
+  if(past.length>0){
+    html+='<div style="margin-top:12px">'+
+      '<div onclick="var c=this.nextElementSibling;var open=c.style.display!==\'none\';c.style.display=open?\'none\':\'block\';this.querySelector(\'.afg-chev\').textContent=open?\'▼\':\'▲\'" '+
+      'style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;background:#f1f5f9;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;color:#475569;user-select:none">'+
+        '<span>Afgelopen wedstrijden ('+past.length+')</span>'+
+        '<span class="afg-chev">▼</span>'+
+      '</div>'+
+      '<div style="display:none">'+past.map(renderAdminCard).join('')+'</div>'+
+    '</div>';
+  }
+  el.innerHTML=html||'<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden — voeg er een toe hierboven</div>';
 }
 
 function toggleBMatch(id) {
