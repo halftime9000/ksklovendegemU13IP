@@ -1894,9 +1894,28 @@ async function renderHomePage(){
     }
   }
   // ── Hero card ──
+  // Zoek vandaag-match waar speler in staat (uit wedstrijdenData, niet alleen todayMatches)
+  const allToday=(wedstrijdenData||[]).filter(w=>w.datum===TODAY2);
+  const todayInSquad=allToday.find(w=>(w.blauw_spelers||[]).map(Number).includes(uid)||(w.geel_spelers||[]).map(Number).includes(uid));
   if(heroEl){
     if(!squadPast.length){
-      heroEl.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:13px;padding:24px">Nog geen wedstrijden gespeeld.</div>';
+      if(todayInSquad){
+        // Vandaag match, speler in squad, nog geen verleden wedstrijden
+        const tw=todayInSquad;
+        const tInBlauw=(tw.blauw_spelers||[]).map(Number).includes(uid);
+        const tEvalDone=evalledIds.has(tw.id);
+        const tTeamLabel=tInBlauw?'Ploeg Blauw':'Ploeg Geel';
+        const tTeamBg=tInBlauw?'#1d4ed8':'#ca8a04';
+        const tCtaHtml=tEvalDone
+          ?`<div style="display:flex;align-items:center;gap:8px;background:rgba(21,128,61,.25);border:1px solid #4ade80;border-radius:10px;padding:10px 12px"><span style="font-size:18px">✅</span><span style="font-size:13px;font-weight:700;color:#4ade80">Evaluatie ingevuld</span></div>`
+          :`<button onclick="openEvalFromHero(${tw.id})" style="width:100%;background:#E0D040;color:#0a1628;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">✏️ Vul je evaluatie nu in</button>`;
+        heroEl.innerHTML=`<div style="border-radius:14px;overflow:hidden;background:#0a1628;color:#fff;box-shadow:0 4px 20px rgba(10,22,40,.35)"><div style="background:${tTeamBg};padding:8px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">⚠️ Evaluatie open</span><span style="font-size:11px;font-weight:700;opacity:.9">${tTeamLabel}</span></div><div style="padding:14px 16px 6px"><div style="font-size:16px;font-weight:700;color:#e2e8f0">vs ${tw.tegenstander}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">${fmtDate(tw.datum)} · ${tw.thuis_uit||'thuis'}</div></div><div style="padding:6px 16px 16px">${tCtaHtml}</div></div>`;
+      } else if(allToday.length){
+        // Match vandaag maar speler niet in squad
+        heroEl.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:13px;padding:24px">Opstelling voor vandaag nog niet bekend.</div>';
+      } else {
+        heroEl.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:13px;padding:24px">Nog geen wedstrijden gespeeld.</div>';
+      }
     } else {
       const target=squadPast.find(w=>!evalledIds.has(w.id))||squadPast[0];
       const allDone=evalledIds.has(target.id);
