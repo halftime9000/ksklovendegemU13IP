@@ -1336,7 +1336,7 @@ function syncTeamStats(){
   const stats={blauw:{w:0,d:0,l:0},geel:{w:0,d:0,l:0}};
   const TODAY2=new Date().toISOString().slice(0,10);
   data.forEach(w=>{
-    if(!w.datum||w.datum>=TODAY2) return; // only past matches
+    if(!w.datum||w.datum>TODAY2) return; // only past matches (today counts as played)
     ['blauw','geel'].forEach(team=>{
       const raw=w[team+'_score'];
       if(!raw||!raw.includes('-')) return;
@@ -2145,7 +2145,7 @@ async function loadPlayerView(){
     let missedEvalCount=0;
     try {
       const uid=Number(userSpelerId);
-      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY);
+      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<=TODAY);
       const pastMatchesInSquad=pastMatches.filter(w=>{
         const b=(w.blauw_spelers||[]).map(Number);
         const g=(w.geel_spelers||[]).map(Number);
@@ -2306,7 +2306,7 @@ async function renderPvMatchListIn(containerId, overrideSpelerId) {
     const inBlauw=(w.blauw_spelers||[]).map(Number).includes(Number(uid));
     const inGeel=(w.geel_spelers||[]).map(Number).includes(Number(uid));
     const inLineup=inBlauw||inGeel;
-    const isPast=w.datum&&w.datum<TODAY2;
+    const isPast=w.datum&&w.datum<=TODAY2;
     const evalFilled=evalledIds.has(w.id);
     // Left border color: green=filled, red=missing, none=future or not in squad
     let borderStyle='';
@@ -2357,8 +2357,8 @@ async function renderPvMatchListIn(containerId, overrideSpelerId) {
       '</div>'+
     '</div>';
   }
-  const upcoming=wedstrijdenData.filter(w=>!w.datum||w.datum>=TODAY2).sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
-  const past=wedstrijdenData.filter(w=>w.datum&&w.datum<TODAY2);
+  const upcoming=wedstrijdenData.filter(w=>!w.datum||w.datum>TODAY2).sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
+  const past=wedstrijdenData.filter(w=>w.datum&&w.datum<=TODAY2);
   let html=upcoming.map(renderMatchCard).join('');
   if(past.length>0){
     html+='<div style="margin-top:12px">'+
@@ -2506,7 +2506,7 @@ function renderBeheerMatchList(data) {
           </div>
         </div>
         <div class="lineup-section" id="lineup-section-${w.id}">
-          ${w.datum && w.datum < TODAY2
+          ${w.datum && w.datum <= TODAY2
             ? mkLockedLineup(bSpelers, gSpelers, w.id)
             : '<div class="lineup-section-title">Opstelling — klik Blauw of Geel per speler</div>'+mkLineupList(PLAYERS, bSpelers, gSpelers, w.id)
           }
@@ -2520,8 +2520,8 @@ function renderBeheerMatchList(data) {
       </div>
     </div>`;
   }
-  const upcoming=data.filter(w=>!w.datum||w.datum>=TODAY2).sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
-  const past=data.filter(w=>w.datum&&w.datum<TODAY2);
+  const upcoming=data.filter(w=>!w.datum||w.datum>TODAY2).sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
+  const past=data.filter(w=>w.datum&&w.datum<=TODAY2);
   let html=upcoming.map(renderAdminCard).join('');
   if(past.length>0){
     html+='<div style="margin-top:12px">'+
