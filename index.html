@@ -1860,43 +1860,26 @@ async function renderHomePage(){
     const {data:evs}=await sbGet('match_evaluaties','beoordelaar=eq.'+uid+'&select=match_id');
     (evs||[]).forEach(e=>evalledIds.add(e.match_id));
   }catch(e){}
-  // ── Vandaag-bar ──
+  // ── Vandaag-bar + Hero card: gecombineerde logica ──
+  const allToday=(wedstrijdenData||[]).filter(w=>w.datum===TODAY2);
+  const todayInSquad=allToday.find(w=>(w.blauw_spelers||[]).map(Number).includes(uid)||(w.geel_spelers||[]).map(Number).includes(uid));
+  // Top bar: alleen tonen als er een match is maar speler NIET in squad
   if(todayEl){
-    if(todayMatches.length){
-      const w=todayMatches[0];
-      const inBlauw=(w.blauw_spelers||[]).map(Number).includes(uid);
-      const inGeel=(w.geel_spelers||[]).map(Number).includes(uid);
-      const inLineup=inBlauw||inGeel;
-      const evalDone=evalledIds.has(w.id);
-      const teamLabel=inBlauw?'Ploeg Blauw':inGeel?'Ploeg Geel':'Opstelling volgt';
-      const teamColor=inBlauw?'#3b82f6':inGeel?'#eab308':'#64748b';
-      const ctaHtml=inLineup
-        ?(evalDone
-          ?'<div style="font-size:18px">✅</div>'
-          :'<div style="background:#E0D040;color:#0a1628;font-size:11px;font-weight:800;padding:6px 12px;border-radius:8px;white-space:nowrap">✏️ Evaluatie</div>'
-        )
-        :'<div style="font-size:11px;color:#64748b;font-style:italic">Opstelling volgt</div>';
-      const clickAttr=inLineup?`onclick="openEvalFromHero(${w.id})" style="cursor:pointer"`:'style="cursor:default"';
-      todayEl.innerHTML=`<div ${clickAttr} style="background:#0a1628;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 4px 20px rgba(10,22,40,.4)">
-        <div style="display:flex;align-items:center;gap:14px">
-          <div style="width:13px;height:13px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.3);flex-shrink:0;animation:pulse 1.5s infinite"></div>
-          <div>
-            <div style="font-size:11px;font-weight:800;color:#E0D040;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px">🟢 Vandaag</div>
-            <div style="font-size:18px;font-weight:800;color:#fff;line-height:1.2">vs ${w.tegenstander}</div>
-            <div style="font-size:12px;color:#94a3b8;margin-top:3px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${teamColor};margin-right:5px;vertical-align:middle"></span>${teamLabel} · ${w.thuis_uit||'thuis'}</div>
-          </div>
+    if(allToday.length&&!todayInSquad){
+      const w=allToday[0];
+      todayEl.innerHTML=`<div style="background:#0a1628;border-radius:16px;padding:18px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 20px rgba(10,22,40,.4)">
+        <div style="width:13px;height:13px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.3);flex-shrink:0;animation:pulse 1.5s infinite"></div>
+        <div>
+          <div style="font-size:11px;font-weight:800;color:#E0D040;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px">🟢 Vandaag</div>
+          <div style="font-size:18px;font-weight:800;color:#fff;line-height:1.2">vs ${w.tegenstander}</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:3px">${w.thuis_uit||'thuis'} · Opstelling volgt</div>
         </div>
-        <div style="text-align:right;flex-shrink:0">${ctaHtml}</div>
       </div>
       <style>@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(34,197,94,.3)}50%{box-shadow:0 0 0 8px rgba(34,197,94,.1)}}</style>`;
     } else {
       todayEl.innerHTML='';
     }
   }
-  // ── Hero card ──
-  // Zoek vandaag-match waar speler in staat (uit wedstrijdenData, niet alleen todayMatches)
-  const allToday=(wedstrijdenData||[]).filter(w=>w.datum===TODAY2);
-  const todayInSquad=allToday.find(w=>(w.blauw_spelers||[]).map(Number).includes(uid)||(w.geel_spelers||[]).map(Number).includes(uid));
   if(heroEl){
     if(!squadPast.length){
       if(todayInSquad){
@@ -1909,7 +1892,7 @@ async function renderHomePage(){
         const tCtaHtml=tEvalDone
           ?`<div style="display:flex;align-items:center;gap:8px;background:rgba(21,128,61,.25);border:1px solid #4ade80;border-radius:10px;padding:10px 12px"><span style="font-size:18px">✅</span><span style="font-size:13px;font-weight:700;color:#4ade80">Evaluatie ingevuld</span></div>`
           :`<button onclick="openEvalFromHero(${tw.id})" style="width:100%;background:#E0D040;color:#0a1628;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">✏️ Vul je evaluatie nu in</button>`;
-        heroEl.innerHTML=`<div style="border-radius:14px;overflow:hidden;background:#0a1628;color:#fff;box-shadow:0 4px 20px rgba(10,22,40,.35)"><div style="background:${tTeamBg};padding:8px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">⚠️ Evaluatie open</span><span style="font-size:11px;font-weight:700;opacity:.9">${tTeamLabel}</span></div><div style="padding:14px 16px 6px"><div style="font-size:16px;font-weight:700;color:#e2e8f0">vs ${tw.tegenstander}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">${fmtDate(tw.datum)} · ${tw.thuis_uit||'thuis'}</div></div><div style="padding:6px 16px 16px">${tCtaHtml}</div></div>`;
+        heroEl.innerHTML=`<div style="border-radius:14px;overflow:hidden;background:#0a1628;color:#fff;box-shadow:0 4px 20px rgba(10,22,40,.35)"><div style="background:${tTeamBg};padding:8px 14px;display:flex;justify-content:space-between;align-items:center"><span style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;opacity:.9">🟢 Vandaag${tEvalDone?'':' · ⚠️ Evaluatie open'}</span><span style="font-size:11px;font-weight:700;opacity:.9">${tTeamLabel}</span></div><div style="padding:14px 16px 6px"><div style="font-size:16px;font-weight:700;color:#e2e8f0">vs ${tw.tegenstander}</div><div style="font-size:11px;color:#94a3b8;margin-top:2px">${fmtDate(tw.datum)} · ${tw.thuis_uit||'thuis'}</div></div><div style="padding:6px 16px 16px">${tCtaHtml}</div></div>`;
       } else if(allToday.length){
         // Match vandaag maar speler niet in squad
         heroEl.innerHTML='<div style="text-align:center;color:#94a3b8;font-size:13px;padding:24px">Opstelling voor vandaag nog niet bekend.</div>';
