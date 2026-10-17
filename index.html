@@ -1410,7 +1410,7 @@ async function loadBeheerHomeWidget() {
   const evalPct=squadTotal>0?Math.round(evalCount/squadTotal*100):0;
   const evalBarColor=evalCount===squadTotal&&squadTotal>0?'#22c55e':evalPct>50?'#f59e0b':'#ef4444';
   el.innerHTML=`
-    <div onclick="switchBeheerTab('wedstrijden',document.querySelector('.beheer-tab[data-tab=wedstrijden]'))" style="cursor:pointer;background:${isToday?'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)':'linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)'};border:1px solid ${isToday?'#bbf7d0':'#bfdbfe'};border-left:4px solid ${isToday?'#16a34a':'#203060'};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;transition:opacity .15s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
+    <div onclick="openBeheerEvalWidget(${w.id})" style="cursor:pointer;background:${isToday?'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)':'linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)'};border:1px solid ${isToday?'#bbf7d0':'#bfdbfe'};border-left:4px solid ${isToday?'#16a34a':'#203060'};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;transition:opacity .15s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
       <div style="flex:1;min-width:0">
         <div style="font-size:10px;font-weight:800;color:${isToday?'#15803d':'#1e40af'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${labelText}</div>
         <div style="font-size:16px;font-weight:800;color:#0a1628;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${w.tegenstander||'?'}</div>
@@ -2651,6 +2651,29 @@ function renderBeheerMatchList(data) {
     '</div>';
   }
   el.innerHTML=html||'<div style="font-size:12px;color:#94a3b8;text-align:center;padding:20px">Nog geen wedstrijden — voeg er een toe hierboven</div>';
+  if(_pendingBeheerEvalMid){const mid=_pendingBeheerEvalMid;_pendingBeheerEvalMid=null;setTimeout(()=>_execBeheerEval(mid),80);}
+}
+
+function _execBeheerEval(mid){
+  // expand afgelopen accordion if match is inside it
+  const bmc=$('bmc-'+mid);
+  if(bmc){
+    let p=bmc.parentElement;
+    while(p&&p.id!=='beheer-match-list'){
+      if(p.style.display==='none'){
+        p.style.display='block';
+        const chev=p.previousElementSibling?.querySelector('.afg-chev');
+        if(chev)chev.textContent='▲';
+      }
+      p=p.parentElement;
+    }
+    // open the match card
+    const mb=$('bmb-'+mid);
+    if(mb&&!mb.classList.contains('open'))toggleBMatch(mid);
+    setTimeout(()=>{bmc.scrollIntoView({behavior:'smooth',block:'start'});setTimeout(()=>bekijkEvaluaties(mid),150);},60);
+  } else {
+    bekijkEvaluaties(mid);
+  }
 }
 
 function toggleBMatch(id) {
