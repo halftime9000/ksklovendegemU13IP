@@ -1405,16 +1405,16 @@ async function loadBeheerHomeWidget() {
   const evalPct=squadTotal>0?Math.round(evalCount/squadTotal*100):0;
   const evalBarColor=evalCount===squadTotal&&squadTotal>0?'#22c55e':evalPct>50?'#f59e0b':'#ef4444';
   el.innerHTML=`
-    <div style="background:#0a1628;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+    <div style="background:#fff;border:1px solid #e2e8f0;border-left:4px solid #203060;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:10px;font-weight:800;color:${labelColor};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${labelText}</div>
-        <div style="font-size:16px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${w.tegenstander||'?'}</div>
-        <div style="font-size:11px;color:#94a3b8;margin-top:1px">${w.datum?fmtDate(w.datum):'datum onbekend'} · ${w.thuis_uit||'thuis'}</div>
+        <div style="font-size:10px;font-weight:800;color:${isToday?'#16a34a':'#203060'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${labelText}</div>
+        <div style="font-size:16px;font-weight:800;color:#0a1628;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${w.tegenstander||'?'}</div>
+        <div style="font-size:11px;color:#64748b;margin-top:1px">${w.datum?fmtDate(w.datum):'datum onbekend'} · ${w.thuis_uit||'thuis'}</div>
       </div>
       <div style="flex-shrink:0;text-align:right">
-        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Evaluaties</div>
-        <div style="font-size:18px;font-weight:800;color:#fff">${evalCount}${squadTotal>0?`<span style="font-size:12px;font-weight:600;color:#94a3b8"> / ${squadTotal}</span>`:``}</div>
-        ${squadTotal>0?`<div style="width:72px;height:5px;background:#1e3a5f;border-radius:3px;margin-top:4px;overflow:hidden">
+        <div style="font-size:10px;font-weight:600;color:#64748b;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Evaluaties</div>
+        <div style="font-size:20px;font-weight:800;color:#203060">${evalCount}${squadTotal>0?`<span style="font-size:12px;font-weight:600;color:#94a3b8"> / ${squadTotal}</span>`:``}</div>
+        ${squadTotal>0?`<div style="width:72px;height:4px;background:#e2e8f0;border-radius:3px;margin-top:4px;overflow:hidden">
           <div style="width:${evalPct}%;height:100%;background:${evalBarColor};border-radius:3px;transition:width .4s"></div>
         </div>`:``}
       </div>
