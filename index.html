@@ -1843,8 +1843,8 @@ async function renderHomePage(){
   const counterEl=$('pv-home-counter');
   if(!uid){if(todayEl)todayEl.innerHTML='';if(heroEl)heroEl.innerHTML='';if(counterEl)counterEl.innerHTML='';return;}
   const TODAY2=new Date().toISOString().slice(0,10);
-  // Vandaag-matches waar speler in staat
-  const todayMatches=(wedstrijdenData||[]).filter(w=>w.datum===TODAY2&&((w.blauw_spelers||[]).map(Number).includes(uid)||(w.geel_spelers||[]).map(Number).includes(uid)));
+  // Vandaag-matches (alle, ongeacht opstelling)
+  const todayMatches=(wedstrijdenData||[]).filter(w=>w.datum===TODAY2);
   // Echte afgelopen (strikt voor vandaag)
   const squadPast=(wedstrijdenData||[])
     .filter(w=>w.datum&&w.datum<TODAY2)
@@ -1865,24 +1865,30 @@ async function renderHomePage(){
     if(todayMatches.length){
       const w=todayMatches[0];
       const inBlauw=(w.blauw_spelers||[]).map(Number).includes(uid);
+      const inGeel=(w.geel_spelers||[]).map(Number).includes(uid);
+      const inLineup=inBlauw||inGeel;
       const evalDone=evalledIds.has(w.id);
-      const teamLabel=inBlauw?'Ploeg Blauw':'Ploeg Geel';
-      const teamColor=inBlauw?'#3b82f6':'#eab308';
-      todayEl.innerHTML=`<div onclick="openEvalFromHero(${w.id})" style="background:#0a1628;border-radius:14px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px;cursor:pointer;box-shadow:0 2px 12px rgba(10,22,40,.3)">
-        <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:10px;height:10px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 3px rgba(34,197,94,.3);flex-shrink:0;animation:pulse 1.5s infinite"></div>
-          <div>
-            <div style="font-size:11px;font-weight:800;color:#E0D040;letter-spacing:.08em;text-transform:uppercase">Vandaag</div>
-            <div style="font-size:14px;font-weight:700;color:#fff">vs ${w.tegenstander}</div>
-            <div style="font-size:11px;color:#94a3b8;margin-top:1px"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${teamColor};margin-right:4px;vertical-align:middle"></span>${teamLabel} · ${w.thuis_uit||'thuis'}</div>
-          </div>
-        </div>
-        <div style="text-align:right;flex-shrink:0">${evalDone
+      const teamLabel=inBlauw?'Ploeg Blauw':inGeel?'Ploeg Geel':'Opstelling volgt';
+      const teamColor=inBlauw?'#3b82f6':inGeel?'#eab308':'#64748b';
+      const ctaHtml=inLineup
+        ?(evalDone
           ?'<div style="font-size:18px">✅</div>'
           :'<div style="background:#E0D040;color:#0a1628;font-size:11px;font-weight:800;padding:6px 12px;border-radius:8px;white-space:nowrap">✏️ Evaluatie</div>'
-        }</div>
+        )
+        :'<div style="font-size:11px;color:#64748b;font-style:italic">Opstelling volgt</div>';
+      const clickAttr=inLineup?`onclick="openEvalFromHero(${w.id})" style="cursor:pointer"`:'style="cursor:default"';
+      todayEl.innerHTML=`<div ${clickAttr} style="background:#0a1628;border-radius:16px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 4px 20px rgba(10,22,40,.4)">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:13px;height:13px;border-radius:50%;background:#22c55e;box-shadow:0 0 0 4px rgba(34,197,94,.3);flex-shrink:0;animation:pulse 1.5s infinite"></div>
+          <div>
+            <div style="font-size:11px;font-weight:800;color:#E0D040;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px">🟢 Vandaag</div>
+            <div style="font-size:18px;font-weight:800;color:#fff;line-height:1.2">vs ${w.tegenstander}</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:3px"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${teamColor};margin-right:5px;vertical-align:middle"></span>${teamLabel} · ${w.thuis_uit||'thuis'}</div>
+          </div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">${ctaHtml}</div>
       </div>
-      <style>@keyframes pulse{0%,100%{box-shadow:0 0 0 3px rgba(34,197,94,.3)}50%{box-shadow:0 0 0 6px rgba(34,197,94,.1)}}</style>`;
+      <style>@keyframes pulse{0%,100%{box-shadow:0 0 0 4px rgba(34,197,94,.3)}50%{box-shadow:0 0 0 8px rgba(34,197,94,.1)}}</style>`;
     } else {
       todayEl.innerHTML='';
     }
@@ -2561,9 +2567,17 @@ function renderBeheerMatchList(data) {
       </div>
     </div>`;
   }
+  const todayListB=data.filter(w=>w.datum===TODAY2);
   const upcoming=data.filter(w=>!w.datum||w.datum>TODAY2).sort((a,b)=>(a.datum||'').localeCompare(b.datum||''));
-  const past=data.filter(w=>w.datum&&w.datum<=TODAY2);
-  let html=upcoming.map(renderAdminCard).join('');
+  const past=data.filter(w=>w.datum&&w.datum<TODAY2);
+  let html='';
+  if(todayListB.length>0){
+    html+='<div style="margin-bottom:12px;background:#fef9c3;border-radius:10px;padding:8px 8px 4px">'+
+      '<div style="font-size:11px;font-weight:800;color:#78350f;letter-spacing:.08em;text-transform:uppercase;padding:0 4px 6px">🟢 Wedstrijd van vandaag</div>'+
+      todayListB.map(renderAdminCard).join('')+
+    '</div>';
+  }
+  html+=upcoming.map(renderAdminCard).join('');
   if(past.length>0){
     html+='<div style="margin-top:12px">'+
       '<div onclick="var c=this.nextElementSibling;var open=c.style.display!==\'none\';c.style.display=open?\'none\':\'block\';this.querySelector(\'.afg-chev\').textContent=open?\'▼\':\'▲\'" '+
