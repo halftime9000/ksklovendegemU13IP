@@ -1430,20 +1430,12 @@ async function loadBeheerHomeWidget() {
 
 function renderBeheerHomeWidget(){loadBeheerHomeWidget();}
 
-async function openBeheerEvalWidget(mid){
+function openBeheerEvalWidget(mid){
   _pendingBeheerEvalMid=mid;
   const tabBtn=document.querySelector('.beheer-tab[data-tab="wedstrijden"]');
   switchBeheerTab('wedstrijden',tabBtn);
-  // switchBeheerTab calls loadBeheerWedstrijden which is async
-  // wait for it to finish so renderBeheerMatchList can pick up the flag
-  await loadBeheerWedstrijden();
-  // renderBeheerMatchList already consumed the flag; if not (e.g. data was cached),
-  // try once more
-  if(_pendingBeheerEvalMid){
-    _pendingBeheerEvalMid=null;
-    setTimeout(()=>_execBeheerEval(mid),80);
-  }
 }
+window.openBeheerEvalWidget=openBeheerEvalWidget;
 
 function openBeheerTab(tab) {
   showFlex('s-beheer');
