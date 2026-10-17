@@ -1447,6 +1447,9 @@ function switchBeheerTab(id,btn){
     b.style.color = isActive ? '#203060' : '#64748b';
     b.style.fontWeight = isActive ? '700' : '600';
   });
+  // Widget only on wedstrijden tab
+  const hw=$('beheer-home-widget');
+  if(hw) hw.style.display = id==='wedstrijden' ? 'block' : 'none';
   if(id==='wedstrijden') loadBeheerWedstrijden();
   else if(id==='spelers') loadBeheerSpelers();
   else if(id==='overzicht') loadBeheerOverzicht();
