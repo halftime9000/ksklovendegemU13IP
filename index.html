@@ -1425,7 +1425,7 @@ window.openBeheerEvalWidget=openBeheerEvalWidget;
 function openBeheerTab(tab) {
   showFlex('s-beheer');
   switchBeheerTab(tab, null);
-  loadBeheerHomeWidget();
+  if(tab==='wedstrijden') loadBeheerHomeWidget();
 }
 
 
