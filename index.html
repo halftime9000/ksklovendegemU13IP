@@ -1809,6 +1809,7 @@ async function deleteWedstrijd(id){if(!confirm('Wedstrijd verwijderen?'))return;
 // PLAYER VIEW
 let _pvProfielLoaded=false;
 let _pendingEvalMid=null;
+let _pendingBeheerEvalMid=null;
 function switchPvTab(tab, btn) {
   document.querySelectorAll('.pv-pane').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.player-view-tab').forEach(b=>b.classList.remove('on'));
