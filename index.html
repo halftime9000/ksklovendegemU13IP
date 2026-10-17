@@ -1385,6 +1385,7 @@ async function loadBeheerHomeWidget() {
     wedstrijdenData=data;
   }
   // Pick today's match OR the most recent past match
+  const TODAY2=new Date().toISOString().slice(0,10);
   const todayMatch=data.find(w=>w.datum===TODAY2);
   const pastMatches=data.filter(w=>w.datum&&w.datum<TODAY2).sort((a,b)=>b.datum.localeCompare(a.datum));
   const w=todayMatch||pastMatches[0];
