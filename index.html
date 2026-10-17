@@ -1368,9 +1368,63 @@ async function loadBeheerWedstrijden() {
   if(error){toast('Fout: '+error.message,true);return;}
   wedstrijdenData=data||[];
   renderBeheerMatchList(data||[]);
+  renderBeheerHomeWidget();
 }
 
-function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toegang',true);return;}hide('s-app');showFlex('s-beheer');loadBeheerSpelers();}
+function openBeheer(){if(userRole!=='admin'&&userRole!=='coach'){toast('Geen toegang',true);return;}hide('s-app');showFlex('s-beheer');loadBeheerSpelers();loadBeheerHomeWidget();}
+
+async function loadBeheerHomeWidget() {
+  const el=document.getElementById('beheer-home-widget');
+  if(!el)return;
+  // If wedstrijdenData not yet loaded, fetch it
+  let data=wedstrijdenData;
+  if(!data||!data.length){
+    const r=await sbGet('wedstrijden','select=*&order=datum.desc');
+    if(r.error||!r.data||!r.data.length){el.style.display='none';return;}
+    data=r.data;
+    wedstrijdenData=data;
+  }
+  // Pick today's match OR the most recent past match
+  const todayMatch=data.find(w=>w.datum===TODAY2);
+  const pastMatches=data.filter(w=>w.datum&&w.datum<TODAY2).sort((a,b)=>b.datum.localeCompare(a.datum));
+  const w=todayMatch||pastMatches[0];
+  if(!w){el.style.display='none';return;}
+  const isToday=w.datum===TODAY2;
+  // Squad size
+  const blauw=(w.blauw_spelers||[]).map(Number);
+  const geel=(w.geel_spelers||[]).map(Number);
+  const squadTotal=blauw.length+geel.length;
+  // Fetch eval count for this match
+  let evalCount=0;
+  if(squadTotal>0){
+    const {data:evs}=await sbGet('match_evaluaties','select=id&wedstrijd_id=eq.'+w.id);
+    evalCount=(evs||[]).length;
+  }
+  // Render
+  const labelColor=isToday?'#16a34a':'#64748b';
+  const labelText=isToday?'🟢 Vandaag':'📅 Laatste wedstrijd';
+  const evalPct=squadTotal>0?Math.round(evalCount/squadTotal*100):0;
+  const evalBarColor=evalCount===squadTotal&&squadTotal>0?'#22c55e':evalPct>50?'#f59e0b':'#ef4444';
+  el.innerHTML=`
+    <div style="background:#0a1628;border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:10px;font-weight:800;color:${labelColor};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${labelText}</div>
+        <div style="font-size:16px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${w.tegenstander||'?'}</div>
+        <div style="font-size:11px;color:#94a3b8;margin-top:1px">${w.datum?fmtDate(w.datum):'datum onbekend'} · ${w.thuis_uit||'thuis'}</div>
+      </div>
+      <div style="flex-shrink:0;text-align:right">
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Evaluaties</div>
+        <div style="font-size:18px;font-weight:800;color:#fff">${evalCount}<span style="font-size:12px;font-weight:600;color:#94a3b8"> / ${squadTotal}</span></div>
+        ${squadTotal>0?`<div style="width:72px;height:5px;background:#1e3a5f;border-radius:3px;margin-top:4px;overflow:hidden">
+          <div style="width:${evalPct}%;height:100%;background:${evalBarColor};border-radius:3px;transition:width .4s"></div>
+        </div>`:``}
+      </div>
+    </div>
+  `;
+  el.style.display='block';
+}
+
+function renderBeheerHomeWidget(){loadBeheerHomeWidget();}
 
 function openBeheerTab(tab) {
   showFlex('s-beheer');
