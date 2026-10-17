@@ -1395,12 +1395,10 @@ async function loadBeheerHomeWidget() {
   const blauw=(w.blauw_spelers||[]).map(Number);
   const geel=(w.geel_spelers||[]).map(Number);
   const squadTotal=blauw.length+geel.length;
-  // Fetch eval count for this match
+  // Fetch eval count for this match (match_id is the FK column)
   let evalCount=0;
-  if(squadTotal>0){
-    const {data:evs}=await sbGet('match_evaluaties','select=id&wedstrijd_id=eq.'+w.id);
-    evalCount=(evs||[]).length;
-  }
+  const {data:evs}=await sbGet('match_evaluaties','select=id&match_id=eq.'+w.id);
+  evalCount=(evs||[]).length;
   // Render
   const labelColor=isToday?'#16a34a':'#64748b';
   const labelText=isToday?'🟢 Vandaag':'📅 Laatste wedstrijd';
@@ -1415,7 +1413,7 @@ async function loadBeheerHomeWidget() {
       </div>
       <div style="flex-shrink:0;text-align:right">
         <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">Evaluaties</div>
-        <div style="font-size:18px;font-weight:800;color:#fff">${evalCount}<span style="font-size:12px;font-weight:600;color:#94a3b8"> / ${squadTotal}</span></div>
+        <div style="font-size:18px;font-weight:800;color:#fff">${evalCount}${squadTotal>0?`<span style="font-size:12px;font-weight:600;color:#94a3b8"> / ${squadTotal}</span>`:``}</div>
         ${squadTotal>0?`<div style="width:72px;height:5px;background:#1e3a5f;border-radius:3px;margin-top:4px;overflow:hidden">
           <div style="width:${evalPct}%;height:100%;background:${evalBarColor};border-radius:3px;transition:width .4s"></div>
         </div>`:``}
