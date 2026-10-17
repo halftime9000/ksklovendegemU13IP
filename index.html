@@ -1410,7 +1410,7 @@ async function loadBeheerHomeWidget() {
   const evalPct=squadTotal>0?Math.round(evalCount/squadTotal*100):0;
   const evalBarColor=evalCount===squadTotal&&squadTotal>0?'#22c55e':evalPct>50?'#f59e0b':'#ef4444';
   el.innerHTML=`
-    <div style="background:${isToday?'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)':'linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)'};border:1px solid ${isToday?'#bbf7d0':'#bfdbfe'};border-left:4px solid ${isToday?'#16a34a':'#203060'};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+    <div onclick="switchBeheerTab('wedstrijden',document.querySelector('.beheer-tab[data-tab=wedstrijden]'))" style="cursor:pointer;background:${isToday?'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)':'linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)'};border:1px solid ${isToday?'#bbf7d0':'#bfdbfe'};border-left:4px solid ${isToday?'#16a34a':'#203060'};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px;transition:opacity .15s" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
       <div style="flex:1;min-width:0">
         <div style="font-size:10px;font-weight:800;color:${isToday?'#15803d':'#1e40af'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${labelText}</div>
         <div style="font-size:16px;font-weight:800;color:#0a1628;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${w.tegenstander||'?'}</div>
