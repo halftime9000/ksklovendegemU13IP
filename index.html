@@ -514,12 +514,6 @@ textarea{resize:vertical;min-height:70px}
 
       <!-- Empty state -->
       <div id="empty-state" class="empty-state">
-        <div id="svm-landing" style="display:none" class="svm-card">
-          <div class="svm-label">🏆 Speler van de Maand</div>
-          <div id="svm-photo-wrap" class="svm-photo-placeholder">⭐</div>
-          <div class="svm-name" id="svm-landing-name">—</div>
-          <div class="svm-avg" id="svm-landing-periode"></div>
-        </div>
         <div style="text-align:center;margin-bottom:4px">
           <div style="font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:.1em;text-transform:uppercase">KSK Lovendegem U13 IP</div>
           <div style="font-size:28px;font-weight:900;color:#0a1628;letter-spacing:-.8px;margin-top:2px">2026–2027</div>
@@ -551,32 +545,38 @@ textarea{resize:vertical;min-height:70px}
 
         <!-- Admin navigation cards -->
         <div id="admin-nav-cards" style="display:none;width:100%;max-width:560px;margin:14px auto 0;padding:0 12px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-            <div onclick="openBeheerTab('spelers')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
+
+          <!-- Wedstrijd vandaag widget -->
+          <div id="admin-home-widget" style="margin-bottom:12px"></div>
+
+          <!-- 3 nav cards -->
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px">
+            <div onclick="openBeheerTab('spelers')" style="background:#203060;border-radius:12px;padding:14px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
               <div style="font-size:22px;margin-bottom:5px">👥</div>
-              <div style="font-size:12px;font-weight:700;color:#e0d040">Spelers & Accounts</div>
+              <div style="font-size:11px;font-weight:700;color:#e0d040;line-height:1.3">Spelers & Accounts</div>
             </div>
-            <div onclick="openBeheerTab('overzicht')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
+            <div onclick="openBeheerTab('overzicht')" style="background:#203060;border-radius:12px;padding:14px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
               <div style="font-size:22px;margin-bottom:5px">📊</div>
-              <div style="font-size:12px;font-weight:700;color:#e0d040">Overzicht</div>
+              <div style="font-size:11px;font-weight:700;color:#e0d040;line-height:1.3">Overzicht</div>
             </div>
-            <div onclick="openBeheerTab('wedstrijden')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
+            <div onclick="openBeheerTab('wedstrijden')" style="background:#203060;border-radius:12px;padding:14px 10px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
               <div style="font-size:22px;margin-bottom:5px">🏟️</div>
-              <div style="font-size:12px;font-weight:700;color:#e0d040">Wedstrijden</div>
-            </div>
-            <div onclick="openBeheerTab('maandprijs')" style="background:#203060;border-radius:12px;padding:14px 12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(32,48,96,.2)">
-              <div style="font-size:22px;margin-bottom:5px">🏆</div>
-              <div style="font-size:12px;font-weight:700;color:#e0d040">Maandprijs</div>
+              <div style="font-size:11px;font-weight:700;color:#e0d040;line-height:1.3">Wedstrijden</div>
             </div>
           </div>
 
-          <!-- Groepsbericht -->
-          <div style="margin-top:12px;background:#fff;border-radius:12px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);border-left:4px solid #203060">
-            <div style="font-size:12px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">📢 Groepsbericht aan heel de ploeg</div>
-            <textarea id="groeps-bericht" rows="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
-            <div style="display:flex;gap:8px;margin-top:8px">
-              <button onclick="stuurGroepsBericht()" id="btn-groeps-verzenden" style="flex:1;background:#203060;color:#fff;border:none;border-radius:8px;padding:9px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📨 Verzenden</button>
-              <button onclick="verwijderGroepsBericht()" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">🗑</button>
+          <!-- Groepsbericht accordion -->
+          <div style="margin-top:12px;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,.08);overflow:hidden">
+            <div onclick="var b=this.nextElementSibling;var o=b.style.display!=='none';b.style.display=o?'none':'block';this.querySelector('.gb-chev').textContent=o?'▼':'▲'" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none;border-left:4px solid #203060">
+              <div style="font-size:12px;font-weight:700;color:#203060;text-transform:uppercase;letter-spacing:.06em">📢 Groepsbericht aan heel de ploeg</div>
+              <span class="gb-chev" style="font-size:11px;color:#94a3b8">▼</span>
+            </div>
+            <div style="display:none;padding:0 12px 12px">
+              <textarea id="groeps-bericht" rows="3" style="width:100%;padding:8px;border:1px solid #e2e8f0;border-radius:8px;font-size:13px;color:#374151;resize:vertical;box-sizing:border-box;line-height:1.5"></textarea>
+              <div style="display:flex;gap:8px;margin-top:8px">
+                <button onclick="stuurGroepsBericht()" id="btn-groeps-verzenden" style="flex:1;background:#203060;color:#fff;border:none;border-radius:8px;padding:9px 10px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">📨 Verzenden</button>
+                <button onclick="verwijderGroepsBericht()" style="background:#fee2e2;color:#dc2626;border:1px solid #fca5a5;border-radius:8px;padding:9px 14px;font-size:13px;font-weight:700;cursor:pointer;flex-shrink:0">🗑</button>
+              </div>
             </div>
           </div>
 
@@ -718,7 +718,6 @@ textarea{resize:vertical;min-height:70px}
     <button class="beheer-tab on" data-tab="spelers" onclick="switchBeheerTab('spelers',this)">👥 Spelers & Accounts</button>
     <button class="beheer-tab" data-tab="overzicht" onclick="switchBeheerTab('overzicht',this)">📊 Overzicht</button>
     <button class="beheer-tab" data-tab="wedstrijden" onclick="switchBeheerTab('wedstrijden',this)">🏟️ Wedstrijden</button>
-    <button class="beheer-tab" data-tab="maandprijs" onclick="switchBeheerTab('maandprijs',this)">🏆 Maandprijs</button>
     <button class="beheer-tab" data-tab="beschikbaarheid" onclick="switchBeheerTab('beschikbaarheid',this)">📅 Beschikbaar</button>
   </div>
   <!-- Beheer home dashboard widget -->
@@ -788,21 +787,6 @@ textarea{resize:vertical;min-height:70px}
       </div>
     </div>
 
-    <!-- Maandprijs -->
-    <div id="bp-maandprijs" class="beheer-pane">
-      <div class="section-card">
-        <div class="section-card-title">Bereken Speler van de Maand</div>
-        <div style="font-size:12px;color:#64748b;margin-bottom:12px">Selecteer de wedstrijden die mee tellen voor de berekening.</div>
-        <div id="svm-wedstrijd-list"></div>
-        <div class="field" style="margin-top:12px"><label>Periode (bv. Oktober 2026)</label><input id="svm-periode" placeholder="Oktober 2026"></div>
-        <div style="display:flex;gap:8px;margin-top:4px">
-          <button class="b-btn" onclick="berekenSvdM()" style="flex:2;background:#203060;color:#e0d040">🏆 Bereken</button>
-          <button class="b-btn" onclick="document.querySelectorAll('.svm-match-cb').forEach(cb=>cb.checked=true)" style="flex:1;background:#f1f5f9;color:#374151;font-size:11px">Alles ✓</button>
-
-</div>
-</div>
-</div>
-</div>
 
   </div><!-- /beheer-scroll -->
 
@@ -1094,6 +1078,7 @@ async function handleLogin() {
       setTimeout(()=>{
         const cards=document.getElementById('admin-nav-cards');
         if(cards) cards.style.display='block';
+        loadAdminHomeWidget();
       },100);
     }
   } catch(e) {
@@ -1118,7 +1103,7 @@ function startDemo() {
   try { const s=localStorage.getItem(LS_KEY); if(s){const p=JSON.parse(s);Object.keys(p).forEach(id=>{if(DB[id])DB[id].data=p[id].data||{};});} } catch(e){}
   hide('s-login'); showFlex('s-app');
   setDisp('demo-badge','inline');
-  renderList(); updateStats(); setTimeout(loadTeamStats,100); setTimeout(loadSvdMLanding,300);
+  renderList(); updateStats(); setTimeout(loadTeamStats,100);
 }
 
 // DATA
@@ -1136,7 +1121,7 @@ async function loadAll() {
   data.slice().sort((a,b)=>(a.naam||'').localeCompare(b.naam||'')).forEach(r=>{
     PLAYERS.push({id:r.id, naam:r.naam||'?', voornaam:r.voornaam||'?'});
   });
-  renderList(); updateStats(); setTimeout(loadSvdMLanding,300);
+  renderList(); updateStats();
   loadWedstrijden(); // syncs WGV stats after fetch
 }
 
@@ -1451,7 +1436,7 @@ function switchBeheerTab(id,btn){
   const bpb=$('bp-beschikbaarheid');
   if(bpb){bpb.style.display=isBeschik?'flex':'none';}
   if(!isBeschik){
-    ['spelers','overzicht','wedstrijden','maandprijs'].forEach(t=>{
+    ['spelers','overzicht','wedstrijden'].forEach(t=>{
       const p=document.getElementById('bp-'+t);
       if(p) p.style.display = t===id ? 'block' : 'none';
     });
@@ -1463,7 +1448,6 @@ function switchBeheerTab(id,btn){
     b.style.fontWeight = isActive ? '700' : '600';
   });
   if(id==='wedstrijden') loadBeheerWedstrijden();
-  else if(id==='maandprijs') loadSvdMAdmin();
   else if(id==='spelers') loadBeheerSpelers();
   else if(id==='overzicht') loadBeheerOverzicht();
 }
@@ -3173,123 +3157,43 @@ async function bekijkEvaluaties(matchId) {
 // ══════════════════════════════════════════════════
 // SPELER VAN DE MAAND
 // ══════════════════════════════════════════════════
-let svdmSelectedId = null;
-let svdmMatchIds   = [];
-
-async function loadSvdMAdmin() {
-  // Load matches for selection checkboxes
-  const {data}=await sbGet('wedstrijden','select=id,datum,tegenstander&order=datum.asc');
-  const el=$('svm-wedstrijd-list');if(!el)return;
+async function loadAdminHomeWidget() {
+  const el=document.getElementById('admin-home-widget');
+  if(!el)return;
+  let data=wedstrijdenData;
   if(!data||!data.length){
-    el.innerHTML='<div style="font-size:12px;color:#94a3b8;padding:8px 0">Geen wedstrijden beschikbaar.</div>';
-    return;
+    const r=await sbGet('wedstrijden','select=*&order=datum.desc');
+    if(r.error||!r.data||!r.data.length){el.innerHTML='';return;}
+    data=r.data;wedstrijdenData=data;
   }
-  el.innerHTML='<div style="font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Selecteer wedstrijden</div>'+
-  data.map(w=>`<label style="display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;cursor:pointer;margin-bottom:4px;background:#f8fafc;border:1px solid #e2e8f0">
-    <input type="checkbox" class="svm-match-cb" value="${w.id}" style="width:16px;height:16px;accent-color:#203060;flex-shrink:0">
-    <span style="font-size:13px;color:#374151;font-weight:500">${fmtDate(w.datum)} — vs ${w.tegenstander}</span>
-  </label>`).join('');
+  const TODAY2=new Date().toISOString().slice(0,10);
+  const todayMatch=data.find(w=>w.datum===TODAY2);
+  const pastMatches=data.filter(w=>w.datum&&w.datum<TODAY2).sort((a,b)=>b.datum.localeCompare(a.datum));
+  const w=todayMatch||pastMatches[0];
+  if(!w){el.innerHTML='';return;}
+  const isToday=w.datum===TODAY2;
+  const blauw=(w.blauw_spelers||[]).map(Number);
+  const geel=(w.geel_spelers||[]).map(Number);
+  const squadTotal=blauw.length+geel.length;
+  const {data:evs}=await sbGet('match_evaluaties','select=id&match_id=eq.'+w.id);
+  const evalCount=(evs||[]).length;
+  const evalPct=squadTotal>0?Math.round(evalCount/squadTotal*100):0;
+  const evalBarColor=evalCount===squadTotal&&squadTotal>0?'#22c55e':evalPct>50?'#f59e0b':'#ef4444';
+  el.innerHTML=`<div onclick="openAdminEvalWidget(${w.id})" style="cursor:pointer;background:${isToday?'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)':'linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)'};border:1px solid ${isToday?'#bbf7d0':'#bfdbfe'};border-left:4px solid ${isToday?'#16a34a':'#203060'};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px" onmouseenter="this.style.opacity='.85'" onmouseleave="this.style.opacity='1'">
+    <div style="flex:1;min-width:0">
+      <div style="font-size:10px;font-weight:800;color:${isToday?'#15803d':'#1e40af'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${isToday?'🟢 Vandaag':'📅 Laatste wedstrijd'}</div>
+      <div style="font-size:16px;font-weight:800;color:#0a1628;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${w.tegenstander||'?'}</div>
+      <div style="font-size:11px;color:#475569;margin-top:1px">${w.datum?fmtDate(w.datum):'datum onbekend'} · ${w.thuis_uit||'thuis'}</div>
+    </div>
+    <div style="flex-shrink:0;text-align:right">
+      <div style="font-size:10px;font-weight:600;color:#475569;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Evaluaties</div>
+      <div style="font-size:20px;font-weight:800;color:${isToday?'#15803d':'#203060'}">${evalCount}${squadTotal>0?`<span style="font-size:12px;font-weight:600;color:#64748b"> / ${squadTotal}</span>`:''}</div>
+      ${squadTotal>0?`<div style="width:72px;height:4px;background:rgba(0,0,0,.1);border-radius:3px;margin-top:4px;overflow:hidden"><div style="width:${evalPct}%;height:100%;background:${evalBarColor};border-radius:3px"></div></div>`:''}
+    </div>
+  </div>`;
 }
-
-async function berekenSvdM() {
-  const checks=[...document.querySelectorAll('.svm-match-cb:checked')];
-  if(!checks.length){toast('Selecteer minimaal 1 wedstrijd',true);return;}
-  svdmMatchIds=checks.map(cb=>parseInt(cb.value));
-
-  const {data:evals}=await sbGet('match_evaluaties','match_id=in.('+svdmMatchIds.join(',')+')&select=beoordelaar,ratings,eigen_b_plus,eigen_b_min,eigen_trans_bp_bm,eigen_trans_bm_bp');
-  if(!evals||!evals.length){toast('Geen evaluaties gevonden voor deze wedstrijden',true);return;}
-
-  // Calculate average received rating per player
-  const received={}; // {playerId: {total, count}}
-  evals.forEach(ev=>{
-    Object.entries(ev.ratings||{}).forEach(([id,score])=>{
-      const pid=parseInt(id);
-      if(!received[pid])received[pid]={total:0,count:0};
-      received[pid].total+=score;received[pid].count++;
-    });
-  });
-
-  const ranking=Object.entries(received)
-    .map(([id,{total,count}])=>({id:parseInt(id),avg:Math.round(total/count*10)/10}))
-    .sort((a,b)=>b.avg-a.avg);
-
-  svdmSelectedId=ranking[0]?.id||null;
-
-  const el=$('svm-rank-list');if(!el)return;
-  el.innerHTML=ranking.map((r,i)=>{
-    const p=PLAYERS.find(x=>x.id===r.id)||{voornaam:'?',naam:''};
-    return '<div class="rank-row">'+
-      '<div class="rank-nr'+(i===0?' gold':'')+'>'+(i+1)+'</div>'+
-      '<div class="rank-name">'+p.voornaam+' '+p.naam+'</div>'+
-      '<div class="rank-score">'+r.avg+'/10</div>'+
-    '</div>';
-  }).join('');
-
-  $('svm-ranking').style.display='block';
-  toast('Berekening klaar — #1 is '+(PLAYERS.find(x=>x.id===svdmSelectedId)?.voornaam||'?'));
-}
-
-async function saveSvdM() {
-  if(!svdmSelectedId){toast('Geen winnaar berekend',true);return;}
-  const periode=$('svm-periode')?.value.trim();
-  if(!periode){toast('Vul een periodenaam in',true);return;}
-
-  let foto_url='';
-  const fotoFile=$('svm-foto')?.files[0];
-  if(fotoFile){
-    try { foto_url=await uploadFoto(fotoFile); }
-    catch(e){ toast('Foto upload mislukt: '+e.message,true);return; }
-  }
-
-  const {error}=await sbInsert('speler_vd_maand',{
-    speler_id:svdmSelectedId, periode, foto_url,
-    wedstrijd_ids:svdmMatchIds,
-    gemiddelde:0
-  });
-  if(error){toast('Fout: '+error.message,true);return;}
-  toast('🏆 Speler van de Maand opgeslagen!');
-  loadSvdMHuidig();
-  loadSvdMLanding();
-}
-
-async function uploadFoto(file) {
-  const ext=file.name.split('.').pop();
-  const fname='svm_'+Date.now()+'.'+ext;
-  const r=await fetch(SUPABASE_URL+'/storage/v1/object/fotos/'+fname,{
-    method:'POST',
-    headers:{'apikey':SUPABASE_ANON_KEY,'Authorization':'Bearer '+SB_TOKEN,'Content-Type':file.type},
-    body:file
-  });
-  if(!r.ok){const e=await r.json();throw new Error(e.message||'Upload fout');}
-  return SUPABASE_URL+'/storage/v1/object/public/fotos/'+fname;
-}
-
-async function loadSvdMHuidig() {
-  const {data}=await sbGetOne('speler_vd_maand','select=*&order=id.desc');
-  const el=$('svm-huidig');const cont=$('svm-huidig-content');
-  if(!data||!el||!cont)return;
-  el.style.display='block';
-  const p=PLAYERS.find(x=>x.id===data.speler_id)||{voornaam:'?',naam:''};
-  cont.innerHTML='<div style="display:flex;align-items:center;gap:12px">'+
-    (data.foto_url?'<img src="'+data.foto_url+'" style="width:50px;height:50px;border-radius:50%;object-fit:cover">':'<div style="width:50px;height:50px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:20px">⭐</div>')+
-    '<div><div style="font-size:14px;font-weight:700">'+p.voornaam+' '+p.naam+'</div>'+
-    '<div style="font-size:12px;color:#64748b">'+data.periode+'</div></div></div>';
-}
-
-async function loadSvdMLanding() {
-  const {data}=await sbGetOne('speler_vd_maand','select=*&order=id.desc');
-  const el=$('svm-landing');if(!el)return;
-  if(!data){el.style.display='none';return;}
-  el.style.display='block';
-  const p=PLAYERS.find(x=>x.id===data.speler_id)||{voornaam:'?',naam:''};
-  $('svm-landing-name').textContent=p.voornaam+' '+p.naam;
-  $('svm-landing-periode').textContent=data.periode;
-  const wrap=$('svm-photo-wrap');
-  if(wrap){
-    if(data.foto_url){wrap.outerHTML='<img class="svm-photo" id="svm-photo-wrap" src="'+data.foto_url+'" alt="'+p.voornaam+'">';}
-    else{wrap.innerHTML='⭐';}
-  }
-}
+function openAdminEvalWidget(mid){_pendingBeheerEvalMid=mid;openBeheerTab('wedstrijden');}
+window.openAdminEvalWidget=openAdminEvalWidget;
 
 
 
