@@ -765,17 +765,22 @@ textarea{resize:vertical;min-height:70px}
 
     <!-- Wedstrijden -->
     <div id="bp-wedstrijden" class="beheer-pane">
-<div class="section-card">
-        <div class="section-card-title">Wedstrijd toevoegen</div>
-        <div class="match-add-grid" style="margin-bottom:10px">
-          <div class="field"><label>Datum</label><input type="date" id="w-datum"></div>
-          <div class="field"><label>Tegenstander</label><input id="w-teg" placeholder="Tegenstander"></div>
-          <div class="field"><label>Thuis/Uit</label>
-            <select id="w-tu"><option value="thuis">Thuis</option><option value="uit">Uit</option></select>
-          </div>
-          <div class="field"><label>Seizoen</label><input id="w-seizoen" value="2026-27"></div>
+<div class="section-card" style="padding:0;overflow:hidden">
+        <div onclick="var b=this.nextElementSibling;var open=b.style.display!=='none';b.style.display=open?'none':'block';this.querySelector('.w-chev').textContent=open?'▼':'▲'" style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;user-select:none">
+          <div style="font-size:13px;font-weight:700;color:#0a1628">+ Wedstrijd toevoegen</div>
+          <span class="w-chev" style="font-size:11px;color:#94a3b8">▼</span>
         </div>
-        <button class="b-btn" onclick="addWedstrijd()">+ Wedstrijd toevoegen</button>
+        <div style="display:none;padding:0 16px 16px">
+          <div class="match-add-grid" style="margin-bottom:10px">
+            <div class="field"><label>Datum</label><input type="date" id="w-datum"></div>
+            <div class="field"><label>Tegenstander</label><input id="w-teg" placeholder="Tegenstander"></div>
+            <div class="field"><label>Thuis/Uit</label>
+              <select id="w-tu"><option value="thuis">Thuis</option><option value="uit">Uit</option></select>
+            </div>
+            <div class="field"><label>Seizoen</label><input id="w-seizoen" value="2026-27"></div>
+          </div>
+          <button class="b-btn" onclick="addWedstrijd()">Opslaan</button>
+        </div>
       </div>
       <div class="section-card">
         <div class="section-card-title">Wedstrijden</div>
@@ -1405,16 +1410,16 @@ async function loadBeheerHomeWidget() {
   const evalPct=squadTotal>0?Math.round(evalCount/squadTotal*100):0;
   const evalBarColor=evalCount===squadTotal&&squadTotal>0?'#22c55e':evalPct>50?'#f59e0b':'#ef4444';
   el.innerHTML=`
-    <div style="background:#fff;border:1px solid #e2e8f0;border-left:4px solid #203060;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px">
+    <div style="background:${isToday?'linear-gradient(135deg,#f0fdf4 0%,#dcfce7 100%)':'linear-gradient(135deg,#eff6ff 0%,#dbeafe 100%)'};border:1px solid ${isToday?'#bbf7d0':'#bfdbfe'};border-left:4px solid ${isToday?'#16a34a':'#203060'};border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:14px">
       <div style="flex:1;min-width:0">
-        <div style="font-size:10px;font-weight:800;color:${isToday?'#16a34a':'#203060'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${labelText}</div>
+        <div style="font-size:10px;font-weight:800;color:${isToday?'#15803d':'#1e40af'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px">${labelText}</div>
         <div style="font-size:16px;font-weight:800;color:#0a1628;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">vs ${w.tegenstander||'?'}</div>
-        <div style="font-size:11px;color:#64748b;margin-top:1px">${w.datum?fmtDate(w.datum):'datum onbekend'} · ${w.thuis_uit||'thuis'}</div>
+        <div style="font-size:11px;color:#475569;margin-top:1px">${w.datum?fmtDate(w.datum):'datum onbekend'} · ${w.thuis_uit||'thuis'}</div>
       </div>
       <div style="flex-shrink:0;text-align:right">
-        <div style="font-size:10px;font-weight:600;color:#64748b;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Evaluaties</div>
-        <div style="font-size:20px;font-weight:800;color:#203060">${evalCount}${squadTotal>0?`<span style="font-size:12px;font-weight:600;color:#94a3b8"> / ${squadTotal}</span>`:``}</div>
-        ${squadTotal>0?`<div style="width:72px;height:4px;background:#e2e8f0;border-radius:3px;margin-top:4px;overflow:hidden">
+        <div style="font-size:10px;font-weight:600;color:#475569;margin-bottom:3px;text-transform:uppercase;letter-spacing:.05em">Evaluaties</div>
+        <div style="font-size:20px;font-weight:800;color:${isToday?'#15803d':'#203060'}">${evalCount}${squadTotal>0?`<span style="font-size:12px;font-weight:600;color:#64748b"> / ${squadTotal}</span>`:``}</div>
+        ${squadTotal>0?`<div style="width:72px;height:4px;background:rgba(0,0,0,.1);border-radius:3px;margin-top:4px;overflow:hidden">
           <div style="width:${evalPct}%;height:100%;background:${evalBarColor};border-radius:3px;transition:width .4s"></div>
         </div>`:``}
       </div>
