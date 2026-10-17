@@ -679,6 +679,7 @@ textarea{resize:vertical;min-height:70px}
   <!-- Panes -->
   <div style="flex:1;overflow-y:auto">
     <div id="pvp-home" class="pv-pane on" style="padding:16px">
+      <div id="pv-home-today" style="margin-bottom:14px"></div>
       <div id="pv-home-hero" style="margin-bottom:16px"></div>
       <div id="pv-home-counter" style="margin-bottom:12px"></div>
       <div id="pv-home-rank"></div>
@@ -1773,7 +1774,7 @@ async function renderLastMatchHero(){
   const TODAY2=new Date().toISOString().slice(0,10);
   // Past matches where player was in squad, newest first
   const squadPast=(wedstrijdenData||[])
-    .filter(w=>w.datum&&w.datum<TODAY2)
+    .filter(w=>w.datum&&w.datum<=TODAY2)
     .sort((a,b)=>b.datum.localeCompare(a.datum))
     .filter(w=>{
       const b=(w.blauw_spelers||[]).map(Number);
@@ -1837,10 +1838,14 @@ async function renderLastMatchHero(){
 
 async function renderHomePage(){
   const uid=userSpelerId?Number(userSpelerId):null;
+  const todayEl=$('pv-home-today');
   const heroEl=$('pv-home-hero');
   const counterEl=$('pv-home-counter');
-  if(!uid){if(heroEl)heroEl.innerHTML='';if(counterEl)counterEl.innerHTML='';return;}
+  if(!uid){if(todayEl)todayEl.innerHTML='';if(heroEl)heroEl.innerHTML='';if(counterEl)counterEl.innerHTML='';return;}
   const TODAY2=new Date().toISOString().slice(0,10);
+  // Vandaag-matches waar speler in staat
+  const todayMatches=(wedstrijdenData||[]).filter(w=>w.datum===TODAY2&&((w.blauw_spelers||[]).map(Number).includes(uid)||(w.geel_spelers||[]).map(Number).includes(uid)));
+  // Echte afgelopen (strikt voor vandaag)
   const squadPast=(wedstrijdenData||[])
     .filter(w=>w.datum&&w.datum<TODAY2)
     .sort((a,b)=>b.datum.localeCompare(a.datum))
@@ -1913,7 +1918,7 @@ async function renderHomePage(){
           pls.forEach(r=>PLAYERS.push({id:r.id,naam:r.naam||'?',voornaam:r.voornaam||'?'}));
         }
       }
-      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<TODAY2);
+      const pastMatches=(wedstrijdenData||[]).filter(w=>w.datum&&w.datum<=TODAY2);
       const {data:allEvals}=await sbGet('match_evaluaties','select=beoordelaar');
       const evalCountByPlayer={};
       (allEvals||[]).forEach(ev=>{evalCountByPlayer[ev.beoordelaar]=(evalCountByPlayer[ev.beoordelaar]||0)+1;});
@@ -3677,7 +3682,7 @@ async function loadBeheerOverzicht() {
   // ── GEMISTE WEDSTRIJD-EVALUATIES ───────────────────────────────
   {
     const TODAY2=new Date().toISOString().slice(0,10);
-    const pastMatches=(wedstrijden||[]).filter(w=>w.datum&&w.datum<TODAY2);
+    const pastMatches=(wedstrijden||[]).filter(w=>w.datum&&w.datum<=TODAY2);
     const filledByPlayer={};
     (evals||[]).forEach(ev=>{
       if(!filledByPlayer[ev.beoordelaar]) filledByPlayer[ev.beoordelaar]=new Set();
