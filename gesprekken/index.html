@@ -91,6 +91,7 @@ details.acc[open]>summary::after{transform:rotate(180deg)}
 .twee{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .daglabel{grid-column:1/-1;font-weight:800;font-size:14px;color:var(--navy);margin-top:6px;padding-bottom:2px;border-bottom:1px solid var(--rand)}
 .daglabel:first-child{margin-top:0}
+.daginfo{display:block;font-weight:600;font-size:13px;color:var(--zacht);margin-top:1px}
 .dagrij{font-weight:800;font-size:13px;color:var(--navy);background:#EEF2FB;border-radius:8px;padding:5px 8px;margin-top:10px}
 [hidden]{display:none!important}
 .extradag{margin-top:10px;border:1px solid var(--rand);border-radius:10px;padding:10px 12px;background:#F6F8FC}
@@ -159,6 +160,7 @@ const dagKort = d => { const x = new Date(d + "T12:00:00"); return DAGEN[x.getDa
 const tijdVan = (X, i) => uur(slotInfo(X, i).t);
 const tijdVolVan = (X, i) => (tweeDagen(X) ? dagKort(slotInfo(X, i).datum) + " " : "") + tijdVan(X, i);
 const tijd = i => tijdVan(M, i), tijdVol = i => tijdVolVan(M, i);
+const dagInfo = dag => dag === 2 ? M.dag2_info : M.info;
 const coachNaam = (t, slot) => (slotInfo(M, slot ?? 0).namen || [])[t - 1] || "";
 
 async function oudersLaad() {
@@ -185,7 +187,7 @@ function slotKnoppen(eigenSlot) {
     return `<button type="button" class="${cls}"${stijl} ${vrij <= 0 || eigen ? "disabled" : ""} onclick="kiesSlot(${i})"><b>${tijd(i)}</b>${eigen ? "<span>jouw tijdstip</span>" : vrij <= 0 ? "<span>volzet</span>" : ""}</button>`;
   };
   if (!tweeDagen(M)) return Array.from({ length: M.slots }, (_, i) => knop(i)).join("");
-  return [slotInfo(M, 0), slotInfo(M, M.slots - 1)].map(d => `<div class="daglabel">${esc(hoofd(datumTekst(d.datum)))} <span class="klein">· ${d.duur} min</span></div>${Array.from({ length: d.n }, (_, k) => knop(d.i0 + k)).join("")}`).join("");
+  return [slotInfo(M, 0), slotInfo(M, M.slots - 1)].map(d => `<div class="daglabel">${esc(hoofd(datumTekst(d.datum)))} <span class="klein">· ${d.duur} min</span>${dagInfo(d.dag) ? `<span class="daginfo">📍 ${esc(dagInfo(d.dag))}</span>` : ""}</div>${Array.from({ length: d.n }, (_, k) => knop(d.i0 + k)).join("")}`).join("");
 }
 function kiesSlot(i) { keuze.slot = i; document.querySelectorAll(".slots").forEach(el => el.innerHTML = slotKnoppen(el.dataset.eigen === "" ? null : Number(el.dataset.eigen))); knopStatus(); }
 function knopStatus() { const k = document.getElementById("bevestig"); if (k) k.disabled = !(keuze.slot != null && (keuze.speler || k.dataset.wijzig)); }
@@ -194,7 +196,7 @@ const wijzigTekst = () => M.wijzig_tot ? `Je kan je afspraak zelf wijzigen of an
 function toonFormulier(foutTekst) {
   const opties = M.spelers.map(s => `<option value="${s.id}" ${keuze.speler === s.id ? "selected" : ""} ${s.geboekt ? "disabled" : ""}>${esc(s.naam)}${s.geboekt ? " (al ingepland)" : ""}</option>`).join("");
   app.innerHTML = `
-    ${M.info ? `<p class="info">📍 ${esc(M.info).replace(/\n/g, "<br>")}</p>` : ""}
+    ${!tweeDagen(M) && M.info ? `<p class="info">📍 ${esc(M.info).replace(/\n/g, "<br>")}</p>` : ""}
     <div class="blok"><h2><span class="stap">1</span>Naam van de speler</h2>
       <select id="speler" onchange="keuze.speler=this.value;knopStatus()"><option value="">Kies een speler…</option>${opties}</select>
       <h2 style="margin-top:18px"><span class="stap">2</span>Kies een tijdstip</h2>
@@ -224,6 +226,7 @@ function toonBevestiging(v, melding) {
       <p style="margin:8px 0 0">Afspraak voor <b>${esc(v.naam)}</b></p>
       <div class="tijd">${tijd(v.slot)}</div>
       <p style="margin:2px 0 0">${hoofd(datumTekst(slotInfo(M, v.slot).datum))}${coach ? ` · bij <b>${esc(coach)}</b>` : ""}</p>
+      ${dagInfo(slotInfo(M, v.slot).dag) ? `<p class="klein" style="margin:4px 0 0">📍 ${esc(dagInfo(slotInfo(M, v.slot).dag))}</p>` : ""}
       <div class="knoppen"><button class="knop geel" onclick="agenda()">📅 In mijn agenda</button><button class="knop licht" onclick="deel()">📤 Delen</button></div>
       ${kan ? `<div class="knoppen"><button class="knop licht" onclick="toonWijzig()">Wijzigen</button><button class="knop rood" onclick="annuleer()">Annuleren</button></div>
         <p class="klein" style="margin:8px 0 0">${M.wijzig_tot ? `Wijzigen of annuleren kan tot en met ${datumTekst(M.wijzig_tot)}.` : ""}</p>`
@@ -327,16 +330,15 @@ function toonBeheer() {
       : `<p class="klein">Nog geen datum ingesteld.</p>`}
     </div>
     <details class="acc" ${B.datum ? "" : "open"}><summary>⚙️ Instellingen</summary>
-      ${dagVak(1, { datum: B.datum, start: B.start, duur: B.duur, namen: B.tafel_namen })}
+      ${dagVak(1, { datum: B.datum, start: B.start, duur: B.duur, namen: B.tafel_namen, info: B.info })}
       <input type="checkbox" id="i_dag2" hidden ${tweeDagen(B) ? "checked" : ""}>
       <button type="button" class="knop mini licht" id="i_dag2_plus" style="margin-top:10px" ${tweeDagen(B) ? "hidden" : ""} onclick="extraDag(true)">＋ Nog een dag toevoegen</button>
       <div id="i_dag2_vak" class="extradag" ${tweeDagen(B) ? "" : "hidden"}>
         <div class="rij tussen"><b>Extra dag</b><button type="button" class="knop mini rood" onclick="extraDag(false)">✕ Verwijderen</button></div>
-        ${dagVak(2, { datum: B.dag2_datum, start: B.dag2_start || B.start, duur: B.dag2_duur || B.duur, namen: B.dag2_tafel_namen || B.tafel_namen, spelers: tweeDagen(B) ? Math.min(B.dag2_slots * (B.dag2_tafel_namen || B.tafel_namen).length, B.spelers.length) : "" })}
+        ${dagVak(2, { datum: B.dag2_datum, start: B.dag2_start || B.start, duur: B.dag2_duur || B.duur, namen: B.dag2_tafel_namen || B.tafel_namen, info: B.dag2_info, spelers: tweeDagen(B) ? Math.min(B.dag2_slots * (B.dag2_tafel_namen || B.tafel_namen).length, B.spelers.length) : "" })}
       </div>
       <p class="melding" id="i_voorbeeld" style="margin-top:12px"></p>
       <label for="i_tot">Ouders kunnen zelf wijzigen tot en met</label><input type="date" id="i_tot" value="${B.wijzig_tot || ""}">
-      <label for="i_info">Extra info voor de ouders (optioneel)</label><textarea id="i_info" rows="2" maxlength="500" placeholder="bv. Gesprekken in de kantine.">${esc(B.info || "")}</textarea>
       <button class="knop" onclick="bewaarInstellingen()">Instellingen bewaren</button>
     </details>
     <details class="acc" ${B.spelers.length ? "" : "open"}><summary>👥 Spelers (${B.spelers.length})</summary>
@@ -357,7 +359,8 @@ function dagVak(k, d) {
       <div><label for="i${k}_aantal">${k === 2 ? "Spelers op deze dag" : "Aantal spelers (totaal)"}</label><input type="number" id="i${k}_aantal" min="1" max="60" oninput="instVoorbeeld()"
         value="${k === 1 ? (B.spelers.length || "") : (d.spelers || "")}" placeholder="${k === 1 ? "bv. 14" : "bv. 7"}" ${k === 1 && B.spelers.length ? "readonly" : ""}></div></div>
     <label>Aantal coaches</label><div class="keuze2" id="i${k}_keuze">${[1, 2].map(n => `<button type="button" class="${c === n ? "aan" : ""}" onclick="kiesCoaches(${k},${n})">${n}</button>`).join("")}</div>
-    <div id="i${k}_namen" class="twee">${(d.namen || ["Coach"]).slice(0, 2).map((t, x) => `<div><label>Naam coach ${x + 1}</label><input class="i${k}_coach" maxlength="30" value="${esc(t)}" placeholder="bv. Coach Jan"></div>`).join("")}</div>`;
+    <div id="i${k}_namen" class="twee">${(d.namen || ["Coach"]).slice(0, 2).map((t, x) => `<div><label>Naam coach ${x + 1}</label><input class="i${k}_coach" maxlength="30" value="${esc(t)}" placeholder="bv. Coach Jan"></div>`).join("")}</div>
+    <label for="i${k}_info">Extra info voor de ouders (optioneel)</label><textarea id="i${k}_info" rows="2" maxlength="500" placeholder="bv. De gesprekken gaan door in kleedkamer 5.">${esc(d.info || "")}</textarea>`;
 }
 function instCoaches(k) { return [...document.querySelectorAll(".i" + k + "_coach")].map((x, n) => x.value.trim() || "Coach " + (n + 1)); }
 function kiesCoaches(k, n) {
@@ -397,7 +400,7 @@ function bewaarInstellingen() {
   beheerBewaar({ datum: v("i1_datum"), start: v("i1_start"), duur: Number(v("i1_duur")), tafel_namen: instCoaches(1),
     slots: P.s1 + P.s2, dag2_slots: P.s2, dag2_datum: P.s2 ? v("i2_datum") : "", dag2_start: P.s2 ? v("i2_start") : "",
     dag2_duur: P.s2 ? Number(v("i2_duur")) : null, dag2_tafel_namen: P.s2 ? instCoaches(2) : null,
-    wijzig_tot: v("i_tot"), info: v("i_info") });
+    dag2_info: P.s2 ? v("i2_info") : "", wijzig_tot: v("i_tot"), info: v("i1_info") });
 }
 function bewaarSpelers() {
   const namen = document.getElementById("i_spelers").value.split(/\n/).map(x => x.replace(/^\s*\d+[.)]\s*/, "").trim()).filter(Boolean);
