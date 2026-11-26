@@ -5,8 +5,7 @@
 /* verhuisd naar sjotter.be/ksk/ — oude links blijven werken */
 (function () {
   var q = new URLSearchParams(location.search), p = q.get("p"), doel = "https://sjotter.be/ksk/";
-  if (p) doel += encodeURIComponent(p);
-  else { q.delete("p"); var rest = q.toString(); if (rest) doel += "?" + rest; }
+  var rest = q.toString(); if (rest) doel += "?" + rest;
   location.replace(doel);
 })();
 </script></head>
