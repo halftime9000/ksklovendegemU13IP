@@ -72,6 +72,9 @@ details.acc>summary::-webkit-details-marker{display:none}
 details.acc>summary::after{content:"▾";color:var(--zacht)}
 details.acc[open]>summary::after{transform:rotate(180deg)}
 .twee{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.keuze2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.keuze2 button{padding:10px 0;border:1px solid var(--rand);border-radius:10px;background:#fff;font-weight:900;font-size:17px;cursor:pointer}
+.keuze2 button.aan{background:var(--navy);color:var(--geel);border-color:var(--navy)}
 .ploeg{display:flex;flex-direction:column;gap:8px;padding:12px 0;border-bottom:1px solid var(--rand)}
 .ploeg:last-child{border-bottom:0}
 .ploeg .acties{display:flex;flex-wrap:wrap;gap:6px}
@@ -279,18 +282,19 @@ function toonBeheer() {
       : `<p class="klein">Nog geen datum ingesteld.</p>`}
     </div>
     <details class="acc" ${B.datum ? "" : "open"}><summary>⚙️ Instellingen</summary>
-      <label for="i_datum">Datum van de gesprekken</label><input type="date" id="i_datum" value="${B.datum || ""}">
+      <label for="i_datum">Datum</label><input type="date" id="i_datum" value="${B.datum || ""}">
       <div class="twee">
-        <div><label for="i_start">Eerste gesprek om</label><input type="time" id="i_start" value="${B.start}"></div>
-        <div><label for="i_duur">Minuten per gesprek</label><select id="i_duur">${[10, 15, 20, 25, 30].map(n => `<option ${n === B.duur ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+        <div><label for="i_start">Eerste gesprek om</label><input type="time" id="i_start" value="${B.start}" oninput="instVoorbeeld()"></div>
+        <div><label for="i_duur">Minuten per gesprek</label><select id="i_duur" onchange="instVoorbeeld()">${[10, 15, 20, 25, 30].map(n => `<option ${n === B.duur ? "selected" : ""}>${n}</option>`).join("")}</select></div>
       </div>
-      <label for="i_slots">Aantal tijdstippen per coach</label><input type="number" id="i_slots" min="1" max="60" value="${B.slots}">
-      <label for="i_coaches">Coaches die gesprekken doen (één per regel, max. 6)</label>
-      <textarea id="i_coaches" rows="2">${esc(B.tafel_namen.join("\n"))}</textarea>
-      <p class="klein" style="margin:4px 0 0">Elke coach doet tegelijk een gesprek. Met 2 coaches zijn er dus 2 plaatsen per tijdstip.</p>
-      <label for="i_tot">Ouders kunnen zelf wijzigen of annuleren tot en met</label><input type="date" id="i_tot" value="${B.wijzig_tot || ""}">
-      <label for="i_titel">Titel</label><input id="i_titel" maxlength="60" value="${esc(B.titel)}">
-      <label for="i_info">Extra info voor de ouders (optioneel)</label><textarea id="i_info" rows="2" maxlength="500" placeholder="bv. Gesprekken in de kantine. Je zoon of dochter mag mee.">${esc(B.info || "")}</textarea>
+      <div class="twee">
+        <div><label>Aantal coaches</label><div class="keuze2">${[1, 2].map(n => `<button type="button" class="${B.tafel_namen.length === n || (n === 2 && B.tafel_namen.length > 2) ? "aan" : ""}" onclick="kiesCoaches(${n})">${n}</button>`).join("")}</div></div>
+        <div><label for="i_aantal">Aantal spelers</label><input type="number" id="i_aantal" min="1" max="60" value="${B.spelers.length || ""}" placeholder="bv. 14" oninput="instVoorbeeld()" ${B.spelers.length ? "readonly title=\"Volgt uit de spelerslijst\"" : ""}></div>
+      </div>
+      <div id="i_namen" class="twee">${B.tafel_namen.slice(0, 2).map((t, k) => `<div><label>Naam coach ${k + 1}</label><input class="i_coach" maxlength="30" value="${esc(t)}"></div>`).join("")}</div>
+      <p class="melding" id="i_voorbeeld" style="margin-top:12px"></p>
+      <label for="i_tot">Ouders kunnen zelf wijzigen tot en met</label><input type="date" id="i_tot" value="${B.wijzig_tot || ""}">
+      <label for="i_info">Extra info voor de ouders (optioneel)</label><textarea id="i_info" rows="2" maxlength="500" placeholder="bv. Gesprekken in de kantine.">${esc(B.info || "")}</textarea>
       <button class="knop" onclick="bewaarInstellingen()">Instellingen bewaren</button>
     </details>
     <details class="acc" ${B.spelers.length ? "" : "open"}><summary>👥 Spelers (${B.spelers.length})</summary>
@@ -299,17 +303,38 @@ function toonBeheer() {
       <button class="knop" onclick="bewaarSpelers()">Spelers bewaren</button>
     </details>
     <p class="klein geen-print" style="text-align:center;margin-top:16px">🔒 Bewaar deze beheerlink voor jezelf. Wie hem heeft, kan de planning aanpassen.</p>`;
+  instVoorbeeld();
+}
+// tijdstippen volgen uit het aantal spelers en coaches (nooit minder dan waar al afspraken staan)
+function nodigeSlots(spelers, coaches) {
+  const min = B.boekingen.reduce((m, b) => Math.max(m, b.slot + 1), 0);
+  return Math.max(1, Math.min(60, Math.max(Math.ceil((spelers || 1) / coaches), min)));
+}
+function instCoaches() { return [...document.querySelectorAll(".i_coach")].map((x, k) => x.value.trim() || "Coach " + (k + 1)); }
+function kiesCoaches(n) {
+  const oud = instCoaches();
+  document.querySelectorAll(".keuze2 button").forEach(b => b.classList.toggle("aan", Number(b.textContent) === n));
+  document.getElementById("i_namen").innerHTML = Array.from({ length: n }, (_, k) => `<div><label>Naam coach ${k + 1}</label><input class="i_coach" maxlength="30" value="${esc(oud[k] || (k ? "" : "Coach"))}" placeholder="bv. Coach Jan"></div>`).join("");
+  instVoorbeeld();
+}
+function instVoorbeeld() {
+  const el = document.getElementById("i_voorbeeld"); if (!el) return;
+  const c = document.querySelectorAll(".i_coach").length, n = Number(document.getElementById("i_aantal").value) || 0;
+  const start = document.getElementById("i_start").value || "17:30", duur = Number(document.getElementById("i_duur").value);
+  if (!n) { el.textContent = "Vul het aantal spelers in."; return; }
+  const sl = nodigeSlots(n, c);
+  el.innerHTML = `🕒 <b>${sl} tijdstippen</b> van ${uur(minuten(start, duur, 0))} tot ${uur(minuten(start, duur, sl))}${c > 1 ? `, telkens ${c} gesprekken tegelijk` : ""}.`;
 }
 function bewaarInstellingen() {
-  const v = id => document.getElementById(id).value;
-  beheerBewaar({ datum: v("i_datum"), start: v("i_start"), duur: Number(v("i_duur")), slots: Math.max(1, Math.min(60, Number(v("i_slots")) || 1)),
-    tafel_namen: v("i_coaches").split("\n").map(x => x.trim()).filter(Boolean).slice(0, 6), wijzig_tot: v("i_tot"), titel: v("i_titel"), info: v("i_info") });
+  const v = id => document.getElementById(id).value, c = instCoaches();
+  beheerBewaar({ datum: v("i_datum"), start: v("i_start"), duur: Number(v("i_duur")), slots: nodigeSlots(Number(v("i_aantal")) || B.spelers.length, c.length),
+    tafel_namen: c, wijzig_tot: v("i_tot"), info: v("i_info") });
 }
 function bewaarSpelers() {
   const namen = document.getElementById("i_spelers").value.split(/\n/).map(x => x.replace(/^\s*\d+[.)]\s*/, "").trim()).filter(Boolean);
   const weg = B.spelers.filter(s => !namen.some(n => n.toLowerCase() === s.naam.toLowerCase()) && B.boekingen.some(b => b.speler_id === s.id));
   if (weg.length && !confirm(`Deze spelers hebben al een afspraak die dan verdwijnt:\n${weg.map(s => s.naam).join("\n")}\n\nDoorgaan?`)) return;
-  beheerBewaar({ spelers: namen }, `${namen.length} spelers bewaard`);
+  beheerBewaar({ spelers: namen, slots: nodigeSlots(namen.length, B.tafel_namen.length) }, `${namen.length} spelers bewaard`);
 }
 function celKies(i, t) {
   const b = B.boekingen.find(x => x.slot === i && x.tafel === t);
