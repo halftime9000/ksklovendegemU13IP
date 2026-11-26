@@ -22,7 +22,16 @@ button,select,input,textarea{font:inherit;color:inherit}
 .kop img{height:78px;width:auto;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
 .kop small{display:block;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--geel);font-size:13px}
 .kop h1{margin:2px 0 0;font-size:clamp(24px,7vw,32px);font-weight:900;line-height:1.1}
-.kop p{margin:4px 0 0;opacity:.92;font-size:16px}
+.kop p{margin:4px 0 0;opacity:.92;font-size:16px;font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chips:not(:empty){margin-top:14px}
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--geel);color:var(--navy);font-weight:900;font-size:14px;padding:6px 12px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.25);white-space:nowrap}
+.chip b{opacity:.5}
+@media(max-width:520px){
+  .kop{padding:16px 14px 18px}
+  .kop img{height:92px}
+  .kop h1{font-size:27px}
+  .kop p{font-size:15px}
+}
 main{padding:14px 14px 60px}
 .blok{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:16px;margin-top:12px}
 .blok h2{margin:0 0 6px;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px}
@@ -92,7 +101,7 @@ details.acc[open]>summary::after{transform:rotate(180deg)}
 </style>
 </head>
 <body>
-<header class="kop"><div class="in"><div class="rij"><img src="logo.png" alt="KSK De Jeugd Lovendegem"><div><small>KSK De Jeugd Lovendegem</small><h1 id="titel">Evaluatiegesprekken</h1><p id="sub"></p></div></div></div></header>
+<header class="kop"><div class="in"><div class="rij"><img src="logo.png" alt="KSK De Jeugd Lovendegem"><div><small>KSK De Jeugd Lovendegem</small><h1 id="titel">Evaluatiegesprekken</h1><p id="sub"></p></div></div><div id="chip" class="chips"></div></div></header>
 <main id="app"><div class="leeg">Laden…</div></main>
 <script src="supabase.js"></script>
 <script>
@@ -112,7 +121,11 @@ const uur = t => Math.floor(t / 60) + "u" + String(t % 60).padStart(2, "0");
 function toast(t) { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 async function rpc(naam, args) { const { data, error } = await sb.rpc(naam, args); if (error) throw error; return data; }
 async function kopieer(t) { try { await navigator.clipboard.writeText(t); toast("Gekopieerd"); } catch (e) { prompt("Kopieer deze link:", t); } }
-function kop(titel, sub) { document.getElementById("titel").textContent = titel; document.getElementById("sub").textContent = sub || ""; document.title = titel + " · KSK De Jeugd Lovendegem"; }
+function kop(titel, sub, chip) {
+  document.getElementById("titel").textContent = titel; document.getElementById("sub").textContent = sub || "";
+  document.getElementById("chip").innerHTML = (chip || []).map(c => `<span class="chip">${c}</span>`).join("");
+  document.title = titel + " · KSK De Jeugd Lovendegem";
+}
 
 /* =================================================================
    OUDERS  (?p=ploegcode)
@@ -128,7 +141,7 @@ const coachNaam = t => (M.tafel_namen || [])[t - 1] || "";
 async function oudersLaad() {
   try { M = await rpc("kskg_info", { p_code: pcode }); } catch (e) { M = null; }
   if (!M) { app.innerHTML = '<div class="blok leeg">Deze link werkt niet. Vraag de juiste link aan de coach.</div>'; return; }
-  kop(M.naam, M.gesloten ? M.titel : M.titel + " · " + datumTekst(M.datum));
+  kop(M.naam, M.titel, M.gesloten ? [] : [`📅 ${esc(hoofd(datumTekst(M.datum)))}`, `🕒 vanaf ${uur(minuten(M.start, 0, 0))}`]);
   if (M.gesloten) { app.innerHTML = '<div class="blok leeg">Afspraken maken kan nu niet.<br>De coach laat weten wanneer het open is.</div>'; return; }
   const v = lees();
   if (v && v.token) {
