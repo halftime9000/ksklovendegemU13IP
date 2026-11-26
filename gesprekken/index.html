@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="nl-BE">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Evaluatiegesprekken · KSK De Jeugd Lovendegem</title>
+<meta name="theme-color" content="#182448">
+<link rel="icon" type="image/png" href="logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#182448;--navy2:#203060;--navy-d:#0A1628;--geel:#E0D040;--bg:#EEF1F7;--kaart:#fff;--rand:#D5DBE8;--tekst:#14203F;--zacht:#5B6683;--fout:#C0392B;--ok:#15803D;--groen-bg:#E4F5EA;--groen-rand:#B6DFC3;--rood-bg:#FBE4E1;--rood-rand:#F0C2BC}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tekst);font-family:Nunito,system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.45}
+button,select,input,textarea{font:inherit;color:inherit}
+.kop{background:linear-gradient(160deg,var(--navy2),var(--navy) 55%,var(--navy-d));color:#fff;padding:18px 16px 22px;border-bottom:4px solid var(--geel)}
+.kop .in,main{max-width:600px;margin:0 auto}
+.kop .rij{display:flex;align-items:center;gap:14px;flex-wrap:nowrap}
+.kop .rij>div{min-width:0}
+.kop img{height:78px;width:auto;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.kop small{display:block;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--geel);font-size:13px}
+.kop h1{margin:2px 0 0;font-size:clamp(24px,7vw,32px);font-weight:900;line-height:1.1}
+.kop p{margin:4px 0 0;opacity:.92;font-size:16px}
+main{padding:14px 14px 60px}
+.blok{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:16px;margin-top:12px}
+.blok h2{margin:0 0 6px;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px}
+.stap{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--geel);align-items:center;justify-content:center;font-size:14px;font-weight:900;flex:none}
+.klein{font-size:13px;color:var(--zacht)}
+.leeg{text-align:center;color:var(--zacht);padding:28px 0}
+select,input,textarea{width:100%;padding:11px 12px;border:1px solid var(--rand);border-radius:10px;background:#fff;font-size:16px}
+textarea{resize:vertical}
+label{display:block;font-weight:800;font-size:14px;margin:12px 0 4px}
+.slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:10px}
+.slot{border:1px solid var(--groen-rand);background:var(--groen-bg);border-radius:10px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0 4px}
+.slot b{font-size:17px;font-weight:900}.slot span{font-size:11px;line-height:1.1;margin-top:1px}
+.slot.deels{background:linear-gradient(90deg,var(--groen-bg) 0 var(--vrij),var(--rood-bg) var(--vrij) 100%);border-color:#D8D2C6}
+.slot.vol{background:var(--rood-bg);border-color:var(--rood-rand);color:#9A3B30;cursor:not-allowed}
+.slot.aan{background:var(--navy);border-color:var(--navy);color:#fff}
+.slot.eigen{outline:3px solid var(--geel);outline-offset:-3px}
+.slot:disabled{cursor:not-allowed}
+.knop{display:block;width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--navy);color:#fff;font-weight:900;font-size:16px;cursor:pointer;text-align:center;text-decoration:none}
+.knop.geel{background:var(--geel);color:var(--navy)}
+.knop.licht{background:#fff;color:var(--navy);border:1px solid var(--rand)}
+.knop.rood{background:#fff;color:var(--fout);border:1px solid var(--rood-rand)}
+.knop:disabled{opacity:.45;cursor:not-allowed}
+.knop.mini{display:inline-flex;align-items:center;gap:6px;width:auto;margin:0;padding:8px 12px;font-size:14px;border-radius:9px}
+.knoppen{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.knoppen .knop{margin:0}
+.fout{color:var(--fout);font-weight:700;margin:10px 0 0}
+.ok{text-align:center}.ok .groot{font-size:42px;line-height:1}.ok .tijd{font-size:30px;font-weight:900;color:var(--navy);margin:6px 0 0}
+.melding{background:#FFF8D6;border:1px solid #EEDB7A;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
+.melding.ok-m{background:#E4F5EA;border-color:var(--groen-rand)}
+.pil{display:inline-block;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px}
+.pil.open{background:#DCF3E3;color:var(--ok)}.pil.dicht{background:#ECEFF5;color:var(--zacht)}
+.linkvak{display:flex;gap:6px;margin-top:8px}.linkvak input{font-size:13px;padding:9px 10px;background:#F6F8FC}
+.rij{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.tussen{justify-content:space-between}
+/* planning */
+.plan{width:100%;border-collapse:separate;border-spacing:0 4px;margin-top:6px}
+.plan th{font-size:12px;color:var(--zacht);text-align:left;padding:0 4px;font-weight:800}
+.plan td{padding:0 2px}
+.plan td.t{font-weight:900;white-space:nowrap;width:56px;font-size:15px}
+.cel{width:100%;min-height:40px;border-radius:9px;border:1px dashed var(--rand);background:#FAFBFE;cursor:pointer;text-align:left;padding:6px 9px;font-size:14px;font-weight:700}
+.cel.vol{border:1px solid #C8D2EA;background:#EEF2FB;color:var(--navy)}
+.cel.vol small{display:block;font-size:10px;color:var(--zacht);font-weight:600}
+.cel:empty::before{content:"+";color:#AAB3C9;font-weight:900}
+.nog{margin-top:10px;font-size:14px}
+.nog span{display:inline-block;background:#FFF1F0;border:1px solid var(--rood-rand);border-radius:999px;padding:2px 9px;margin:3px 3px 0 0;font-size:13px}
+details.acc{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:12px 16px;margin-top:12px}
+details.acc>summary{cursor:pointer;font-weight:900;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.acc>summary::-webkit-details-marker{display:none}
+details.acc>summary::after{content:"▾";color:var(--zacht)}
+details.acc[open]>summary::after{transform:rotate(180deg)}
+.twee{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
+.ploeg{display:flex;flex-direction:column;gap:8px;padding:12px 0;border-bottom:1px solid var(--rand)}
+.ploeg:last-child{border-bottom:0}
+.ploeg .acties{display:flex;flex-wrap:wrap;gap:6px}
+.dlg{position:fixed;inset:0;background:rgba(10,22,40,.55);display:flex;align-items:flex-end;justify-content:center;padding:12px;z-index:20}
+.dlg .blok{width:100%;max-width:440px;margin:0 0 6px}
+@media(min-width:600px){.dlg{align-items:center}}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 16px;border-radius:10px;font-weight:700;font-size:14px;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+@media print{
+  .kop{background:#fff;color:#000;border-bottom:2px solid #000;padding:6px 0}.kop small{color:#000}
+  .geen-print,details.acc,.dlg,.toast{display:none!important}
+  body{background:#fff}.blok{border:0;padding:0}
+  .cel{border:1px solid #999!important;background:#fff!important;min-height:30px}
+}
+</style>
+</head>
+<body>
+<header class="kop"><div class="in"><div class="rij"><img src="logo.png" alt="KSK De Jeugd Lovendegem"><div><small>KSK De Jeugd Lovendegem</small><h1 id="titel">Evaluatiegesprekken</h1><p id="sub"></p></div></div></div></header>
+<main id="app"><div class="leeg">Laden…</div></main>
+<script src="supabase.js"></script>
+<script>
+const sb = supabase.createClient("https://equmwyvxbjjocwetwfcw.supabase.co", "sb_publishable_wLF8ZNLFbiWM8YGrEnzjXQ_Aon8llxh", { auth: { persistSession: false, autoRefreshToken: false } });
+const Q = new URLSearchParams(location.search);
+const BASIS = location.origin + location.pathname;
+const app = document.getElementById("app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const DAGEN = ["zondag", "maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag"];
+const MAANDEN = ["januari", "februari", "maart", "april", "mei", "juni", "juli", "augustus", "september", "oktober", "november", "december"];
+const fout = e => String((e && e.message) || e).replace(/^.*?: /, "");
+const datumTekst = d => { if (!d) return ""; const x = new Date(d + "T12:00:00"); return DAGEN[x.getDay()] + " " + x.getDate() + " " + MAANDEN[x.getMonth()]; };
+const js = v => esc(JSON.stringify(String(v)));
+const hoofd = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+const minuten = (start, duur, i) => { const [h, m] = start.split(":").map(Number); return h * 60 + m + i * duur; };
+const uur = t => Math.floor(t / 60) + "u" + String(t % 60).padStart(2, "0");
+function toast(t) { const d = document.createElement("div"); d.className = "toast"; d.textContent = t; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+async function rpc(naam, args) { const { data, error } = await sb.rpc(naam, args); if (error) throw error; return data; }
+async function kopieer(t) { try { await navigator.clipboard.writeText(t); toast("Gekopieerd"); } catch (e) { prompt("Kopieer deze link:", t); } }
+function kop(titel, sub) { document.getElementById("titel").textContent = titel; document.getElementById("sub").textContent = sub || ""; document.title = titel + " · KSK De Jeugd Lovendegem"; }
+
+/* =================================================================
+   OUDERS  (?p=ploegcode)
+   ================================================================= */
+let M = null, keuze = { speler: "", slot: null };
+const pcode = (Q.get("p") || "").toLowerCase();
+const OPSLAG = "kskg_" + pcode;
+const lees = () => { try { return JSON.parse(localStorage.getItem(OPSLAG) || "null"); } catch (e) { return null; } };
+const bewaar = v => { try { v ? localStorage.setItem(OPSLAG, JSON.stringify(v)) : localStorage.removeItem(OPSLAG); } catch (e) {} };
+const tijd = i => uur(minuten(M.start, M.duur, i));
+const coachNaam = t => (M.tafel_namen || [])[t - 1] || "";
+
+async function oudersLaad() {
+  try { M = await rpc("kskg_info", { p_code: pcode }); } catch (e) { M = null; }
+  if (!M) { app.innerHTML = '<div class="blok leeg">Deze link werkt niet. Vraag de juiste link aan de coach.</div>'; return; }
+  kop(M.naam, M.gesloten ? M.titel : M.titel + " · " + datumTekst(M.datum));
+  if (M.gesloten) { app.innerHTML = '<div class="blok leeg">Afspraken maken kan nu niet.<br>De coach laat weten wanneer het open is.</div>'; return; }
+  const v = lees();
+  if (v && v.token) {
+    try { const mijn = await rpc("kskg_mijn", { p_code: pcode, p_token: v.token }); if (mijn) { Object.assign(v, mijn); bewaar(v); return toonBevestiging(v); } } catch (e) {}
+    bewaar(null);
+  }
+  toonFormulier();
+}
+
+function slotKnoppen(eigenSlot) {
+  return Array.from({ length: M.slots }, (_, i) => {
+    const bezet = (M.bezet[i] || 0) - (i === eigenSlot ? 1 : 0), vrij = M.tafels - bezet, eigen = i === eigenSlot;
+    const cls = ["slot", keuze.slot === i ? "aan" : "", vrij <= 0 ? "vol" : "", eigen ? "eigen" : "", vrij > 0 && vrij < M.tafels && keuze.slot !== i ? "deels" : ""].join(" ");
+    const stijl = vrij > 0 && vrij < M.tafels ? ` style="--vrij:${Math.round(vrij / M.tafels * 100)}%"` : "";
+    return `<button type="button" class="${cls}"${stijl} ${vrij <= 0 || eigen ? "disabled" : ""} onclick="kiesSlot(${i})"><b>${tijd(i)}</b>${eigen ? "<span>jouw tijdstip</span>" : vrij <= 0 ? "<span>volzet</span>" : ""}</button>`;
+  }).join("");
+}
+function kiesSlot(i) { keuze.slot = i; document.querySelectorAll(".slots").forEach(el => el.innerHTML = slotKnoppen(el.dataset.eigen === "" ? null : Number(el.dataset.eigen))); knopStatus(); }
+function knopStatus() { const k = document.getElementById("bevestig"); if (k) k.disabled = !(keuze.slot != null && (keuze.speler || k.dataset.wijzig)); }
+const wijzigTekst = () => M.wijzig_tot ? `Je kan je afspraak zelf wijzigen of annuleren tot en met ${datumTekst(M.wijzig_tot)}.` : "Je kan je afspraak achteraf zelf wijzigen of annuleren.";
+
+function toonFormulier(foutTekst) {
+  const opties = M.spelers.map(s => `<option value="${s.id}" ${keuze.speler === s.id ? "selected" : ""} ${s.geboekt ? "disabled" : ""}>${esc(s.naam)}${s.geboekt ? " (al ingepland)" : ""}</option>`).join("");
+  app.innerHTML = `
+    ${M.info ? `<div class="blok">${esc(M.info).replace(/\n/g, "<br>")}</div>` : ""}
+    <div class="blok"><h2><span class="stap">1</span>Naam van de speler</h2>
+      <select id="speler" onchange="keuze.speler=this.value;knopStatus()"><option value="">Kies een speler…</option>${opties}</select>
+      <p class="klein" style="margin:6px 0 0">Staat je kind er al bij als ingepland, maar heb jij niets geboekt? Contacteer de coach.</p></div>
+    <div class="blok"><h2><span class="stap">2</span>Kies een tijdstip</h2>
+      <p class="klein" style="margin:0">${uur(minuten(M.start, 0, 0))} tot ${uur(minuten(M.start, M.duur, M.slots))} · ${M.duur} minuten per gesprek</p>
+      <div class="slots" data-eigen="">${slotKnoppen(null)}</div>
+      ${foutTekst ? `<p class="fout">${esc(foutTekst)}</p>` : ""}
+      <button class="knop" id="bevestig" onclick="boek(this)" disabled>Afspraak bevestigen</button>
+      <p class="klein" style="margin:8px 0 0;text-align:center">${wijzigTekst()}</p></div>`;
+  knopStatus();
+}
+
+async function boek(knop) {
+  knop.disabled = true; knop.textContent = "Even geduld…";
+  try {
+    const r = await rpc("kskg_boek", { p_code: pcode, p_speler: keuze.speler, p_slot: keuze.slot });
+    const sp = M.spelers.find(s => s.id === keuze.speler);
+    const v = { token: r.token, speler_id: keuze.speler, naam: sp ? sp.naam : "", slot: r.slot, tafel: r.tafel };
+    bewaar(v); M = await rpc("kskg_info", { p_code: pcode }); keuze = { speler: "", slot: null };
+    toonBevestiging(v, "Je afspraak is bevestigd.");
+  } catch (e) { M = await rpc("kskg_info", { p_code: pcode }).catch(() => M); keuze.slot = null; toonFormulier(fout(e)); }
+}
+
+function toonBevestiging(v, melding) {
+  const kan = M.kan_wijzigen, coach = coachNaam(v.tafel);
+  app.innerHTML = `${melding ? `<div class="melding ok-m">✅ ${esc(melding)}</div>` : ""}
+    <div class="blok ok"><div class="groot">🗓️</div>
+      <p style="margin:8px 0 0">Afspraak voor <b>${esc(v.naam)}</b></p>
+      <div class="tijd">${tijd(v.slot)}</div>
+      <p style="margin:2px 0 0">${hoofd(datumTekst(M.datum))}${coach ? ` · bij <b>${esc(coach)}</b>` : ""}</p>
+      <div class="knoppen"><button class="knop geel" onclick="agenda()">📅 In mijn agenda</button><button class="knop licht" onclick="deel()">📤 Delen</button></div>
+      ${kan ? `<div class="knoppen"><button class="knop licht" onclick="toonWijzig()">Wijzigen</button><button class="knop rood" onclick="annuleer()">Annuleren</button></div>
+        <p class="klein" style="margin:8px 0 0">${M.wijzig_tot ? `Wijzigen of annuleren kan tot en met ${datumTekst(M.wijzig_tot)}.` : ""}</p>`
+      : `<p class="klein" style="margin:12px 0 0">Wijzigen of annuleren kan niet meer via deze pagina. Contacteer de coach.</p>`}
+    </div>`;
+}
+function toonWijzig(foutTekst) {
+  const v = lees(); keuze.slot = null;
+  app.innerHTML = `<div class="blok"><h2>Ander tijdstip voor ${esc(v.naam)}</h2>
+    <p class="klein" style="margin:0">Je huidige tijdstip is geel omrand.</p>
+    <div class="slots" data-eigen="${v.slot}">${slotKnoppen(v.slot)}</div>
+    ${foutTekst ? `<p class="fout">${esc(foutTekst)}</p>` : ""}
+    <button class="knop" id="bevestig" data-wijzig="1" onclick="wijzig(this)" disabled>Wijziging bevestigen</button>
+    <button class="knop licht" onclick="toonBevestiging(lees())">Terug</button></div>`;
+}
+async function wijzig(knop) {
+  const v = lees(); knop.disabled = true;
+  try {
+    const r = await rpc("kskg_wijzig", { p_code: pcode, p_token: v.token, p_slot: keuze.slot });
+    Object.assign(v, { slot: r.slot, tafel: r.tafel }); bewaar(v); M = await rpc("kskg_info", { p_code: pcode }); keuze.slot = null;
+    toonBevestiging(v, "Je afspraak is gewijzigd.");
+  } catch (e) { M = await rpc("kskg_info", { p_code: pcode }).catch(() => M); toonWijzig(fout(e)); }
+}
+async function annuleer() {
+  const v = lees();
+  if (!confirm(`Afspraak van ${v.naam} om ${tijd(v.slot)} annuleren?`)) return;
+  try {
+    await rpc("kskg_wijzig", { p_code: pcode, p_token: v.token, p_slot: null });
+    bewaar(null); M = await rpc("kskg_info", { p_code: pcode }); keuze = { speler: "", slot: null };
+    toonFormulier(); toast("Afspraak geannuleerd");
+  } catch (e) { alert(fout(e)); }
+}
+function agenda() {
+  const v = lees(), t0 = minuten(M.start, M.duur, v.slot), t1 = t0 + M.duur, d = M.datum.replace(/-/g, "");
+  const f = t => d + "T" + String(Math.floor(t / 60)).padStart(2, "0") + String(t % 60).padStart(2, "0") + "00";
+  const coach = coachNaam(v.tafel);
+  const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//KSK De Jeugd Lovendegem//Gesprekken//NL", "BEGIN:VEVENT",
+    "UID:" + v.token.slice(0, 12) + "@ksk-gesprekken", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
+    "DTSTART;TZID=Europe/Brussels:" + f(t0), "DTEND;TZID=Europe/Brussels:" + f(t1),
+    "SUMMARY:" + M.titel + " " + v.naam + " (" + M.naam + ")", "DESCRIPTION:" + (coach ? "Bij " + coach + ". " : "") + "KSK De Jeugd Lovendegem",
+    "LOCATION:KSK De Jeugd Lovendegem", "END:VEVENT", "END:VCALENDAR"].join("\r\n");
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "gesprek-" + v.naam.replace(/\W+/g, "-") + ".ics"; a.click();
+}
+function deel() {
+  const v = lees(), coach = coachNaam(v.tafel);
+  const t = `${M.titel} ${v.naam}: ${datumTekst(M.datum)} om ${tijd(v.slot)}${coach ? " bij " + coach : ""} (KSK De Jeugd Lovendegem)`;
+  if (navigator.share) navigator.share({ text: t }).catch(() => {}); else kopieer(t);
+}
+
+/* =================================================================
+   COACH  (?b=beheertoken)  en  ADMIN  (?a=admintoken[&ploeg=id])
+   ================================================================= */
+const BT = Q.get("b") || Q.get("a") || "", PID = Q.get("ploeg") || null;
+let B = null;
+const btijd = i => uur(minuten(B.start, B.duur, i));
+const naamVan = id => { const s = B.spelers.find(x => x.id === id); return s ? s.naam : "?"; };
+const oudersLink = code => BASIS + "?p=" + encodeURIComponent(code);
+
+async function beheerLaad() {
+  try { B = await rpc("kskg_beheer", { p_token: BT, p_ploeg: PID }); } catch (e) { app.innerHTML = `<div class="blok leeg">${esc(fout(e))}<br>Vraag een nieuwe link aan de jeugdwerking.</div>`; return; }
+  toonBeheer();
+}
+async function beheerBewaar(p, melding) {
+  try { B = await rpc("kskg_beheer_bewaar", { p_token: BT, p_ploeg: PID, p }); toonBeheer(); toast(melding || "Bewaard"); return true; }
+  catch (e) { alert(fout(e)); return false; }
+}
+
+function toonBeheer() {
+  kop(B.naam, "Evaluatiegesprekken · beheer");
+  const tafels = B.tafel_namen.length, link = oudersLink(B.code);
+  const ingepland = new Set(B.boekingen.map(b => b.speler_id));
+  const nog = B.spelers.filter(s => !ingepland.has(s.id));
+  const klaarVoorOpen = B.datum && B.spelers.length;
+  const cel = (i, t) => { const b = B.boekingen.find(x => x.slot === i && x.tafel === t); return `<button class="cel ${b ? "vol" : ""}" onclick="celKies(${i},${t})">${b ? esc(naamVan(b.speler_id)) + (b.door_coach ? "<small>door coach</small>" : "") : ""}</button>`; };
+  const waTekst = `Beste ouders, de evaluatiegesprekken van ${B.naam} gaan door op ${datumTekst(B.datum)}. Kies hier zelf een tijdstip voor je zoon of dochter: ${link}`;
+  app.innerHTML = `
+    ${B.admin ? `<p class="geen-print" style="margin:4px 0 0"><a href="${BASIS}?a=${encodeURIComponent(BT)}" style="color:var(--navy);font-weight:800">← Alle ploegen</a></p>` : ""}
+    <div class="blok geen-print">
+      <div class="rij tussen"><h2 style="margin:0">Link voor de ouders</h2><span class="pil ${B.open ? "open" : "dicht"}">${B.open ? "Open" : "Gesloten"}</span></div>
+      ${klaarVoorOpen ? "" : `<div class="melding">Vul eerst de <b>datum</b> en de <b>spelers</b> in (hieronder). Daarna kan je de link openzetten.</div>`}
+      <div class="linkvak"><input readonly value="${esc(link)}" onclick="this.select()"><button class="knop mini licht" onclick="kopieer(${js(link)})">Kopieer</button></div>
+      <div class="knoppen">
+        <a class="knop geel" href="https://wa.me/?text=${encodeURIComponent(waTekst)}" target="_blank" rel="noopener">WhatsApp</a>
+        <button class="knop ${B.open ? "licht" : ""}" ${klaarVoorOpen || B.open ? "" : "disabled"} onclick="beheerBewaar({open:${!B.open}}, '${B.open ? "Gesloten" : "Open: ouders kunnen nu kiezen"}')">${B.open ? "Sluiten" : "Openzetten"}</button>
+      </div>
+      ${B.wijzig_tot ? `<p class="klein" style="margin:8px 0 0">Ouders kunnen zelf wijzigen of annuleren tot en met ${datumTekst(B.wijzig_tot)}. Daarna kan enkel jij nog iets aanpassen.</p>` : ""}
+    </div>
+    <div class="blok">
+      <div class="rij tussen"><h2 style="margin:0">Planning</h2><span class="klein"><b>${B.boekingen.length}</b> van ${B.spelers.length} ingepland</span></div>
+      ${B.datum ? `<p class="klein" style="margin:2px 0 0">${hoofd(datumTekst(B.datum))} · ${btijd(0)} tot ${btijd(B.slots)}</p>
+      <table class="plan"><tr><th></th>${B.tafel_namen.map(t => `<th>${esc(t)}</th>`).join("")}</tr>
+        ${Array.from({ length: B.slots }, (_, i) => `<tr><td class="t">${btijd(i)}</td>${Array.from({ length: tafels }, (_, t) => `<td>${cel(i, t + 1)}</td>`).join("")}</tr>`).join("")}</table>
+      ${nog.length ? `<div class="nog"><b>Nog geen afspraak (${nog.length}):</b><br>${nog.map(s => `<span>${esc(s.naam)}</span>`).join("")}</div>
+        <div class="knoppen geen-print"><button class="knop licht" onclick="herinner()">📋 Herinnering kopiëren</button><button class="knop licht" onclick="print()">🖨️ Afdrukken</button></div>`
+        : `<button class="knop licht geen-print" onclick="print()">🖨️ Afdrukken</button>`}
+      <p class="klein geen-print" style="margin:8px 0 0">Tik op een vakje om zelf iemand in te plannen, te verplaatsen of te schrappen.</p>`
+      : `<p class="klein">Nog geen datum ingesteld.</p>`}
+    </div>
+    <details class="acc" ${B.datum ? "" : "open"}><summary>⚙️ Instellingen</summary>
+      <label for="i_datum">Datum van de gesprekken</label><input type="date" id="i_datum" value="${B.datum || ""}">
+      <div class="twee">
+        <div><label for="i_start">Eerste gesprek om</label><input type="time" id="i_start" value="${B.start}"></div>
+        <div><label for="i_duur">Minuten per gesprek</label><select id="i_duur">${[10, 15, 20, 25, 30].map(n => `<option ${n === B.duur ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+      </div>
+      <label for="i_slots">Aantal tijdstippen per coach</label><input type="number" id="i_slots" min="1" max="60" value="${B.slots}">
+      <label for="i_coaches">Coaches die gesprekken doen (één per regel, max. 6)</label>
+      <textarea id="i_coaches" rows="2">${esc(B.tafel_namen.join("\n"))}</textarea>
+      <p class="klein" style="margin:4px 0 0">Elke coach doet tegelijk een gesprek. Met 2 coaches zijn er dus 2 plaatsen per tijdstip.</p>
+      <label for="i_tot">Ouders kunnen zelf wijzigen of annuleren tot en met</label><input type="date" id="i_tot" value="${B.wijzig_tot || ""}">
+      <label for="i_titel">Titel</label><input id="i_titel" maxlength="60" value="${esc(B.titel)}">
+      <label for="i_info">Extra info voor de ouders (optioneel)</label><textarea id="i_info" rows="2" maxlength="500" placeholder="bv. Gesprekken in de kantine. Je zoon of dochter mag mee.">${esc(B.info || "")}</textarea>
+      <button class="knop" onclick="bewaarInstellingen()">Instellingen bewaren</button>
+    </details>
+    <details class="acc" ${B.spelers.length ? "" : "open"}><summary>👥 Spelers (${B.spelers.length})</summary>
+      <p class="klein" style="margin:8px 0 0">Eén naam per regel. Je kan een lijst plakken uit WhatsApp of Excel. Schrap je een naam, dan verdwijnt ook diens afspraak.</p>
+      <textarea id="i_spelers" rows="10" placeholder="Voornaam Achternaam">${esc(B.spelers.map(s => s.naam).join("\n"))}</textarea>
+      <button class="knop" onclick="bewaarSpelers()">Spelers bewaren</button>
+    </details>
+    <p class="klein geen-print" style="text-align:center;margin-top:16px">🔒 Bewaar deze beheerlink voor jezelf. Wie hem heeft, kan de planning aanpassen.</p>`;
+}
+function bewaarInstellingen() {
+  const v = id => document.getElementById(id).value;
+  beheerBewaar({ datum: v("i_datum"), start: v("i_start"), duur: Number(v("i_duur")), slots: Math.max(1, Math.min(60, Number(v("i_slots")) || 1)),
+    tafel_namen: v("i_coaches").split("\n").map(x => x.trim()).filter(Boolean).slice(0, 6), wijzig_tot: v("i_tot"), titel: v("i_titel"), info: v("i_info") });
+}
+function bewaarSpelers() {
+  const namen = document.getElementById("i_spelers").value.split(/\n/).map(x => x.replace(/^\s*\d+[.)]\s*/, "").trim()).filter(Boolean);
+  const weg = B.spelers.filter(s => !namen.some(n => n.toLowerCase() === s.naam.toLowerCase()) && B.boekingen.some(b => b.speler_id === s.id));
+  if (weg.length && !confirm(`Deze spelers hebben al een afspraak die dan verdwijnt:\n${weg.map(s => s.naam).join("\n")}\n\nDoorgaan?`)) return;
+  beheerBewaar({ spelers: namen }, `${namen.length} spelers bewaard`);
+}
+function celKies(i, t) {
+  const b = B.boekingen.find(x => x.slot === i && x.tafel === t);
+  const ingepland = new Set(B.boekingen.map(x => x.speler_id));
+  const vrij = B.spelers.filter(s => !ingepland.has(s.id)), andere = B.spelers.filter(s => ingepland.has(s.id) && (!b || s.id !== b.speler_id));
+  const d = document.createElement("div"); d.className = "dlg"; d.onclick = e => { if (e.target === d) d.remove(); };
+  d.innerHTML = `<div class="blok"><h2>${btijd(i)} · ${esc(B.tafel_namen[t - 1])}</h2>
+    ${b ? `<p style="margin:0">Nu ingepland: <b>${esc(naamVan(b.speler_id))}</b></p>` : ""}
+    <label for="d_sp">${b ? "Vervangen door" : "Speler"}</label>
+    <select id="d_sp"><option value="">Kies…</option>
+      ${vrij.length ? `<optgroup label="Nog geen afspraak">${vrij.map(s => `<option value="${s.id}">${esc(s.naam)}</option>`).join("")}</optgroup>` : ""}
+      ${andere.length ? `<optgroup label="Verplaatsen naar hier">${andere.map(s => { const x = B.boekingen.find(y => y.speler_id === s.id); return `<option value="${s.id}">${esc(s.naam)} (nu ${btijd(x.slot)})</option>`; }).join("")}</optgroup>` : ""}
+    </select>
+    <button class="knop" id="d_ok">Bewaren</button>
+    ${b ? `<button class="knop rood" id="d_weg">Afspraak van ${esc(naamVan(b.speler_id))} schrappen</button>` : ""}
+    <button class="knop licht" onclick="this.closest('.dlg').remove()">Sluiten</button></div>`;
+  document.body.appendChild(d);
+  const zet = async (sid, slot, tafel) => { try { B = await rpc("kskg_beheer_zet", { p_token: BT, p_ploeg: PID, p_speler: sid, p_slot: slot, p_tafel: tafel }); return true; } catch (e) { alert(fout(e)); return false; } };
+  d.querySelector("#d_ok").onclick = async () => {
+    const sid = d.querySelector("#d_sp").value; if (!sid) return;
+    if (b && !(await zet(b.speler_id, null, null))) return;
+    if (await zet(sid, i, t)) { d.remove(); toonBeheer(); toast("Bewaard"); }
+  };
+  const w = d.querySelector("#d_weg");
+  if (w) w.onclick = async () => { if (!confirm("Afspraak schrappen?")) return; if (await zet(b.speler_id, null, null)) { d.remove(); toonBeheer(); toast("Geschrapt"); } };
+}
+function herinner() {
+  const ingepland = new Set(B.boekingen.map(b => b.speler_id));
+  const nog = B.spelers.filter(s => !ingepland.has(s.id)).map(s => s.naam);
+  kopieer(`Beste ouders, voor de evaluatiegesprekken van ${datumTekst(B.datum)} hebben we nog geen tijdstip voor: ${nog.join(", ")}. Kies hier een moment dat past: ${oudersLink(B.code)}`);
+}
+
+/* ---------------- admin ---------------- */
+let L = [];
+async function adminLaad() {
+  try { L = await rpc("kskg_admin", { p_token: BT }); } catch (e) { app.innerHTML = `<div class="blok leeg">${esc(fout(e))}</div>`; return; }
+  toonAdmin();
+}
+function toonAdmin() {
+  kop("Alle ploegen", "Evaluatiegesprekken · jeugdwerking");
+  const beheer = p => BASIS + "?b=" + encodeURIComponent(p.beheer_token);
+  app.innerHTML = `<div class="blok">
+      <h2>Nieuwe ploeg</h2>
+      <div class="linkvak"><input id="nieuw" maxlength="40" placeholder="bv. U10 A"><button class="knop mini" onclick="adminNieuw()">Toevoegen</button></div></div>
+    <div class="blok"><h2>Ploegen (${L.length})</h2>
+      ${L.length ? L.map(p => `<div class="ploeg">
+        <div><b>${esc(p.naam)}</b> <span class="pil ${p.open ? "open" : "dicht"}">${p.open ? "Open" : "Gesloten"}</span><br>
+          <span class="klein">${p.datum ? hoofd(datumTekst(p.datum)) : "geen datum"} · ${p.geboekt}/${p.spelers} ingepland · ${esc((p.tafel_namen || []).join(", "))}</span></div>
+        <div class="acties">
+          <a class="knop mini" href="${BASIS}?a=${encodeURIComponent(BT)}&ploeg=${p.id}">Openen</a>
+          <button class="knop mini licht" onclick="kopieer(${js(beheer(p))})" title="Stuur deze link naar de coach">Coachlink</button>
+          <button class="knop mini licht" onclick="kopieer(${js(oudersLink(p.code))})">Ouderslink</button>
+          <button class="knop mini licht" onclick="adminActie('kskg_admin_nieuwe_link','${p.id}',${js("Nieuwe coachlink maken? De oude link werkt dan niet meer.")})" title="Nieuwe coachlink">↻</button>
+          <button class="knop mini rood" onclick="adminActie('kskg_admin_verwijder','${p.id}',${js(p.naam + " met alle spelers en afspraken verwijderen?")})">✕</button>
+        </div></div>`).join("") : '<p class="klein">Nog geen ploegen.</p>'}
+    </div>
+    <p class="klein" style="text-align:center;margin-top:16px">🔒 Dit is jouw adminlink. Deel hem niet. Coaches krijgen elk hun eigen <b>coachlink</b>.</p>`;
+}
+async function adminNieuw() {
+  const n = document.getElementById("nieuw").value.trim(); if (!n) return;
+  try { L = await rpc("kskg_admin_nieuw", { p_token: BT, p_naam: n }); toonAdmin(); toast(n + " toegevoegd"); } catch (e) { alert(fout(e)); }
+}
+async function adminActie(fn, id, vraag) {
+  if (!confirm(vraag)) return;
+  try { L = await rpc(fn, { p_token: BT, p_ploeg: id }); toonAdmin(); toast("Gedaan"); } catch (e) { alert(fout(e)); }
+}
+
+/* ---------------- start ---------------- */
+if (pcode) oudersLaad();
+else if (Q.get("a") && !PID) adminLaad();
+else if (BT) beheerLaad();
+else app.innerHTML = '<div class="blok leeg">Deze link is niet volledig. Vraag de juiste link aan de coach.</div>';
+</script>
+</body>
+</html>
