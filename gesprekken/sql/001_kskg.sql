@@ -267,3 +267,7 @@ do $$ declare f text; begin
     execute format('grant execute on function public.%s to anon, authenticated', f);
   end loop;
 end $$;
+
+-- ---------- veiligheid: logboek van elke wijziging + momentopname elke 30 minuten ----------
+-- (zelfde opzet als cs_gesprek_log / cs_gesprek_snapshot in Sjotter; tabellen kskg_log en kskg_snapshot,
+--  trigger kskg_log_t op kskg_boeking, pg_cron-job 'kskg-snapshot' die kskg_snapshot_maak() oproept)

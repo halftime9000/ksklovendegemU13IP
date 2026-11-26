@@ -361,27 +361,40 @@ function bewaarSpelers() {
 function celKies(i, t) {
   const b = B.boekingen.find(x => x.slot === i && x.tafel === t);
   const ingepland = new Set(B.boekingen.map(x => x.speler_id));
-  const vrij = B.spelers.filter(s => !ingepland.has(s.id)), andere = B.spelers.filter(s => ingepland.has(s.id) && (!b || s.id !== b.speler_id));
   const d = document.createElement("div"); d.className = "dlg"; d.onclick = e => { if (e.target === d) d.remove(); };
+  const zet = async (sid, slot, tafel) => { try { B = await rpc("kskg_beheer_zet", { p_token: BT, p_ploeg: PID, p_speler: sid, p_slot: slot, p_tafel: tafel }); return true; } catch (e) { alert(fout(e)); return false; } };
+  if (b) {
+    // bezette plaats: enkel verplaatsen naar een vrije plaats of schrappen (nooit een andere familie wegduwen)
+    const vrij = []; for (let x = 0; x < B.slots; x++) for (let y = 1; y <= B.tafel_namen.length; y++) if (!B.boekingen.some(z => z.slot === x && z.tafel === y)) vrij.push([x, y]);
+    const zelfde = vrij.filter(([x]) => x === i), ander = vrij.filter(([x]) => x !== i);
+    const opt = ([x, y]) => `<option value="${x}:${y}">${btijd(x)} · ${esc(B.tafel_namen[y - 1])}</option>`;
+    d.innerHTML = `<div class="blok"><h2>${esc(naamVan(b.speler_id))}</h2><p class="klein" style="margin:0">Nu: ${btijd(i)} · ${esc(B.tafel_namen[t - 1])}</p>
+      ${vrij.length ? `<label for="d_vp">Verplaatsen naar</label><select id="d_vp">${zelfde.length ? `<optgroup label="Zelfde uur, andere coach">${zelfde.map(opt).join("")}</optgroup>` : ""}${ander.length ? `<optgroup label="Vrije plaatsen">${ander.map(opt).join("")}</optgroup>` : ""}</select>
+        <p class="klein" style="margin:6px 0 0">Verandert het uur? Laat het de ouders weten.</p><button class="knop" id="d_ok">Verplaatsen</button>` : `<p class="klein">Er zijn geen vrije plaatsen meer.</p>`}
+      <button class="knop rood" id="d_weg">Afspraak schrappen</button>
+      <button class="knop licht" onclick="this.closest('.dlg').remove()">Sluiten</button></div>`;
+    document.body.appendChild(d);
+    const ok = d.querySelector("#d_ok");
+    if (ok) ok.onclick = async () => { const [x, y] = d.querySelector("#d_vp").value.split(":").map(Number); if (await zet(b.speler_id, x, y)) { d.remove(); toonBeheer(); toast("Verplaatst"); } };
+    d.querySelector("#d_weg").onclick = async () => { if (!confirm(`Afspraak van ${naamVan(b.speler_id)} om ${btijd(i)} schrappen? Laat het de ouders weten.`)) return; if (await zet(b.speler_id, null, null)) { d.remove(); toonBeheer(); toast("Geschrapt"); } };
+    return;
+  }
+  // vrije plaats: iemand zonder afspraak inplannen, of iemand hierheen verplaatsen
+  const zonder = B.spelers.filter(s => !ingepland.has(s.id)), met = B.spelers.filter(s => ingepland.has(s.id));
   d.innerHTML = `<div class="blok"><h2>${btijd(i)} · ${esc(B.tafel_namen[t - 1])}</h2>
-    ${b ? `<p style="margin:0">Nu ingepland: <b>${esc(naamVan(b.speler_id))}</b></p>` : ""}
-    <label for="d_sp">${b ? "Vervangen door" : "Speler"}</label>
+    <label for="d_sp">Speler</label>
     <select id="d_sp"><option value="">Kies…</option>
-      ${vrij.length ? `<optgroup label="Nog geen afspraak">${vrij.map(s => `<option value="${s.id}">${esc(s.naam)}</option>`).join("")}</optgroup>` : ""}
-      ${andere.length ? `<optgroup label="Verplaatsen naar hier">${andere.map(s => { const x = B.boekingen.find(y => y.speler_id === s.id); return `<option value="${s.id}">${esc(s.naam)} (nu ${btijd(x.slot)})</option>`; }).join("")}</optgroup>` : ""}
+      ${zonder.length ? `<optgroup label="Nog geen afspraak">${zonder.map(s => `<option value="${s.id}">${esc(s.naam)}</option>`).join("")}</optgroup>` : ""}
+      ${met.length ? `<optgroup label="Verplaatsen naar hier">${met.map(s => { const x = B.boekingen.find(y => y.speler_id === s.id); return `<option value="${s.id}">${esc(s.naam)} (nu ${btijd(x.slot)})</option>`; }).join("")}</optgroup>` : ""}
     </select>
     <button class="knop" id="d_ok">Bewaren</button>
-    ${b ? `<button class="knop rood" id="d_weg">Afspraak van ${esc(naamVan(b.speler_id))} schrappen</button>` : ""}
     <button class="knop licht" onclick="this.closest('.dlg').remove()">Sluiten</button></div>`;
   document.body.appendChild(d);
-  const zet = async (sid, slot, tafel) => { try { B = await rpc("kskg_beheer_zet", { p_token: BT, p_ploeg: PID, p_speler: sid, p_slot: slot, p_tafel: tafel }); return true; } catch (e) { alert(fout(e)); return false; } };
   d.querySelector("#d_ok").onclick = async () => {
     const sid = d.querySelector("#d_sp").value; if (!sid) return;
-    if (b && !(await zet(b.speler_id, null, null))) return;
+    if (ingepland.has(sid)) { const x = B.boekingen.find(y => y.speler_id === sid); if (x.slot !== i && !confirm(`${naamVan(sid)} verplaatsen van ${btijd(x.slot)} naar ${btijd(i)}? Laat het de ouders weten.`)) return; }
     if (await zet(sid, i, t)) { d.remove(); toonBeheer(); toast("Bewaard"); }
   };
-  const w = d.querySelector("#d_weg");
-  if (w) w.onclick = async () => { if (!confirm("Afspraak schrappen?")) return; if (await zet(b.speler_id, null, null)) { d.remove(); toonBeheer(); toast("Geschrapt"); } };
 }
 // spelerslijst uit Excel of CSV: kolom 'naam', of 'voornaam' + 'achternaam', anders de eerste kolom met tekst
 function laadScript(src) { return new Promise((ok, nok) => { if (window.XLSX) return ok(); const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = nok; document.head.appendChild(el); }); }
