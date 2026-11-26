@@ -91,7 +91,7 @@ details.acc[open]>summary::after{transform:rotate(180deg)}
 .twee{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .daglabel{grid-column:1/-1;font-weight:800;font-size:14px;color:var(--navy);margin-top:6px;padding-bottom:2px;border-bottom:1px solid var(--rand)}
 .daglabel:first-child{margin-top:0}
-.dagrij{font-weight:800;font-size:13px;color:var(--navy);background:#EEF2FB;border-radius:8px;padding:5px 8px!important}
+.dagrij{font-weight:800;font-size:13px;color:var(--navy);background:#EEF2FB;border-radius:8px;padding:5px 8px;margin-top:10px}
 [hidden]{display:none!important}
 .extradag{margin-top:10px;border:1px solid var(--rand);border-radius:10px;padding:10px 12px;background:#F6F8FC}
 .vinkje{display:flex!important;align-items:center;gap:8px;font-weight:700!important;margin-top:12px!important}.vinkje input{width:auto}
@@ -151,14 +151,15 @@ const bewaar = v => { try { v ? localStorage.setItem(OPSLAG, JSON.stringify(v)) 
 // tijdstip i: dag 1 = de eerste (slots - dag2_slots), dag 2 = de rest
 function slotInfo(X, i) {
   const d2 = X.dag2_datum ? (X.dag2_slots || 0) : 0, n1 = X.slots - d2;
-  return d2 && i >= n1 ? { dag: 2, datum: X.dag2_datum, t: minuten(X.dag2_start || X.start, X.duur, i - n1), i0: n1, n: d2 } : { dag: 1, datum: X.datum, t: minuten(X.start, X.duur, i), i0: 0, n: n1 };
+  if (d2 && i >= n1) { const duur = X.dag2_duur || X.duur; return { dag: 2, datum: X.dag2_datum, duur, namen: X.dag2_tafel_namen || X.tafel_namen, t: minuten(X.dag2_start || X.start, duur, i - n1), i0: n1, n: d2 }; }
+  return { dag: 1, datum: X.datum, duur: X.duur, namen: X.tafel_namen, t: minuten(X.start, X.duur, i), i0: 0, n: n1 };
 }
 const tweeDagen = X => !!(X.dag2_datum && X.dag2_slots);
 const dagKort = d => { const x = new Date(d + "T12:00:00"); return DAGEN[x.getDay()].slice(0, 2) + " " + x.getDate() + "/" + (x.getMonth() + 1); };
 const tijdVan = (X, i) => uur(slotInfo(X, i).t);
 const tijdVolVan = (X, i) => (tweeDagen(X) ? dagKort(slotInfo(X, i).datum) + " " : "") + tijdVan(X, i);
 const tijd = i => tijdVan(M, i), tijdVol = i => tijdVolVan(M, i);
-const coachNaam = t => (M.tafel_namen || [])[t - 1] || "";
+const coachNaam = (t, slot) => (slotInfo(M, slot ?? 0).namen || [])[t - 1] || "";
 
 async function oudersLaad() {
   try { M = await rpc("kskg_info", { p_code: pcode }); } catch (e) { M = null; }
@@ -177,13 +178,14 @@ async function oudersLaad() {
 
 function slotKnoppen(eigenSlot) {
   const knop = i => {
-    const bezet = (M.bezet[i] || 0) - (i === eigenSlot ? 1 : 0), vrij = M.tafels - bezet, eigen = i === eigenSlot;
-    const cls = ["slot", keuze.slot === i ? "aan" : "", vrij <= 0 ? "vol" : "", eigen ? "eigen" : "", vrij > 0 && vrij < M.tafels && keuze.slot !== i ? "deels" : ""].join(" ");
-    const stijl = vrij > 0 && vrij < M.tafels ? ` style="--vrij:${Math.round(vrij / M.tafels * 100)}%"` : "";
+    const cap = slotInfo(M, i).namen.length;
+    const bezet = (M.bezet[i] || 0) - (i === eigenSlot ? 1 : 0), vrij = cap - bezet, eigen = i === eigenSlot;
+    const cls = ["slot", keuze.slot === i ? "aan" : "", vrij <= 0 ? "vol" : "", eigen ? "eigen" : "", vrij > 0 && vrij < cap && keuze.slot !== i ? "deels" : ""].join(" ");
+    const stijl = vrij > 0 && vrij < cap ? ` style="--vrij:${Math.round(vrij / cap * 100)}%"` : "";
     return `<button type="button" class="${cls}"${stijl} ${vrij <= 0 || eigen ? "disabled" : ""} onclick="kiesSlot(${i})"><b>${tijd(i)}</b>${eigen ? "<span>jouw tijdstip</span>" : vrij <= 0 ? "<span>volzet</span>" : ""}</button>`;
   };
   if (!tweeDagen(M)) return Array.from({ length: M.slots }, (_, i) => knop(i)).join("");
-  return [slotInfo(M, 0), slotInfo(M, M.slots - 1)].map(d => `<div class="daglabel">${esc(hoofd(datumTekst(d.datum)))}</div>${Array.from({ length: d.n }, (_, k) => knop(d.i0 + k)).join("")}`).join("");
+  return [slotInfo(M, 0), slotInfo(M, M.slots - 1)].map(d => `<div class="daglabel">${esc(hoofd(datumTekst(d.datum)))} <span class="klein">· ${d.duur} min</span></div>${Array.from({ length: d.n }, (_, k) => knop(d.i0 + k)).join("")}`).join("");
 }
 function kiesSlot(i) { keuze.slot = i; document.querySelectorAll(".slots").forEach(el => el.innerHTML = slotKnoppen(el.dataset.eigen === "" ? null : Number(el.dataset.eigen))); knopStatus(); }
 function knopStatus() { const k = document.getElementById("bevestig"); if (k) k.disabled = !(keuze.slot != null && (keuze.speler || k.dataset.wijzig)); }
@@ -196,7 +198,7 @@ function toonFormulier(foutTekst) {
     <div class="blok"><h2><span class="stap">1</span>Naam van de speler</h2>
       <select id="speler" onchange="keuze.speler=this.value;knopStatus()"><option value="">Kies een speler…</option>${opties}</select>
       <h2 style="margin-top:18px"><span class="stap">2</span>Kies een tijdstip</h2>
-      <p class="klein" style="margin:0">${M.duur} minuten per gesprek</p>
+      ${tweeDagen(M) ? "" : `<p class="klein" style="margin:0">${M.duur} minuten per gesprek</p>`}
       <div class="slots" data-eigen="">${slotKnoppen(null)}</div>
       ${foutTekst ? `<p class="fout">${esc(foutTekst)}</p>` : ""}
       <button class="knop" id="bevestig" onclick="boek(this)" disabled>Afspraak bevestigen</button>
@@ -216,7 +218,7 @@ async function boek(knop) {
 }
 
 function toonBevestiging(v, melding) {
-  const kan = M.kan_wijzigen, coach = coachNaam(v.tafel);
+  const kan = M.kan_wijzigen, coach = coachNaam(v.tafel, v.slot);
   app.innerHTML = `${melding ? `<div class="melding ok-m">✅ ${esc(melding)}</div>` : ""}
     <div class="blok ok"><div class="groot">🗓️</div>
       <p style="margin:8px 0 0">Afspraak voor <b>${esc(v.naam)}</b></p>
@@ -255,9 +257,9 @@ async function annuleer() {
   } catch (e) { alert(fout(e)); }
 }
 function agenda() {
-  const v = lees(), si = slotInfo(M, v.slot), t0 = si.t, t1 = t0 + M.duur, d = si.datum.replace(/-/g, "");
+  const v = lees(), si = slotInfo(M, v.slot), t0 = si.t, t1 = t0 + si.duur, d = si.datum.replace(/-/g, "");
   const f = t => d + "T" + String(Math.floor(t / 60)).padStart(2, "0") + String(t % 60).padStart(2, "0") + "00";
-  const coach = coachNaam(v.tafel);
+  const coach = coachNaam(v.tafel, v.slot);
   const ics = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//KSK De Jeugd Lovendegem//Gesprekken//NL", "BEGIN:VEVENT",
     "UID:" + v.token.slice(0, 12) + "@ksk-gesprekken", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
     "DTSTART;TZID=Europe/Brussels:" + f(t0), "DTEND;TZID=Europe/Brussels:" + f(t1),
@@ -266,7 +268,7 @@ function agenda() {
   const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([ics], { type: "text/calendar" })); a.download = "gesprek-" + v.naam.replace(/\W+/g, "-") + ".ics"; a.click();
 }
 function deel() {
-  const v = lees(), coach = coachNaam(v.tafel);
+  const v = lees(), coach = coachNaam(v.tafel, v.slot);
   const t = `${M.titel} ${v.naam}: ${datumTekst(slotInfo(M, v.slot).datum)} om ${tijd(v.slot)}${coach ? " bij " + coach : ""} (KSK De Jeugd Lovendegem)`;
   if (navigator.share) navigator.share({ text: t }).catch(() => {}); else kopieer(t);
 }
@@ -313,8 +315,10 @@ function toonBeheer() {
     <div class="blok compact">
       <div class="rij tussen"><h2 style="margin:0;font-size:16px">Planning <span class="klein" style="font-weight:700">${B.boekingen.length}/${B.spelers.length} ingepland</span></h2></div>
       ${B.datum ? `<p class="klein" style="margin:2px 0 0">${hoofd(dagenTekst)} · tik op een vakje om aan te passen</p>
-      <table class="plan"><tr><th></th>${B.tafel_namen.map(t => `<th>${esc(t)}</th>`).join("")}</tr>
-        ${Array.from({ length: B.slots }, (_, i) => `${tweeDagen(B) && (i === 0 || i === slotInfo(B, B.slots - 1).i0) ? `<tr><td colspan="${tafels + 1}" class="dagrij">${esc(hoofd(datumTekst(slotInfo(B, i).datum)))}</td></tr>` : ""}<tr><td class="t">${bkort(i)}</td>${Array.from({ length: tafels }, (_, t) => `<td>${cel(i, t + 1)}</td>`).join("")}</tr>`).join("")}</table>
+      ${(tweeDagen(B) ? [slotInfo(B, 0), slotInfo(B, B.slots - 1)] : [slotInfo(B, 0)]).map(d => `
+      ${tweeDagen(B) ? `<div class="dagrij">${esc(hoofd(datumTekst(d.datum)))} · ${d.duur} min</div>` : ""}
+      <table class="plan"><tr><th></th>${d.namen.map(t => `<th>${esc(t)}</th>`).join("")}</tr>
+        ${Array.from({ length: d.n }, (_, k) => d.i0 + k).map(i => `<tr><td class="t">${bkort(i)}</td>${d.namen.map((_, t) => `<td>${cel(i, t + 1)}</td>`).join("")}</tr>`).join("")}</table>`).join("")}
       ${nog.length ? `<details class="nog"><summary><b>Nog geen afspraak (${nog.length})</b></summary>
           <div style="margin-top:4px">${nog.map(s => `<span>${esc(s.naam)}</span>`).join("")}</div>
           <button class="knop mini licht geen-print" style="margin-top:8px" onclick="herinner()">📋 Herinnering kopiëren</button></details>`
@@ -323,24 +327,13 @@ function toonBeheer() {
       : `<p class="klein">Nog geen datum ingesteld.</p>`}
     </div>
     <details class="acc" ${B.datum ? "" : "open"}><summary>⚙️ Instellingen</summary>
-      <label for="i_datum">Datum</label><input type="date" id="i_datum" value="${B.datum || ""}">
-      <div class="twee">
-        <div><label for="i_start">Eerste gesprek om</label><input type="time" id="i_start" value="${B.start}" oninput="instVoorbeeld()"></div>
-        <div><label for="i_duur">Minuten per gesprek</label><select id="i_duur" onchange="instVoorbeeld()">${[10, 15, 20, 25, 30].map(n => `<option ${n === B.duur ? "selected" : ""}>${n}</option>`).join("")}</select></div>
-      </div>
-      <input type="checkbox" id="i_dag2" hidden ${B.dag2_datum ? "checked" : ""}>
-      <button type="button" class="knop mini licht" id="i_dag2_plus" style="margin-top:10px" ${B.dag2_datum ? "hidden" : ""} onclick="extraDag(true)">＋ Nog een dag toevoegen</button>
-      <div id="i_dag2_vak" class="extradag" ${B.dag2_datum ? "" : "hidden"}>
+      ${dagVak(1, { datum: B.datum, start: B.start, duur: B.duur, namen: B.tafel_namen })}
+      <input type="checkbox" id="i_dag2" hidden ${tweeDagen(B) ? "checked" : ""}>
+      <button type="button" class="knop mini licht" id="i_dag2_plus" style="margin-top:10px" ${tweeDagen(B) ? "hidden" : ""} onclick="extraDag(true)">＋ Nog een dag toevoegen</button>
+      <div id="i_dag2_vak" class="extradag" ${tweeDagen(B) ? "" : "hidden"}>
         <div class="rij tussen"><b>Extra dag</b><button type="button" class="knop mini rood" onclick="extraDag(false)">✕ Verwijderen</button></div>
-        <div class="twee"><div><label for="i_d2datum">Datum</label><input type="date" id="i_d2datum" value="${B.dag2_datum || ""}" oninput="instVoorbeeld()"></div>
-          <div><label for="i_d2start">Eerste gesprek om</label><input type="time" id="i_d2start" value="${B.dag2_start || B.start}" oninput="instVoorbeeld()"></div></div>
-        <label for="i_d2n">Aantal tijdstippen op deze dag</label><input type="number" id="i_d2n" min="1" max="59" value="${B.dag2_slots || ""}" placeholder="automatisch de helft" oninput="instVoorbeeld()">
+        ${dagVak(2, { datum: B.dag2_datum, start: B.dag2_start || B.start, duur: B.dag2_duur || B.duur, namen: B.dag2_tafel_namen || B.tafel_namen, spelers: tweeDagen(B) ? Math.min(B.dag2_slots * (B.dag2_tafel_namen || B.tafel_namen).length, B.spelers.length) : "" })}
       </div>
-      <div class="twee">
-        <div><label>Aantal coaches</label><div class="keuze2">${[1, 2].map(n => `<button type="button" class="${B.tafel_namen.length === n || (n === 2 && B.tafel_namen.length > 2) ? "aan" : ""}" onclick="kiesCoaches(${n})">${n}</button>`).join("")}</div></div>
-        <div><label for="i_aantal">Aantal spelers</label><input type="number" id="i_aantal" min="1" max="60" value="${B.spelers.length || ""}" placeholder="bv. 14" oninput="instVoorbeeld()" ${B.spelers.length ? "readonly title=\"Volgt uit de spelerslijst\"" : ""}></div>
-      </div>
-      <div id="i_namen" class="twee">${B.tafel_namen.slice(0, 2).map((t, k) => `<div><label>Naam coach ${k + 1}</label><input class="i_coach" maxlength="30" value="${esc(t)}"></div>`).join("")}</div>
       <p class="melding" id="i_voorbeeld" style="margin-top:12px"></p>
       <label for="i_tot">Ouders kunnen zelf wijzigen tot en met</label><input type="date" id="i_tot" value="${B.wijzig_tot || ""}">
       <label for="i_info">Extra info voor de ouders (optioneel)</label><textarea id="i_info" rows="2" maxlength="500" placeholder="bv. Gesprekken in de kantine.">${esc(B.info || "")}</textarea>
@@ -355,54 +348,63 @@ function toonBeheer() {
     <p class="klein geen-print" style="text-align:center;margin-top:16px">🔒 Bewaar deze beheerlink voor jezelf. Wie hem heeft, kan de planning aanpassen.</p>`;
   instVoorbeeld();
 }
-// tijdstippen volgen uit het aantal spelers en coaches (nooit minder dan waar al afspraken staan)
-function nodigeSlots(spelers, coaches) {
-  const min = B.boekingen.reduce((m, b) => Math.max(m, b.slot + 1), 0);
-  return Math.max(1, Math.min(60, Math.max(Math.ceil((spelers || 1) / coaches), min)));
+// één blok met alle instellingen van een dag (k = 1: eerste dag, k = 2: extra dag)
+function dagVak(k, d) {
+  const c = Math.min(2, (d.namen || ["Coach"]).length);
+  return `<div class="twee"><div><label for="i${k}_datum">Datum</label><input type="date" id="i${k}_datum" value="${d.datum || ""}" oninput="instVoorbeeld()"></div>
+      <div><label for="i${k}_start">Eerste gesprek om</label><input type="time" id="i${k}_start" value="${d.start || "17:30"}" oninput="instVoorbeeld()"></div></div>
+    <div class="twee"><div><label for="i${k}_duur">Minuten per gesprek</label><select id="i${k}_duur" onchange="instVoorbeeld()">${[10, 15, 20, 25, 30].map(n => `<option ${n === d.duur ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+      <div><label for="i${k}_aantal">${k === 2 ? "Spelers op deze dag" : "Aantal spelers (totaal)"}</label><input type="number" id="i${k}_aantal" min="1" max="60" oninput="instVoorbeeld()"
+        value="${k === 1 ? (B.spelers.length || "") : (d.spelers || "")}" placeholder="${k === 1 ? "bv. 14" : "bv. 7"}" ${k === 1 && B.spelers.length ? "readonly" : ""}></div></div>
+    <label>Aantal coaches</label><div class="keuze2" id="i${k}_keuze">${[1, 2].map(n => `<button type="button" class="${c === n ? "aan" : ""}" onclick="kiesCoaches(${k},${n})">${n}</button>`).join("")}</div>
+    <div id="i${k}_namen" class="twee">${(d.namen || ["Coach"]).slice(0, 2).map((t, x) => `<div><label>Naam coach ${x + 1}</label><input class="i${k}_coach" maxlength="30" value="${esc(t)}" placeholder="bv. Coach Jan"></div>`).join("")}</div>`;
 }
-function instCoaches() { return [...document.querySelectorAll(".i_coach")].map((x, k) => x.value.trim() || "Coach " + (k + 1)); }
-function kiesCoaches(n) {
-  const oud = instCoaches();
-  document.querySelectorAll(".keuze2 button").forEach(b => b.classList.toggle("aan", Number(b.textContent) === n));
-  document.getElementById("i_namen").innerHTML = Array.from({ length: n }, (_, k) => `<div><label>Naam coach ${k + 1}</label><input class="i_coach" maxlength="30" value="${esc(oud[k] || (k ? "" : "Coach"))}" placeholder="bv. Coach Jan"></div>`).join("");
+function instCoaches(k) { return [...document.querySelectorAll(".i" + k + "_coach")].map((x, n) => x.value.trim() || "Coach " + (n + 1)); }
+function kiesCoaches(k, n) {
+  const oud = instCoaches(k);
+  document.querySelectorAll("#i" + k + "_keuze button").forEach(b => b.classList.toggle("aan", Number(b.textContent) === n));
+  document.getElementById("i" + k + "_namen").innerHTML = Array.from({ length: n }, (_, x) => `<div><label>Naam coach ${x + 1}</label><input class="i${k}_coach" maxlength="30" value="${esc(oud[x] || "")}" placeholder="bv. Coach Jan"></div>`).join("");
   instVoorbeeld();
-}
-function instVoorbeeld() {
-  const el = document.getElementById("i_voorbeeld"); if (!el) return;
-  const c = document.querySelectorAll(".i_coach").length, n = Number(document.getElementById("i_aantal").value) || 0;
-  const start = document.getElementById("i_start").value || "17:30", duur = Number(document.getElementById("i_duur").value);
-  if (!n) { el.textContent = "Vul het aantal spelers in."; return; }
-  const sl = nodigeSlots(n, c), d2 = dag2Aantal(sl), tegelijk = c > 1 ? `, telkens ${c} gesprekken tegelijk` : "";
-  if (!d2) { el.innerHTML = `🕒 <b>${sl} tijdstippen</b> van ${uur(minuten(start, duur, 0))} tot ${uur(minuten(start, duur, sl))}${tegelijk}.`; return; }
-  const s2 = document.getElementById("i_d2start").value || start, dd = document.getElementById("i_d2datum").value;
-  el.innerHTML = `🕒 <b>Dag 1:</b> ${sl - d2} tijdstippen, ${uur(minuten(start, duur, 0))} tot ${uur(minuten(start, duur, sl - d2))}<br>🕒 <b>Extra dag${dd ? " (" + dagKort(dd) + ")" : ""}:</b> ${d2} tijdstippen, ${uur(minuten(s2, duur, 0))} tot ${uur(minuten(s2, duur, d2))}${tegelijk}.`;
 }
 function extraDag(aan) {
   document.getElementById("i_dag2").checked = aan;
   document.getElementById("i_dag2_vak").hidden = !aan;
   document.getElementById("i_dag2_plus").hidden = aan;
-  if (aan) document.getElementById("i_d2datum").focus();
+  if (aan) document.getElementById("i2_datum").focus();
   instVoorbeeld();
 }
-// aantal tijdstippen op dag 2 (0 = één dag)
-function dag2Aantal(totaal) {
-  if (!document.getElementById("i_dag2").checked || totaal < 2) return 0;
-  const n = Number(document.getElementById("i_d2n").value);
-  return Math.max(1, Math.min(totaal - 1, n || Math.floor(totaal / 2)));
+// verdeling: spelers op de extra dag zoals ingevuld, de rest op de eerste dag; tijdstippen = spelers ÷ coaches
+function instPlan() {
+  const v = id => document.getElementById(id).value, extra = document.getElementById("i_dag2").checked;
+  const totaal = Number(v("i1_aantal")) || 0, c1 = instCoaches(1).length, c2 = instCoaches(2).length;
+  const n2 = extra ? Math.max(0, Math.min(totaal, Number(v("i2_aantal")) || 0)) : 0, n1 = totaal - n2;
+  const s1 = Math.max(1, Math.ceil(Math.max(n1, 1) / c1)), s2 = extra && n2 ? Math.ceil(n2 / c2) : 0;
+  return { totaal, n1, n2, c1, c2, s1, s2, extra };
+}
+function instVoorbeeld() {
+  const el = document.getElementById("i_voorbeeld"); if (!el) return;
+  const v = id => document.getElementById(id).value, P = instPlan();
+  if (!P.totaal) { el.textContent = "Vul het aantal spelers in."; return; }
+  const lijn = (k, n, sl, c) => { const st = v("i" + k + "_start") || "17:30", du = Number(v("i" + k + "_duur")), dd = v("i" + k + "_datum");
+    return `🕒 <b>${k === 1 ? "Dag 1" : "Extra dag"}${dd ? " (" + dagKort(dd) + ")" : ""}:</b> ${n} spelers, ${sl} tijdstippen van ${uur(minuten(st, du, 0))} tot ${uur(minuten(st, du, sl))}${c > 1 ? `, ${c} gesprekken tegelijk` : ""}`; };
+  if (!P.extra) { el.innerHTML = lijn(1, P.totaal, P.s1, P.c1).replace("<b>Dag 1", "<b>Planning"); return; }
+  if (!P.n2) { el.innerHTML = "Vul in hoeveel spelers op de extra dag komen."; return; }
+  el.innerHTML = lijn(1, P.n1, P.s1, P.c1) + "<br>" + lijn(2, P.n2, P.s2, P.c2);
 }
 function bewaarInstellingen() {
-  const v = id => document.getElementById(id).value, c = instCoaches();
-  const sl = nodigeSlots(Number(v("i_aantal")) || B.spelers.length, c.length), d2 = dag2Aantal(sl);
-  if (d2 && !v("i_d2datum")) return alert("Kies de datum van de extra dag.");
-  beheerBewaar({ datum: v("i_datum"), start: v("i_start"), duur: Number(v("i_duur")), slots: sl,
-    dag2_datum: d2 ? v("i_d2datum") : "", dag2_start: d2 ? v("i_d2start") : "", dag2_slots: d2,
-    tafel_namen: c, wijzig_tot: v("i_tot"), info: v("i_info") });
+  const v = id => document.getElementById(id).value, P = instPlan();
+  if (P.extra && (!v("i2_datum") || !P.n2)) return alert("Vul de datum en het aantal spelers van de extra dag in.");
+  beheerBewaar({ datum: v("i1_datum"), start: v("i1_start"), duur: Number(v("i1_duur")), tafel_namen: instCoaches(1),
+    slots: P.s1 + P.s2, dag2_slots: P.s2, dag2_datum: P.s2 ? v("i2_datum") : "", dag2_start: P.s2 ? v("i2_start") : "",
+    dag2_duur: P.s2 ? Number(v("i2_duur")) : null, dag2_tafel_namen: P.s2 ? instCoaches(2) : null,
+    wijzig_tot: v("i_tot"), info: v("i_info") });
 }
 function bewaarSpelers() {
   const namen = document.getElementById("i_spelers").value.split(/\n/).map(x => x.replace(/^\s*\d+[.)]\s*/, "").trim()).filter(Boolean);
   const weg = B.spelers.filter(s => !namen.some(n => n.toLowerCase() === s.naam.toLowerCase()) && B.boekingen.some(b => b.speler_id === s.id));
   if (weg.length && !confirm(`Deze spelers hebben al een afspraak die dan verdwijnt:\n${weg.map(s => s.naam).join("\n")}\n\nDoorgaan?`)) return;
-  beheerBewaar({ spelers: namen, slots: nodigeSlots(namen.length, B.tafel_namen.length) }, `${namen.length} spelers bewaard`);
+  const min = B.boekingen.reduce((m, b) => Math.max(m, b.slot + 1), 0);
+  beheerBewaar(tweeDagen(B) ? { spelers: namen } : { spelers: namen, slots: Math.max(min, Math.ceil(namen.length / B.tafel_namen.length)) }, `${namen.length} spelers bewaard`);
 }
 function celKies(i, t) {
   const b = B.boekingen.find(x => x.slot === i && x.tafel === t);
@@ -411,10 +413,10 @@ function celKies(i, t) {
   const zet = async (sid, slot, tafel) => { try { B = await rpc("kskg_beheer_zet", { p_token: BT, p_ploeg: PID, p_speler: sid, p_slot: slot, p_tafel: tafel }); return true; } catch (e) { alert(fout(e)); return false; } };
   if (b) {
     // bezette plaats: enkel verplaatsen naar een vrije plaats of schrappen (nooit een andere familie wegduwen)
-    const vrij = []; for (let x = 0; x < B.slots; x++) for (let y = 1; y <= B.tafel_namen.length; y++) if (!B.boekingen.some(z => z.slot === x && z.tafel === y)) vrij.push([x, y]);
+    const vrij = []; for (let x = 0; x < B.slots; x++) for (let y = 1; y <= slotInfo(B, x).namen.length; y++) if (!B.boekingen.some(z => z.slot === x && z.tafel === y)) vrij.push([x, y]);
     const zelfde = vrij.filter(([x]) => x === i), ander = vrij.filter(([x]) => x !== i);
-    const opt = ([x, y]) => `<option value="${x}:${y}">${btijd(x)} · ${esc(B.tafel_namen[y - 1])}</option>`;
-    d.innerHTML = `<div class="blok"><h2>${esc(naamVan(b.speler_id))}</h2><p class="klein" style="margin:0">Nu: ${btijd(i)} · ${esc(B.tafel_namen[t - 1])}</p>
+    const opt = ([x, y]) => `<option value="${x}:${y}">${btijd(x)} · ${esc(slotInfo(B, x).namen[y - 1])}</option>`;
+    d.innerHTML = `<div class="blok"><h2>${esc(naamVan(b.speler_id))}</h2><p class="klein" style="margin:0">Nu: ${btijd(i)} · ${esc(slotInfo(B, i).namen[t - 1])}</p>
       ${vrij.length ? `<label for="d_vp">Verplaatsen naar</label><select id="d_vp">${zelfde.length ? `<optgroup label="Zelfde uur, andere coach">${zelfde.map(opt).join("")}</optgroup>` : ""}${ander.length ? `<optgroup label="Vrije plaatsen">${ander.map(opt).join("")}</optgroup>` : ""}</select>
         <p class="klein" style="margin:6px 0 0">Verandert het uur? Laat het de ouders weten.</p><button class="knop" id="d_ok">Verplaatsen</button>` : `<p class="klein">Er zijn geen vrije plaatsen meer.</p>`}
       <button class="knop rood" id="d_weg">Afspraak schrappen</button>
@@ -427,7 +429,7 @@ function celKies(i, t) {
   }
   // vrije plaats: iemand zonder afspraak inplannen, of iemand hierheen verplaatsen
   const zonder = B.spelers.filter(s => !ingepland.has(s.id)), met = B.spelers.filter(s => ingepland.has(s.id));
-  d.innerHTML = `<div class="blok"><h2>${btijd(i)} · ${esc(B.tafel_namen[t - 1])}</h2>
+  d.innerHTML = `<div class="blok"><h2>${btijd(i)} · ${esc(slotInfo(B, i).namen[t - 1])}</h2>
     <label for="d_sp">Speler</label>
     <select id="d_sp"><option value="">Kies…</option>
       ${zonder.length ? `<optgroup label="Nog geen afspraak">${zonder.map(s => `<option value="${s.id}">${esc(s.naam)}</option>`).join("")}</optgroup>` : ""}
