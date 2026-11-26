@@ -92,6 +92,8 @@ details.acc[open]>summary::after{transform:rotate(180deg)}
 .daglabel{grid-column:1/-1;font-weight:800;font-size:14px;color:var(--navy);margin-top:6px;padding-bottom:2px;border-bottom:1px solid var(--rand)}
 .daglabel:first-child{margin-top:0}
 .dagrij{font-weight:800;font-size:13px;color:var(--navy);background:#EEF2FB;border-radius:8px;padding:5px 8px!important}
+[hidden]{display:none!important}
+.extradag{margin-top:10px;border:1px solid var(--rand);border-radius:10px;padding:10px 12px;background:#F6F8FC}
 .vinkje{display:flex!important;align-items:center;gap:8px;font-weight:700!important;margin-top:12px!important}.vinkje input{width:auto}
 .keuze2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
 .keuze2 button{padding:10px 0;border:1px solid var(--rand);border-radius:10px;background:#fff;font-weight:800;font-size:17px;cursor:pointer}
@@ -322,15 +324,17 @@ function toonBeheer() {
     </div>
     <details class="acc" ${B.datum ? "" : "open"}><summary>⚙️ Instellingen</summary>
       <label for="i_datum">Datum</label><input type="date" id="i_datum" value="${B.datum || ""}">
-      <label class="vinkje"><input type="checkbox" id="i_dag2" ${B.dag2_datum ? "checked" : ""} onchange="document.getElementById('i_dag2_vak').hidden=!this.checked;instVoorbeeld()"> Gesprekken op twee dagen</label>
-      <div id="i_dag2_vak" ${B.dag2_datum ? "" : "hidden"}>
-        <div class="twee"><div><label for="i_d2datum">Tweede dag</label><input type="date" id="i_d2datum" value="${B.dag2_datum || ""}" oninput="instVoorbeeld()"></div>
-          <div><label for="i_d2start">Eerste gesprek om</label><input type="time" id="i_d2start" value="${B.dag2_start || B.start}" oninput="instVoorbeeld()"></div></div>
-        <label for="i_d2n">Aantal tijdstippen op de tweede dag</label><input type="number" id="i_d2n" min="1" max="59" value="${B.dag2_slots || ""}" placeholder="automatisch de helft" oninput="instVoorbeeld()">
-      </div>
       <div class="twee">
         <div><label for="i_start">Eerste gesprek om</label><input type="time" id="i_start" value="${B.start}" oninput="instVoorbeeld()"></div>
         <div><label for="i_duur">Minuten per gesprek</label><select id="i_duur" onchange="instVoorbeeld()">${[10, 15, 20, 25, 30].map(n => `<option ${n === B.duur ? "selected" : ""}>${n}</option>`).join("")}</select></div>
+      </div>
+      <input type="checkbox" id="i_dag2" hidden ${B.dag2_datum ? "checked" : ""}>
+      <button type="button" class="knop mini licht" id="i_dag2_plus" style="margin-top:10px" ${B.dag2_datum ? "hidden" : ""} onclick="extraDag(true)">＋ Nog een dag toevoegen</button>
+      <div id="i_dag2_vak" class="extradag" ${B.dag2_datum ? "" : "hidden"}>
+        <div class="rij tussen"><b>Extra dag</b><button type="button" class="knop mini rood" onclick="extraDag(false)">✕ Verwijderen</button></div>
+        <div class="twee"><div><label for="i_d2datum">Datum</label><input type="date" id="i_d2datum" value="${B.dag2_datum || ""}" oninput="instVoorbeeld()"></div>
+          <div><label for="i_d2start">Eerste gesprek om</label><input type="time" id="i_d2start" value="${B.dag2_start || B.start}" oninput="instVoorbeeld()"></div></div>
+        <label for="i_d2n">Aantal tijdstippen op deze dag</label><input type="number" id="i_d2n" min="1" max="59" value="${B.dag2_slots || ""}" placeholder="automatisch de helft" oninput="instVoorbeeld()">
       </div>
       <div class="twee">
         <div><label>Aantal coaches</label><div class="keuze2">${[1, 2].map(n => `<button type="button" class="${B.tafel_namen.length === n || (n === 2 && B.tafel_namen.length > 2) ? "aan" : ""}" onclick="kiesCoaches(${n})">${n}</button>`).join("")}</div></div>
@@ -371,7 +375,14 @@ function instVoorbeeld() {
   const sl = nodigeSlots(n, c), d2 = dag2Aantal(sl), tegelijk = c > 1 ? `, telkens ${c} gesprekken tegelijk` : "";
   if (!d2) { el.innerHTML = `🕒 <b>${sl} tijdstippen</b> van ${uur(minuten(start, duur, 0))} tot ${uur(minuten(start, duur, sl))}${tegelijk}.`; return; }
   const s2 = document.getElementById("i_d2start").value || start, dd = document.getElementById("i_d2datum").value;
-  el.innerHTML = `🕒 <b>Dag 1:</b> ${sl - d2} tijdstippen, ${uur(minuten(start, duur, 0))} tot ${uur(minuten(start, duur, sl - d2))}<br>🕒 <b>Dag 2${dd ? " (" + dagKort(dd) + ")" : ""}:</b> ${d2} tijdstippen, ${uur(minuten(s2, duur, 0))} tot ${uur(minuten(s2, duur, d2))}${tegelijk}.`;
+  el.innerHTML = `🕒 <b>Dag 1:</b> ${sl - d2} tijdstippen, ${uur(minuten(start, duur, 0))} tot ${uur(minuten(start, duur, sl - d2))}<br>🕒 <b>Extra dag${dd ? " (" + dagKort(dd) + ")" : ""}:</b> ${d2} tijdstippen, ${uur(minuten(s2, duur, 0))} tot ${uur(minuten(s2, duur, d2))}${tegelijk}.`;
+}
+function extraDag(aan) {
+  document.getElementById("i_dag2").checked = aan;
+  document.getElementById("i_dag2_vak").hidden = !aan;
+  document.getElementById("i_dag2_plus").hidden = aan;
+  if (aan) document.getElementById("i_d2datum").focus();
+  instVoorbeeld();
 }
 // aantal tijdstippen op dag 2 (0 = één dag)
 function dag2Aantal(totaal) {
@@ -382,7 +393,7 @@ function dag2Aantal(totaal) {
 function bewaarInstellingen() {
   const v = id => document.getElementById(id).value, c = instCoaches();
   const sl = nodigeSlots(Number(v("i_aantal")) || B.spelers.length, c.length), d2 = dag2Aantal(sl);
-  if (d2 && !v("i_d2datum")) return alert("Kies de datum van de tweede dag.");
+  if (d2 && !v("i_d2datum")) return alert("Kies de datum van de extra dag.");
   beheerBewaar({ datum: v("i_datum"), start: v("i_start"), duur: Number(v("i_duur")), slots: sl,
     dag2_datum: d2 ? v("i_d2datum") : "", dag2_start: d2 ? v("i_d2start") : "", dag2_slots: d2,
     tafel_namen: c, wijzig_tot: v("i_tot"), info: v("i_info") });
