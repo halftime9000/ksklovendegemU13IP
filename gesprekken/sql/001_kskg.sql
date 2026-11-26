@@ -271,3 +271,7 @@ end $$;
 -- ---------- veiligheid: logboek van elke wijziging + momentopname elke 30 minuten ----------
 -- (zelfde opzet als cs_gesprek_log / cs_gesprek_snapshot in Sjotter; tabellen kskg_log en kskg_snapshot,
 --  trigger kskg_log_t op kskg_boeking, pg_cron-job 'kskg-snapshot' die kskg_snapshot_maak() oproept)
+
+-- ---------- tweede dag (optioneel) ----------
+-- kskg_ploeg.dag2_datum, dag2_start, dag2_slots: de laatste dag2_slots tijdstippen vallen op dag 2.
+-- Zie migratie 'kskg_tweede_dag' (kskg_slot_uur, kskg_info, kskg_beheer, kskg_beheer_bewaar, kskg_snapshot_maak).
