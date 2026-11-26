@@ -2,7 +2,8 @@
 
 Afspraken maken voor de evaluatiegesprekken, voor alle jeugdploegen.
 
-- Ouders: `gesprekken/?p=<ploegcode>`
+- Verhuisd naar **https://sjotter.be/ksk/** (code in de Sjotter-repo, map ksk/). Deze pagina stuurt oude links door.
+- Ouders: `sjotter.be/ksk/<ploegcode>`
 - Coach van een ploeg: `gesprekken/?b=<coachlink-token>`
 - Jeugdwerking (alle ploegen): `gesprekken/?a=<admin-token>`
 
