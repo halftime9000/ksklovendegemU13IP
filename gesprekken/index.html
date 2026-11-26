@@ -9,11 +9,11 @@
 <link rel="icon" type="image/png" href="logo.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#182448;--navy2:#203060;--navy-d:#0A1628;--geel:#E0D040;--bg:#EEF1F7;--kaart:#fff;--rand:#D5DBE8;--tekst:#14203F;--zacht:#5B6683;--fout:#C0392B;--ok:#15803D;--groen-bg:#E4F5EA;--groen-rand:#B6DFC3;--rood-bg:#FBE4E1;--rood-rand:#F0C2BC}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--tekst);font-family:Nunito,system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.45}
+body{margin:0;background:var(--bg);color:var(--tekst);font-family:Barlow,system-ui,-apple-system,sans-serif;font-size:16px;line-height:1.45}
 button,select,input,textarea{font:inherit;color:inherit}
 .kop{background:linear-gradient(160deg,var(--navy2),var(--navy) 55%,var(--navy-d));color:#fff;padding:18px 16px 22px;border-bottom:4px solid var(--geel)}
 .kop .in,main{max-width:600px;margin:0 auto}
@@ -21,7 +21,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 .kop .rij>div{min-width:0}
 .kop img{height:78px;width:auto;flex:none;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
 .kop small{display:block;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--geel);font-size:13px}
-.kop h1{margin:2px 0 0;font-size:clamp(24px,7vw,32px);font-weight:900;line-height:1.1}
+.kop h1{margin:2px 0 0;font-size:clamp(24px,7vw,32px);font-weight:800;line-height:1.1}
 .kop p{margin:4px 0 0;opacity:.92;font-size:16px;font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chips:not(:empty){margin-top:10px}
 .chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.1);color:#fff;font-weight:700;font-size:13px;padding:4px 10px;border-radius:999px;border:1px solid rgba(224,208,64,.45);white-space:nowrap}
@@ -34,9 +34,9 @@ button,select,input,textarea{font:inherit;color:inherit}
 }
 main{padding:14px 14px 60px}
 .blok{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:16px;margin-top:12px}
-.blok h2{margin:0 0 6px;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px}
+.blok h2{margin:0 0 6px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:8px}
 .info{margin:12px 4px 0;font-size:14px;color:var(--zacht);font-weight:700}
-.stap{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--geel);align-items:center;justify-content:center;font-size:14px;font-weight:900;flex:none}
+.stap{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--geel);align-items:center;justify-content:center;font-size:14px;font-weight:800;flex:none}
 .klein{font-size:13px;color:var(--zacht)}
 .leeg{text-align:center;color:var(--zacht);padding:28px 0}
 select,input,textarea{width:100%;padding:11px 12px;border:1px solid var(--rand);border-radius:10px;background:#fff;font-size:16px}
@@ -44,13 +44,13 @@ textarea{resize:vertical}
 label{display:block;font-weight:800;font-size:14px;margin:12px 0 4px}
 .slots{display:grid;grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px;margin-top:10px}
 .slot{border:1px solid var(--groen-rand);background:var(--groen-bg);border-radius:10px;height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;padding:0 4px}
-.slot b{font-size:17px;font-weight:900}.slot span{font-size:11px;line-height:1.1;margin-top:1px}
+.slot b{font-size:17px;font-weight:800}.slot span{font-size:11px;line-height:1.1;margin-top:1px}
 .slot.deels{background:linear-gradient(90deg,var(--groen-bg) 0 var(--vrij),var(--rood-bg) var(--vrij) 100%);border-color:#D8D2C6}
 .slot.vol{background:var(--rood-bg);border-color:var(--rood-rand);color:#9A3B30;cursor:not-allowed}
 .slot.aan{background:var(--navy);border-color:var(--navy);color:#fff}
 .slot.eigen{outline:3px solid var(--geel);outline-offset:-3px}
 .slot:disabled{cursor:not-allowed}
-.knop{display:block;width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--navy);color:#fff;font-weight:900;font-size:16px;cursor:pointer;text-align:center;text-decoration:none}
+.knop{display:block;width:100%;margin-top:14px;padding:13px;border:0;border-radius:12px;background:var(--navy);color:#fff;font-weight:800;font-size:16px;cursor:pointer;text-align:center;text-decoration:none}
 .knop.geel{background:var(--geel);color:var(--navy)}
 .knop.licht{background:#fff;color:var(--navy);border:1px solid var(--rand)}
 .knop.rood{background:#fff;color:var(--fout);border:1px solid var(--rood-rand)}
@@ -58,7 +58,7 @@ label{display:block;font-weight:800;font-size:14px;margin:12px 0 4px}
 .knop.mini{display:inline-flex;align-items:center;gap:5px;width:auto;margin:0;padding:6px 10px;font-size:13px;border-radius:8px}
 .knoppen{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.knoppen .knop{margin:0}
 .fout{color:var(--fout);font-weight:700;margin:10px 0 0}
-.ok{text-align:center}.ok .groot{font-size:42px;line-height:1}.ok .tijd{font-size:30px;font-weight:900;color:var(--navy);margin:6px 0 0}
+.ok{text-align:center}.ok .groot{font-size:42px;line-height:1}.ok .tijd{font-size:30px;font-weight:800;color:var(--navy);margin:6px 0 0}
 .melding{background:#FFF8D6;border:1px solid #EEDB7A;border-radius:10px;padding:10px 12px;font-size:14px;margin-top:10px}
 .melding.ok-m{background:#E4F5EA;border-color:var(--groen-rand)}
 .pil{display:inline-block;font-size:12px;font-weight:800;padding:3px 10px;border-radius:999px}
@@ -70,11 +70,11 @@ label{display:block;font-weight:800;font-size:14px;margin:12px 0 4px}
 .plan th:first-child{width:58px}
 .plan th{font-size:12px;color:var(--zacht);text-align:left;padding:0 4px;font-weight:800}
 .plan td{padding:0 2px}
-.plan td.t{font-weight:900;white-space:nowrap;width:56px;font-size:15px}
+.plan td.t{font-weight:800;white-space:nowrap;width:56px;font-size:15px}
 .cel{width:100%;min-height:40px;border-radius:9px;border:1px dashed var(--rand);background:#FAFBFE;cursor:pointer;text-align:left;padding:6px 9px;font-size:14px;font-weight:700}
 .cel.vol{border:1px solid #C8D2EA;background:#EEF2FB;color:var(--navy)}
 .cel.vol small{display:block;font-size:10px;color:var(--zacht);font-weight:600}
-.cel:empty::before{content:"+";color:#AAB3C9;font-weight:900}
+.cel:empty::before{content:"+";color:#AAB3C9;font-weight:800}
 .nog{margin-top:8px;font-size:14px;border-top:1px solid var(--rand);padding-top:8px}
 .nog>summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between}
 .nog>summary::-webkit-details-marker{display:none}
@@ -84,13 +84,13 @@ label{display:block;font-weight:800;font-size:14px;margin:12px 0 4px}
 .plan{border-spacing:0 3px!important}
 .nog span{display:inline-block;background:#FFF1F0;border:1px solid var(--rood-rand);border-radius:999px;padding:2px 9px;margin:3px 3px 0 0;font-size:13px}
 details.acc{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:12px 16px;margin-top:12px}
-details.acc>summary{cursor:pointer;font-weight:900;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.acc>summary{cursor:pointer;font-weight:800;font-size:17px;list-style:none;display:flex;justify-content:space-between;align-items:center}
 details.acc>summary::-webkit-details-marker{display:none}
 details.acc>summary::after{content:"▾";color:var(--zacht)}
 details.acc[open]>summary::after{transform:rotate(180deg)}
 .twee{display:grid;grid-template-columns:1fr 1fr;gap:0 10px}
 .keuze2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.keuze2 button{padding:10px 0;border:1px solid var(--rand);border-radius:10px;background:#fff;font-weight:900;font-size:17px;cursor:pointer}
+.keuze2 button{padding:10px 0;border:1px solid var(--rand);border-radius:10px;background:#fff;font-weight:800;font-size:17px;cursor:pointer}
 .keuze2 button.aan{background:var(--navy);color:var(--geel);border-color:var(--navy)}
 .ploeg{display:flex;flex-direction:column;gap:8px;padding:12px 0;border-bottom:1px solid var(--rand)}
 .ploeg:last-child{border-bottom:0}
