@@ -35,6 +35,7 @@ button,select,input,textarea{font:inherit;color:inherit}
 main{padding:14px 14px 60px}
 .blok{background:var(--kaart);border:1px solid var(--rand);border-radius:14px;padding:16px;margin-top:12px}
 .blok h2{margin:0 0 6px;font-size:18px;font-weight:900;display:flex;align-items:center;gap:8px}
+.info{margin:12px 4px 0;font-size:14px;color:var(--zacht);font-weight:700}
 .stap{display:inline-flex;width:26px;height:26px;border-radius:50%;background:var(--navy);color:var(--geel);align-items:center;justify-content:center;font-size:14px;font-weight:900;flex:none}
 .klein{font-size:13px;color:var(--zacht)}
 .leeg{text-align:center;color:var(--zacht);padding:28px 0}
@@ -166,11 +167,10 @@ const wijzigTekst = () => M.wijzig_tot ? `Je kan je afspraak zelf wijzigen of an
 function toonFormulier(foutTekst) {
   const opties = M.spelers.map(s => `<option value="${s.id}" ${keuze.speler === s.id ? "selected" : ""} ${s.geboekt ? "disabled" : ""}>${esc(s.naam)}${s.geboekt ? " (al ingepland)" : ""}</option>`).join("");
   app.innerHTML = `
-    ${M.info ? `<div class="blok">${esc(M.info).replace(/\n/g, "<br>")}</div>` : ""}
+    ${M.info ? `<p class="info">📍 ${esc(M.info).replace(/\n/g, "<br>")}</p>` : ""}
     <div class="blok"><h2><span class="stap">1</span>Naam van de speler</h2>
       <select id="speler" onchange="keuze.speler=this.value;knopStatus()"><option value="">Kies een speler…</option>${opties}</select>
-      <p class="klein" style="margin:6px 0 0">Staat je kind er al bij als ingepland, maar heb jij niets geboekt? Contacteer de coach.</p></div>
-    <div class="blok"><h2><span class="stap">2</span>Kies een tijdstip</h2>
+      <h2 style="margin-top:18px"><span class="stap">2</span>Kies een tijdstip</h2>
       <p class="klein" style="margin:0">${uur(minuten(M.start, 0, 0))} tot ${uur(minuten(M.start, M.duur, M.slots))} · ${M.duur} minuten per gesprek</p>
       <div class="slots" data-eigen="">${slotKnoppen(null)}</div>
       ${foutTekst ? `<p class="fout">${esc(foutTekst)}</p>` : ""}
