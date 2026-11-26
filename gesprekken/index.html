@@ -281,24 +281,25 @@ function toonBeheer() {
   app.innerHTML = `
     ${B.admin ? `<p class="geen-print" style="margin:4px 0 0"><a href="${BASIS}?a=${encodeURIComponent(BT)}" style="color:var(--navy);font-weight:800">← Alle ploegen</a></p>` : ""}
     <div class="blok geen-print compact">
-      <div class="rij tussen"><h2 style="margin:0;font-size:16px">Link voor de ouders <span class="pil ${B.open ? "open" : "dicht"}">${B.open ? "Open" : "Gesloten"}</span></h2></div>
-      ${klaarVoorOpen ? "" : `<p class="klein" style="margin:4px 0 0">Vul eerst de datum en de spelers in. Daarna kan je de link openzetten.</p>`}
+      <div class="rij tussen"><h2 style="margin:0;font-size:16px">Link voor de ouders <span class="pil ${B.open ? "open" : "dicht"}">${B.open ? "Inschrijvingen open" : "Inschrijvingen gesloten"}</span></h2></div>
+      ${klaarVoorOpen ? "" : `<p class="klein" style="margin:4px 0 0">Vul eerst de datum en de spelers in. Daarna kan je de inschrijvingen openen.</p>`}
       <div class="rij" style="margin-top:8px;gap:6px">
         <button class="knop mini licht" onclick="kopieer(${js(link)})">🔗 Kopieer</button>
         <a class="knop mini licht" href="https://wa.me/?text=${encodeURIComponent(waTekst)}" target="_blank" rel="noopener">💬 WhatsApp</a>
-        <button class="knop mini ${B.open ? "licht" : "geel"}" ${klaarVoorOpen || B.open ? "" : "disabled"} onclick="beheerBewaar({open:${!B.open}}, '${B.open ? "Gesloten" : "Open: ouders kunnen nu kiezen"}')">${B.open ? "🔒 Sluiten" : "🔓 Openzetten"}</button>
+        <button class="knop mini ${B.open ? "licht" : "geel"}" ${klaarVoorOpen || B.open ? "" : "disabled"} onclick="${B.open ? `if(confirm('Inschrijvingen sluiten? Ouders kunnen dan geen afspraak meer maken of wijzigen.'))` : ""}beheerBewaar({open:${!B.open}}, '${B.open ? "Inschrijvingen gesloten" : "Inschrijvingen open: ouders kunnen nu kiezen"}')">${B.open ? "⏸️ Inschrijvingen sluiten" : "▶️ Inschrijvingen openen"}</button>
       </div>
       ${B.wijzig_tot ? `<p class="klein" style="margin:6px 0 0">Ouders wijzigen zelf tot ${datumTekst(B.wijzig_tot)}.</p>` : ""}
     </div>
     <div class="blok compact">
-      <div class="rij tussen"><h2 style="margin:0;font-size:16px">Planning <span class="klein" style="font-weight:700">${B.boekingen.length}/${B.spelers.length} ingepland</span></h2>${B.datum ? `<button class="knop mini licht geen-print" onclick="print()">🖨️</button>` : ""}</div>
+      <div class="rij tussen"><h2 style="margin:0;font-size:16px">Planning <span class="klein" style="font-weight:700">${B.boekingen.length}/${B.spelers.length} ingepland</span></h2></div>
       ${B.datum ? `<p class="klein" style="margin:2px 0 0">${hoofd(datumTekst(B.datum))} · ${btijd(0)} tot ${btijd(B.slots)} · tik op een vakje om aan te passen</p>
       <table class="plan"><tr><th></th>${B.tafel_namen.map(t => `<th>${esc(t)}</th>`).join("")}</tr>
         ${Array.from({ length: B.slots }, (_, i) => `<tr><td class="t">${btijd(i)}</td>${Array.from({ length: tafels }, (_, t) => `<td>${cel(i, t + 1)}</td>`).join("")}</tr>`).join("")}</table>
       ${nog.length ? `<details class="nog"><summary><b>Nog geen afspraak (${nog.length})</b></summary>
           <div style="margin-top:4px">${nog.map(s => `<span>${esc(s.naam)}</span>`).join("")}</div>
           <button class="knop mini licht geen-print" style="margin-top:8px" onclick="herinner()">📋 Herinnering kopiëren</button></details>`
-        : `<p class="klein" style="margin:8px 0 0">✅ Iedereen is ingepland.</p>`}`
+        : `<p class="klein" style="margin:8px 0 0">✅ Iedereen is ingepland.</p>`}
+      <button class="knop mini licht geen-print" style="margin-top:10px" onclick="print()">🖨️ Planning afdrukken</button>`
       : `<p class="klein">Nog geen datum ingesteld.</p>`}
     </div>
     <details class="acc" ${B.datum ? "" : "open"}><summary>⚙️ Instellingen</summary>
